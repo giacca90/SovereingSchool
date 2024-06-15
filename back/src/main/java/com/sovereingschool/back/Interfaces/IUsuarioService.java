@@ -27,5 +27,5 @@ public interface IUsuarioService {
 
     public String changeCursosUsuario(Long id_usuario, List<Curso> cursos_usuario);
 
-    public String deleteUsuario(Long id_usuario);
+    public String deleteUsuario(Long id);
 }

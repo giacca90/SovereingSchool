@@ -84,8 +84,8 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public String deleteUsuario(Long id_usuario) {
-        this.repo.deleteById(id_usuario);
+    public String deleteUsuario(Long id) {
+        this.repo.deleteById(id);
         return "Usuario eliminado con exito!!!";
     }
 

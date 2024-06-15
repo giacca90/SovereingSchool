@@ -29,6 +29,6 @@ public interface ICursoService {
 
     public Curso updateCurso(Curso curso);
 
-    public void deleteCurso(Long id_curso);
+    public String deleteCurso(Long id_curso);
 
 }

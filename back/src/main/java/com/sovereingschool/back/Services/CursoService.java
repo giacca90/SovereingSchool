@@ -89,8 +89,9 @@ public class CursoService implements ICursoService {
     }
 
     @Override
-    public void deleteCurso(Long id_curso) {
+    public String deleteCurso(Long id_curso) {
         this.repo.deleteById(id_curso);
+        return "Curso eliminado con exito!!!";
     }
 
 }
