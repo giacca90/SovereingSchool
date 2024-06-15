@@ -1,0 +1,25 @@
+package com.sovereingschool.back.Repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.sovereingschool.back.Models.Login;
+
+@Repository
+public interface LoginRepository extends JpaRepository<Login, Long> {
+
+    @Query("SELECT l.correo_electronico FROM Login l WHERE l.id_usuario = :id")
+    String findCorreoLoginForId(@Param("id") Long id);
+
+    @Query("SELECT l.password FROM Login l WHERE l.id_usuario = :id")
+    String findPasswordLoginForId(@Param("id") Long id);
+
+    @Query("UPDATE Login l SET l.correo_electronico = :new_correo WHERE l.id_usuario = :id")
+    String changeCorreoLoginForId(@Param("id") Long id, @Param("new_correo") String new_correo);
+
+    @Query("UPDATE Login l SET l.password = :new_password WHERE l.id_usuario = :id")
+    String changePasswordLoginForId(@Param("id") Long id, @Param("new_password") String new_password);
+
+}

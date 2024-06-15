@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.annotations.Type;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,8 +13,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -37,7 +40,8 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private String nombre_usuario;
 
-    @Column(unique = true)
+    @Column(unique = true, columnDefinition = "text[]")
+    @Type(com.vladmihalcea.hibernate.type.array.ListArrayType.class)
     private List<String> foto_usuario;
 
     private int roll_usuario;
@@ -46,7 +50,8 @@ public class Usuario implements Serializable {
     @JoinColumn(name = "plan_usuario", referencedColumnName = "id_plan")
     private Plan plan_usuario;
 
-    @OneToMany(mappedBy = "id_curso", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "usuario_curso", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_curso"))
     private List<Curso> cursos_usuario;
 
     @Temporal(TemporalType.DATE)

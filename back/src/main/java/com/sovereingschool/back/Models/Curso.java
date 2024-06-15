@@ -37,7 +37,6 @@ public class Curso implements Serializable {
     @Column(unique = true, nullable = false)
     private String nombre_curso;
 
-    @Column(nullable = false)
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "curso_profesor", joinColumns = @JoinColumn(name = "id_curso"), inverseJoinColumns = @JoinColumn(name = "id_usuario"))
     private List<Usuario> profesores_curso;

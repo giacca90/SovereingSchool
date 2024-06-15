@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -21,11 +22,14 @@ import lombok.ToString;
 @ToString
 @Entity
 @Table(name = "login")
-public class LogIn implements Serializable {
+public class Login implements Serializable {
     @Id
+    private Long id_usuario;
+
+    @MapsId
     @OneToOne
     @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")
-    private Usuario id_usuario;
+    private Usuario usuario;
 
     @Column(unique = true, nullable = false)
     private String correo_electronico;
