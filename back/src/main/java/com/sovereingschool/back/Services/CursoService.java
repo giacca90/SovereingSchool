@@ -12,7 +12,6 @@ import com.sovereingschool.back.Interfaces.ICursoService;
 import com.sovereingschool.back.Models.Clase;
 import com.sovereingschool.back.Models.Curso;
 import com.sovereingschool.back.Models.Plan;
-import com.sovereingschool.back.Models.Usuario;
 import com.sovereingschool.back.Repositories.CursoRepository;
 
 import jakarta.persistence.EntityManager;
@@ -30,17 +29,8 @@ public class CursoService implements ICursoService {
     private EntityManager entityManager;
 
     @Override
-    public String createCurso(String nombre_curso, List<Usuario> profesores_curso, List<Clase> clases_del_curso,
-            List<Plan> planes_del_curso, BigDecimal precio_curso) {
-        Curso new_curso = new Curso();
-        new_curso.setNombre_curso(nombre_curso);
-        new_curso.setProfesores_curso(profesores_curso);
-        new_curso.setClases_curso(clases_del_curso);
-        new_curso.setPlanes_curso(planes_del_curso);
-        new_curso.setPrecio_curso(precio_curso);
-
+    public String createCurso(Curso new_curso) {
         this.repo.save(new_curso);
-
         return "Nuevo curso creado correctamente!!!";
     }
 

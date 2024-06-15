@@ -4,10 +4,10 @@ import java.util.List;
 
 import com.sovereingschool.back.Models.Curso;
 import com.sovereingschool.back.Models.Plan;
+import com.sovereingschool.back.Models.Usuario;
 
 public interface IUsuarioService {
-    public String createUsuario(String nombre_usuario, List<String> fotos_usuario, Plan plan_usuario,
-            List<Curso> cursos_usuario);
+    public String createUsuario(Usuario new_usuario);
 
     public String getNombreUsuario(Long id_usuario);
 
@@ -19,13 +19,13 @@ public interface IUsuarioService {
 
     public List<Curso> getCursosUsuario(Long id_usuario);
 
-    public String changeNombreUsuario(Long id_usuario, String new_nombre_usuario);
+    public String changeNombreUsuario(Usuario usuario);
 
-    public String changeFotosUsuario(Long id_usuario, List<String> fotos_usuario);
+    public String changeFotosUsuario(Usuario usuario);
 
-    public String changePlanUsuario(Long id_usuario, Plan plan);
+    public String changePlanUsuario(Usuario usuario);
 
-    public String changeCursosUsuario(Long id_usuario, List<Curso> cursos_usuario);
+    public String changeCursosUsuario(Usuario usuario);
 
     public String deleteUsuario(Long id);
 }

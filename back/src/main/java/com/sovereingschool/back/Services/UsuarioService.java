@@ -26,15 +26,8 @@ public class UsuarioService implements IUsuarioService {
     private EntityManager entityManager;
 
     @Override
-    public String createUsuario(String nombre_usuario, List<String> fotos_usuario, Plan plan_usuario,
-            List<Curso> cursos_usuario) {
-        Usuario usuario = new Usuario();
-        usuario.setNombre_usuario(nombre_usuario);
-        usuario.setFoto_usuario(fotos_usuario);
-        usuario.setPlan_usuario(plan_usuario);
-        usuario.setCursos_usuario(cursos_usuario);
-
-        this.repo.save(usuario);
+    public String createUsuario(Usuario new_usuario) {
+        this.repo.save(new_usuario);
         return "Usuario creado con exito!!!";
     }
 
@@ -64,23 +57,23 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public String changeNombreUsuario(Long id_usuario, String new_nombre_usuario) {
-        return this.repo.changeNombreUsuarioForId(id_usuario, new_nombre_usuario);
+    public String changeNombreUsuario(Usuario usuario) {
+        return this.repo.changeNombreUsuarioForId(usuario.getId_usuario(), usuario.getNombre_usuario());
     }
 
     @Override
-    public String changeFotosUsuario(Long id_usuario, List<String> fotos_usuario) {
-        return this.repo.changeFotoUsuarioForId(id_usuario, fotos_usuario);
+    public String changeFotosUsuario(Usuario usuario) {
+        return this.repo.changeFotoUsuarioForId(usuario.getId_usuario(), usuario.getFoto_usuario());
     }
 
     @Override
-    public String changePlanUsuario(Long id_usuario, Plan plan) {
-        return this.repo.changePlanUsuarioForId(id_usuario, plan);
+    public String changePlanUsuario(Usuario usuario) {
+        return this.repo.changePlanUsuarioForId(usuario.getId_usuario(), usuario.getPlan_usuario());
     }
 
     @Override
-    public String changeCursosUsuario(Long id_usuario, List<Curso> cursos_usuario) {
-        return this.repo.changeCursosUsuarioForId(id_usuario, cursos_usuario);
+    public String changeCursosUsuario(Usuario usuario) {
+        return this.repo.changeCursosUsuarioForId(usuario.getId_usuario(), usuario.getCursos_usuario());
     }
 
     @Override

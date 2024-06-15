@@ -7,11 +7,9 @@ import java.util.List;
 import com.sovereingschool.back.Models.Clase;
 import com.sovereingschool.back.Models.Curso;
 import com.sovereingschool.back.Models.Plan;
-import com.sovereingschool.back.Models.Usuario;
 
 public interface ICursoService {
-    public String createCurso(String nombre_curso, List<Usuario> profesores_curso, List<Clase> clases_del_curso,
-            List<Plan> planes_del_curso, BigDecimal precio_curso);
+    public String createCurso(Curso new_curso);
 
     public Curso getCurso(Long id_curso);
 

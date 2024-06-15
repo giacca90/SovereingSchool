@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back.Interfaces.IUsuarioService;
 import com.sovereingschool.back.Models.Curso;
 import com.sovereingschool.back.Models.Plan;
+import com.sovereingschool.back.Models.Usuario;
 
 @RestController
 @RequestMapping("/usuario")
@@ -69,56 +71,47 @@ public class UsuarioController {
 		}
 	}
 
-	@PostMapping("/nuevo/{nombre_usuario}&{fotos_usuario}&{plan_usuario}&{cursos_usuario}")
-	public ResponseEntity<?> createUsuario(@PathVariable String nombre_usuario,
-			@PathVariable List<String> fotos_usuario, @PathVariable Plan plan_usuario,
-			@PathVariable List<Curso> cursos_usuario) {
+	// TODO mirar todos los endpoints que reciben objectos
+	@PostMapping("/nuevo")
+	public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(
-					this.service.createUsuario(nombre_usuario, fotos_usuario, plan_usuario, cursos_usuario),
-					HttpStatus.OK);
+			return new ResponseEntity<String>(this.service.createUsuario(usuario), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	@PutMapping("/nombre/{id_usuario}&{new_nombre_usuario}")
-	public ResponseEntity<?> changeNombreUsuario(@PathVariable Long id_usuario,
-			@PathVariable String new_nombre_usuario) {
+	@PutMapping("/nombre")
+	public ResponseEntity<?> changeNombreUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changeNombreUsuario(id_usuario, new_nombre_usuario),
-					HttpStatus.OK);
+			return new ResponseEntity<String>(this.service.changeNombreUsuario(usuario), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	@PutMapping("/fotos/{id_usuario}&{fotos_usuario}")
-	public ResponseEntity<?> changeFotosUsuario(@PathVariable Long id_usuario,
-			@PathVariable List<String> fotos_usuario) {
+	@PutMapping("/fotos")
+	public ResponseEntity<?> changeFotosUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changeFotosUsuario(id_usuario, fotos_usuario),
-					HttpStatus.OK);
+			return new ResponseEntity<String>(this.service.changeFotosUsuario(usuario), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	@PutMapping("/plan/{id_usuario}&{plan}")
-	public ResponseEntity<?> changePlanUsuario(@PathVariable Long id_usuario, @PathVariable Plan plan) {
+	@PutMapping("/plan")
+	public ResponseEntity<?> changePlanUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changePlanUsuario(id_usuario, plan), HttpStatus.OK);
+			return new ResponseEntity<String>(this.service.changePlanUsuario(usuario), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	@PutMapping("/cursos/{id_usuario}&{cursos_usuario}")
-	public ResponseEntity<?> changeCursosUsuario(@PathVariable Long id_usuario,
-			@PathVariable List<Curso> cursos_usuario) {
+	@PutMapping("/cursos")
+	public ResponseEntity<?> changeCursosUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changeCursosUsuario(id_usuario, cursos_usuario),
-					HttpStatus.OK);
+			return new ResponseEntity<String>(this.service.changeCursosUsuario(usuario), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

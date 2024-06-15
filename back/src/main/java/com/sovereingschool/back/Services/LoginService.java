@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sovereingschool.back.Interfaces.ILoginService;
+import com.sovereingschool.back.Models.ChangePassword;
 import com.sovereingschool.back.Models.Login;
-import com.sovereingschool.back.Models.Usuario;
 import com.sovereingschool.back.Repositories.LoginRepository;
 
 import jakarta.persistence.EntityManager;
@@ -23,12 +23,9 @@ public class LoginService implements ILoginService {
     private EntityManager entityManager;
 
     @Override
-    public String createNuevoLogin(Long id_usuario, String correo_usuario, String password_usuario) {
-        Usuario usuario = new Usuario();
-        usuario.setId_usuario(id_usuario);
-        this.repo.save(new Login(id_usuario, usuario, correo_usuario, password_usuario));
+    public String createNuevoLogin(Login login) {
+        this.repo.save(login);
         return "Nuevo Usuario creado con Exito!!!";
-
     }
 
     @Override
@@ -42,15 +39,19 @@ public class LoginService implements ILoginService {
     }
 
     @Override
-    public String changeCorreoLogin(Long id_usuario, String new_Correo_usuario) {
-        this.repo.changeCorreoLoginForId(id_usuario, new_Correo_usuario);
+    public String changeCorreoLogin(Login login) {
+
+        this.repo.changeCorreoLoginForId(login.getId_usuario(), login.getCorreo_electronico());
         return "Correo cambiado con exito!!!";
     }
 
     @Override
-    public String changePasswordLogin(Long id_usuario, String old_password, String new_password) {
-        this.repo.changePasswordLoginForId(id_usuario, new_password);
-        return "Contraseña cambiada con exito!!!";
+    public String changePasswordLogin(ChangePassword changepassword) {
+        if (this.repo.findPasswordLoginForId(changepassword.getId_usuario()) == changepassword.getOld_password()) {
+            this.repo.changePasswordLoginForId(changepassword.getId_usuario(), changepassword.getNew_password());
+            return "Contraseña cambiada con exito!!!";
+        }
+        return "La contraseña antigua no es correcta!!!";
     }
 
     @Override

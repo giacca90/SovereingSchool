@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,6 +64,7 @@ public class CursoController {
 		}
 	}
 
+	// TODO arreglar que no funciona
 	@GetMapping("/getClasesDelCurso/{id}")
 	public ResponseEntity<?> getClasesDelCurso(@PathVariable Long id) {
 		try {
@@ -92,6 +96,24 @@ public class CursoController {
 	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
 		try {
 			return new ResponseEntity<String>(this.service.deleteCurso(id), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PostMapping("/new")
+	public ResponseEntity<?> createCurso(@RequestBody Curso curso) {
+		try {
+			return new ResponseEntity<String>(this.service.createCurso(curso), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PutMapping("/update")
+	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
+		try {
+			return new ResponseEntity<>(this.service.updateCurso(curso), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
