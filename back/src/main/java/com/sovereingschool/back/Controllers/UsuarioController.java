@@ -29,7 +29,10 @@ public class UsuarioController {
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<Usuario>(this.service.getUsuario(id), HttpStatus.OK);
+			Usuario usuario = this.service.getUsuario(id);
+			if (usuario == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Usuario>(usuario, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -47,12 +50,11 @@ public class UsuarioController {
 		}
 	}
 
-	// TODO arreglar cuando un usuario existe, pero no tiene foto
 	@GetMapping("/fotos/{id}")
 	public ResponseEntity<?> getFotosUsuario(@PathVariable Long id) {
 		try {
 			List<String> fotos = this.service.getFotosUsuario(id);
-			if (fotos.isEmpty())
+			if (fotos == null)
 				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
 			return new ResponseEntity<List<String>>(fotos, HttpStatus.OK);
 		} catch (Exception e) {
@@ -84,11 +86,12 @@ public class UsuarioController {
 		}
 	}
 
-	// TODO arreglar cuando un usuario existe, pero no tiene cursos
 	@GetMapping("/cursos/{id}")
 	public ResponseEntity<?> getCursosUsuario(@PathVariable Long id) {
 		try {
 			List<Curso> cursos = this.service.getCursosUsuario(id);
+			if (cursos == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
 			return new ResponseEntity<List<Curso>>(cursos, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -154,12 +157,13 @@ public class UsuarioController {
 		}
 	}
 
-	// TODO ver como detectar si existe o no el usuario, porque delete no devuelve
-	// nada.
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<String>(this.service.deleteUsuario(id), HttpStatus.OK);
+			String result = this.service.deleteUsuario(id);
+			if (result == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>(result, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

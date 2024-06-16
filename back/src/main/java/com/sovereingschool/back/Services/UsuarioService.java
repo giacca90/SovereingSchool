@@ -43,7 +43,10 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public List<String> getFotosUsuario(Long id_usuario) {
-        return this.repo.findFotosUsuarioForId(id_usuario);
+        Usuario usuario = this.repo.findUsuarioForId(id_usuario);
+        if (usuario == null)
+            return null;
+        return usuario.getFoto_usuario();
     }
 
     @Override
@@ -58,7 +61,10 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public List<Curso> getCursosUsuario(Long id_usuario) {
-        return this.repo.findCursosUsuarioForId(id_usuario);
+        Usuario usuario = this.repo.findUsuarioForId(id_usuario);
+        if (usuario == null)
+            return null;
+        return usuario.getCursos();
     }
 
     @Override
@@ -83,6 +89,9 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public String deleteUsuario(Long id) {
+        if (this.repo.findUsuarioForId(id) == null) {
+            return null;
+        }
         this.repo.deleteById(id);
         return "Usuario eliminado con exito!!!";
     }
