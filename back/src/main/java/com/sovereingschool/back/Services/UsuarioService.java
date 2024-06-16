@@ -32,6 +32,11 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
+    public Usuario getUsuario(Long id_usuario) {
+        return this.repo.findUsuarioForId(id_usuario);
+    }
+
+    @Override
     public String getNombreUsuario(Long id_usuario) {
         return this.repo.findNombreUsuarioForId(id_usuario);
     }

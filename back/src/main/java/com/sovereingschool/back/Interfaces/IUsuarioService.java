@@ -9,6 +9,8 @@ import com.sovereingschool.back.Models.Usuario;
 public interface IUsuarioService {
     public String createUsuario(Usuario new_usuario);
 
+    public Usuario getUsuario(Long id_usuario);
+
     public String getNombreUsuario(Long id_usuario);
 
     public List<String> getFotosUsuario(Long id_usuario);

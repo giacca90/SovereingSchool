@@ -26,6 +26,15 @@ public class UsuarioController {
 	@Autowired
 	private IUsuarioService service;
 
+	@GetMapping("/{id}")
+	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
+		try {
+			return new ResponseEntity<Usuario>(this.service.getUsuario(id), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	@GetMapping("/nombre/{id}")
 	public ResponseEntity<?> getNombreUsuario(@PathVariable Long id) {
 		try {

@@ -17,6 +17,9 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
+    @Query("SELECT u FROM Usuario u WHERE u.id_usuario = :id")
+    Usuario findUsuarioForId(@Param("id") Long id);
+
     @Query("SELECT u.nombre_usuario FROM Usuario u WHERE u.id_usuario = :id")
     String findNombreUsuarioForId(@Param("id") Long id);
 
