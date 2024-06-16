@@ -13,19 +13,19 @@ public interface IUsuarioService {
 
     public List<String> getFotosUsuario(Long id_usuario);
 
-    public int getRollUsuario(Long id_usuario);
+    public Integer getRollUsuario(Long id_usuario);
 
     public Plan getPlanUsuario(Long id_usuario);
 
     public List<Curso> getCursosUsuario(Long id_usuario);
 
-    public String changeNombreUsuario(Usuario usuario);
+    public Integer changeNombreUsuario(Usuario usuario);
 
-    public String changeFotosUsuario(Usuario usuario);
+    public Integer changeFotosUsuario(Usuario usuario);
 
-    public String changePlanUsuario(Usuario usuario);
+    public Integer changePlanUsuario(Usuario usuario);
 
-    public String changeCursosUsuario(Usuario usuario);
+    public Integer changeCursosUsuario(Usuario usuario);
 
     public String deleteUsuario(Long id);
 }

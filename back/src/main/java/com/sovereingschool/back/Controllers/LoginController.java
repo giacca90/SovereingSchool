@@ -26,7 +26,10 @@ public class LoginController {
 	@GetMapping("/correo/{id}")
 	public ResponseEntity<?> getCorreoLogin(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<String>(this.service.getCorreoLogin(id), HttpStatus.OK);
+			String correo = this.service.getCorreoLogin(id);
+			if (correo == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>(correo, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -35,23 +38,15 @@ public class LoginController {
 	@GetMapping("/password/{id}")
 	public ResponseEntity<?> getPasswordLogin(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<String>(this.service.getPasswordLogin(id), HttpStatus.OK);
+			String password = this.service.getPasswordLogin(id);
+			if (password == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>(password, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	// TODO probar despues de arreglar en create
-	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<?> deleteLogin(@PathVariable Long id) {
-		try {
-			return new ResponseEntity<String>(this.service.deleteLogin(id), HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	// TODO revisar porque no funciona
 	@PostMapping("/new")
 	public ResponseEntity<?> createNuevoLogin(@RequestBody Login login) {
 		try {
@@ -74,6 +69,15 @@ public class LoginController {
 	public ResponseEntity<?> changePasswordLogin(@RequestBody ChangePassword changepassword) {
 		try {
 			return new ResponseEntity<>(this.service.changePasswordLogin(changepassword), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<?> deleteLogin(@PathVariable Long id) {
+		try {
+			return new ResponseEntity<String>(this.service.deleteLogin(id), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

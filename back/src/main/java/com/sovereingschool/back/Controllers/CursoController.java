@@ -40,7 +40,10 @@ public class CursoController {
 	@GetMapping("/getNombreCurso/{id}")
 	public ResponseEntity<?> getNombreCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<String>(this.service.getNombreCurso(id), HttpStatus.OK);
+			String nombre_curso = this.service.getNombreCurso(id);
+			if (nombre_curso == null)
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>(nombre_curso, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -49,7 +52,10 @@ public class CursoController {
 	@GetMapping("/getNombresProfesoresCurso/{id}")
 	public ResponseEntity<?> getNombresProfesoresCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<List<String>>(this.service.getNombresProfesoresCurso(id), HttpStatus.OK);
+			List<String> nombres_profesores = this.service.getNombresProfesoresCurso(id);
+			if (nombres_profesores.isEmpty())
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<List<String>>(nombres_profesores, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -58,17 +64,22 @@ public class CursoController {
 	@GetMapping("/getFechaCreacionCurso/{id}")
 	public ResponseEntity<?> getFechaCreacionCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<Date>(this.service.getFechaCreacionCurso(id), HttpStatus.OK);
+			Date fecha = this.service.getFechaCreacionCurso(id);
+			if (fecha == null)
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Date>(fecha, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	// TODO arreglar que no funciona
 	@GetMapping("/getClasesDelCurso/{id}")
 	public ResponseEntity<?> getClasesDelCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<List<Clase>>(this.service.getClasesDelCurso(id), HttpStatus.OK);
+			List<Clase> clases = this.service.getClasesDelCurso(id);
+			if (clases.isEmpty())
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<List<Clase>>(clases, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -77,7 +88,10 @@ public class CursoController {
 	@GetMapping("/getPlanesDelCurso/{id}")
 	public ResponseEntity<?> getPlanesDelCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<List<Plan>>(this.service.getPlanesDelCurso(id), HttpStatus.OK);
+			List<Plan> planes = this.service.getPlanesDelCurso(id);
+			if (planes.isEmpty())
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<List<Plan>>(planes, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -86,18 +100,12 @@ public class CursoController {
 	@GetMapping("/getPrecioCurso/{id}")
 	public ResponseEntity<?> getPrecioCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<BigDecimal>(this.service.getPrecioCurso(id), HttpStatus.OK);
+			BigDecimal precio = this.service.getPrecioCurso(id);
+			if (precio == null)
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<BigDecimal>(precio, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
-		try {
-			return new ResponseEntity<String>(this.service.deleteCurso(id), HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -114,6 +122,15 @@ public class CursoController {
 	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
 		try {
 			return new ResponseEntity<>(this.service.updateCurso(curso), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
+		try {
+			return new ResponseEntity<String>(this.service.deleteCurso(id), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

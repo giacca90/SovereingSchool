@@ -42,7 +42,7 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public int getRollUsuario(Long id_usuario) {
+    public Integer getRollUsuario(Long id_usuario) {
         return this.repo.findRollUsuarioForId(id_usuario);
     }
 
@@ -57,23 +57,23 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public String changeNombreUsuario(Usuario usuario) {
+    public Integer changeNombreUsuario(Usuario usuario) {
         return this.repo.changeNombreUsuarioForId(usuario.getId_usuario(), usuario.getNombre_usuario());
     }
 
     @Override
-    public String changeFotosUsuario(Usuario usuario) {
+    public Integer changeFotosUsuario(Usuario usuario) {
         return this.repo.changeFotoUsuarioForId(usuario.getId_usuario(), usuario.getFoto_usuario());
     }
 
     @Override
-    public String changePlanUsuario(Usuario usuario) {
-        return this.repo.changePlanUsuarioForId(usuario.getId_usuario(), usuario.getPlan_usuario());
+    public Integer changePlanUsuario(Usuario usuario) {
+        return this.repo.changePlanUsuarioForId(usuario.getId_usuario(), usuario.getPlan());
     }
 
     @Override
-    public String changeCursosUsuario(Usuario usuario) {
-        return this.repo.changeCursosUsuarioForId(usuario.getId_usuario(), usuario.getCursos_usuario());
+    public Integer changeCursosUsuario(Usuario usuario) {
+        return this.repo.changeCursosUsuarioForId(usuario.getId_usuario(), usuario.getCursos());
     }
 
     @Override

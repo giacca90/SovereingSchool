@@ -29,16 +29,23 @@ public class UsuarioController {
 	@GetMapping("/nombre/{id}")
 	public ResponseEntity<?> getNombreUsuario(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<String>(this.service.getNombreUsuario(id), HttpStatus.OK);
+			String nombre = this.service.getNombreUsuario(id);
+			if (nombre == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>(nombre, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
+	// TODO arreglar cuando un usuario existe, pero no tiene foto
 	@GetMapping("/fotos/{id}")
 	public ResponseEntity<?> getFotosUsuario(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<List<String>>(this.service.getFotosUsuario(id), HttpStatus.OK);
+			List<String> fotos = this.service.getFotosUsuario(id);
+			if (fotos.isEmpty())
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<List<String>>(fotos, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -47,7 +54,10 @@ public class UsuarioController {
 	@GetMapping("/roll/{id}")
 	public ResponseEntity<?> getRollUsuario(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<Integer>(this.service.getRollUsuario(id), HttpStatus.OK);
+			Integer roll = this.service.getRollUsuario(id);
+			if (roll == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Integer>(roll, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -56,22 +66,26 @@ public class UsuarioController {
 	@GetMapping("/plan/{id}")
 	public ResponseEntity<?> getPlanUsuario(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<Plan>(this.service.getPlanUsuario(id), HttpStatus.OK);
+			Plan plan = this.service.getPlanUsuario(id);
+			if (plan == null)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Plan>(plan, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
+	// TODO arreglar cuando un usuario existe, pero no tiene cursos
 	@GetMapping("/cursos/{id}")
 	public ResponseEntity<?> getCursosUsuario(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<List<Curso>>(this.service.getCursosUsuario(id), HttpStatus.OK);
+			List<Curso> cursos = this.service.getCursosUsuario(id);
+			return new ResponseEntity<List<Curso>>(cursos, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	// TODO mirar todos los endpoints que reciben objectos
 	@PostMapping("/nuevo")
 	public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
 		try {
@@ -84,16 +98,23 @@ public class UsuarioController {
 	@PutMapping("/nombre")
 	public ResponseEntity<?> changeNombreUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changeNombreUsuario(usuario), HttpStatus.OK);
+			Integer result = this.service.changeNombreUsuario(usuario);
+			if (result == 0)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Nombre cambiado con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
+	// TODO arreglar
 	@PutMapping("/fotos")
 	public ResponseEntity<?> changeFotosUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changeFotosUsuario(usuario), HttpStatus.OK);
+			Integer resultado = this.service.changeFotosUsuario(usuario);
+			if (resultado == 0)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.OK);
+			return new ResponseEntity<String>("Fotos cambiadas con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -102,21 +123,30 @@ public class UsuarioController {
 	@PutMapping("/plan")
 	public ResponseEntity<?> changePlanUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changePlanUsuario(usuario), HttpStatus.OK);
+			Integer resultado = this.service.changePlanUsuario(usuario);
+			if (resultado == 0)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Plan cambiado con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
+	// TODO arreglar
 	@PutMapping("/cursos")
 	public ResponseEntity<?> changeCursosUsuario(@RequestBody Usuario usuario) {
 		try {
-			return new ResponseEntity<String>(this.service.changeCursosUsuario(usuario), HttpStatus.OK);
+			Integer resultado = this.service.changeCursosUsuario(usuario);
+			if (resultado == 0)
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Cursos actualizados con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
+	// TODO ver como detectar si existe o no el usuario, porque delete no devuelve
+	// nada.
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
 		try {

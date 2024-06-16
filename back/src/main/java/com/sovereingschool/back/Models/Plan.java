@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +40,10 @@ public class Plan implements Serializable {
     private BigDecimal precio_plan;
 
     @Column(nullable = false)
-    @ManyToMany(mappedBy = "planes_curso", fetch = FetchType.LAZY)
-    private List<Curso> cursos_plan;
+    @ManyToMany(mappedBy = "planes", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Curso> cursos;
+
+    @Transient
+    private List<Long> cursos_plan;
 }
