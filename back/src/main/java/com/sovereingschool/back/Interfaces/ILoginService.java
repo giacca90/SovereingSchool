@@ -1,6 +1,6 @@
 package com.sovereingschool.back.Interfaces;
 
-import com.sovereingschool.back.Models.ChangePassword;
+import com.sovereingschool.back.DTOs.ChangePassword;
 import com.sovereingschool.back.Models.Login;
 
 public interface ILoginService {

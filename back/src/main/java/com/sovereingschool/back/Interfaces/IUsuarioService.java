@@ -2,12 +2,13 @@ package com.sovereingschool.back.Interfaces;
 
 import java.util.List;
 
+import com.sovereingschool.back.DTOs.NewUsuario;
 import com.sovereingschool.back.Models.Curso;
 import com.sovereingschool.back.Models.Plan;
 import com.sovereingschool.back.Models.Usuario;
 
 public interface IUsuarioService {
-    public String createUsuario(Usuario new_usuario);
+    public String createUsuario(NewUsuario new_usuario);
 
     public Usuario getUsuario(Long id_usuario);
 

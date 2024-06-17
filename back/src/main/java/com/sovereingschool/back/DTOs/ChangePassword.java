@@ -1,4 +1,4 @@
-package com.sovereingschool.back.Models;
+package com.sovereingschool.back.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

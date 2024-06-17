@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sovereingschool.back.DTOs.ChangePassword;
 import com.sovereingschool.back.Interfaces.ILoginService;
-import com.sovereingschool.back.Models.ChangePassword;
 import com.sovereingschool.back.Models.Login;
 
 @RestController

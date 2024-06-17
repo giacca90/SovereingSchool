@@ -5,10 +5,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sovereingschool.back.DTOs.NewUsuario;
 import com.sovereingschool.back.Interfaces.IUsuarioService;
 import com.sovereingschool.back.Models.Curso;
+import com.sovereingschool.back.Models.Login;
 import com.sovereingschool.back.Models.Plan;
 import com.sovereingschool.back.Models.Usuario;
+import com.sovereingschool.back.Repositories.LoginRepository;
 import com.sovereingschool.back.Repositories.UsuarioRepository;
 
 import jakarta.persistence.EntityManager;
@@ -22,12 +25,30 @@ public class UsuarioService implements IUsuarioService {
     @Autowired
     private UsuarioRepository repo;
 
+    @Autowired
+    private LoginRepository loginRepo;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     @Override
-    public String createUsuario(Usuario new_usuario) {
-        this.repo.save(new_usuario);
+    public String createUsuario(NewUsuario new_usuario) {
+        Usuario usuario = new Usuario();
+        usuario.setNombre_usuario(new_usuario.getNombre_usuario());
+        usuario.setFoto_usuario(new_usuario.getFoto_usuario());
+        usuario.setRoll_usuario(new_usuario.getRoll_usuario());
+        usuario.setPlan_usuario(new_usuario.getPlan_usuario());
+        usuario.setCursos_usuario(new_usuario.getCursos_usuario());
+        usuario.setFecha_registro_usuario(new_usuario.getFecha_registro_usuario());
+        Usuario usuarioInsertado = this.repo.save(usuario);
+        if (usuarioInsertado.getId_usuario() == null)
+            return "Error en crear el usuario";
+        Login login = new Login();
+        // login.setId_usuario(usuarioInsertado.getId_usuario());
+        login.setUsuario(usuarioInsertado);
+        login.setCorreo_electronico(new_usuario.getCorreo_electronico());
+        login.setPassword(new_usuario.getPassword());
+        this.loginRepo.save(login);
         return "Usuario creado con exito!!!";
     }
 
@@ -100,6 +121,7 @@ public class UsuarioService implements IUsuarioService {
         if (this.repo.findUsuarioForId(id) == null) {
             return null;
         }
+        this.loginRepo.deleteById(id);
         this.repo.deleteById(id);
         return "Usuario eliminado con exito!!!";
     }

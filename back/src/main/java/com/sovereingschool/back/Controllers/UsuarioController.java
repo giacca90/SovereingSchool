@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sovereingschool.back.DTOs.NewUsuario;
 import com.sovereingschool.back.Interfaces.IUsuarioService;
 import com.sovereingschool.back.Models.Curso;
 import com.sovereingschool.back.Models.Plan;
@@ -99,9 +100,9 @@ public class UsuarioController {
 	}
 
 	@PostMapping("/nuevo")
-	public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
+	public ResponseEntity<?> createUsuario(@RequestBody NewUsuario newUsuario) {
 		try {
-			return new ResponseEntity<String>(this.service.createUsuario(usuario), HttpStatus.OK);
+			return new ResponseEntity<String>(this.service.createUsuario(newUsuario), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

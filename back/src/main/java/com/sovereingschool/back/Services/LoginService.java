@@ -3,8 +3,8 @@ package com.sovereingschool.back.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sovereingschool.back.DTOs.ChangePassword;
 import com.sovereingschool.back.Interfaces.ILoginService;
-import com.sovereingschool.back.Models.ChangePassword;
 import com.sovereingschool.back.Models.Login;
 import com.sovereingschool.back.Repositories.LoginRepository;
 
