@@ -36,7 +36,7 @@ public class UsuarioService implements IUsuarioService {
         Usuario usuario = new Usuario();
         usuario.setNombre_usuario(new_usuario.getNombre_usuario());
         usuario.setFoto_usuario(new_usuario.getFoto_usuario());
-        usuario.setRoll_usuario(new_usuario.getRoll_usuario());
+        usuario.setRoll_usuario(3);
         usuario.setPlan_usuario(new_usuario.getPlan_usuario());
         usuario.setCursos_usuario(new_usuario.getCursos_usuario());
         usuario.setFecha_registro_usuario(new_usuario.getFecha_registro_usuario());

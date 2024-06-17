@@ -31,7 +31,10 @@ public class CursoController {
 	@GetMapping("/getCurso/{id}")
 	public ResponseEntity<?> getCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<Curso>(this.service.getCurso(id), HttpStatus.OK);
+			Curso curso = this.service.getCurso(id);
+			if (curso == null)
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Curso>(curso, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

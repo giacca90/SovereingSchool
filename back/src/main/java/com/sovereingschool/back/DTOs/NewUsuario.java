@@ -23,8 +23,6 @@ public class NewUsuario {
 
 	private List<String> foto_usuario;
 
-	private Integer roll_usuario;
-
 	private Long plan_usuario;
 
 	private List<Long> cursos_usuario;
