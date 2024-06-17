@@ -119,13 +119,12 @@ public class UsuarioController {
 		}
 	}
 
-	// TODO arreglar
 	@PutMapping("/fotos")
 	public ResponseEntity<?> changeFotosUsuario(@RequestBody Usuario usuario) {
 		try {
 			Integer resultado = this.service.changeFotosUsuario(usuario);
 			if (resultado == 0)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.OK);
+				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
 			return new ResponseEntity<String>("Fotos cambiadas con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -144,7 +143,6 @@ public class UsuarioController {
 		}
 	}
 
-	// TODO arreglar
 	@PutMapping("/cursos")
 	public ResponseEntity<?> changeCursosUsuario(@RequestBody Usuario usuario) {
 		try {

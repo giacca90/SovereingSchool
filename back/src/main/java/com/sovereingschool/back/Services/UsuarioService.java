@@ -74,7 +74,11 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public Integer changeFotosUsuario(Usuario usuario) {
-        return this.repo.changeFotoUsuarioForId(usuario.getId_usuario(), usuario.getFoto_usuario());
+        Usuario old_usuario = this.repo.findUsuarioForId(usuario.getId_usuario());
+        if (old_usuario == null)
+            return 0;
+        old_usuario.setFoto_usuario(usuario.getFoto_usuario());
+        return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario);
     }
 
     @Override
@@ -84,7 +88,11 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public Integer changeCursosUsuario(Usuario usuario) {
-        return this.repo.changeCursosUsuarioForId(usuario.getId_usuario(), usuario.getCursos());
+        Usuario old_usuario = this.repo.findUsuarioForId(usuario.getId_usuario());
+        if (old_usuario == null)
+            return 0;
+        old_usuario.setCursos_usuario(usuario.getCursos_usuario());
+        return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario);
     }
 
     @Override

@@ -42,17 +42,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Usuario u SET u.foto_usuario = :new_fotos_usuario WHERE u.id = :id")
-    Integer changeFotoUsuarioForId(@Param("id") Long id, @Param("new_fotos_usuario") List<String> new_fotos_usuario);
+    @Query("UPDATE Usuario u SET u = :usuario_modificado WHERE u.id = :id")
+    Integer changeUsuarioForId(@Param("id") Long id, @Param("usuario_modificado") Usuario usuario_modificado);
 
     @Modifying
     @Transactional
     @Query("UPDATE Usuario u SET u.plan = :new_plan WHERE u.id_usuario = :id")
     Integer changePlanUsuarioForId(@Param("id") Long id, @Param("new_plan") Plan new_plan);
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE Usuario u SET u.cursos = :new_cursos WHERE u.id_usuario = :id")
-    Integer changeCursosUsuarioForId(@Param("id") Long id, @Param("new_cursos") List<Curso> new_cursos);
 
 }
