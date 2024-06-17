@@ -47,6 +47,7 @@ public class Usuario implements Serializable {
     @Type(com.vladmihalcea.hibernate.type.array.ListArrayType.class)
     private List<String> foto_usuario;
 
+    @Column(nullable = false)
     private Integer roll_usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)

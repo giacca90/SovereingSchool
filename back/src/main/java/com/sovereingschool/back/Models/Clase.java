@@ -40,6 +40,9 @@ public class Clase implements Serializable {
     @Column(nullable = false)
     private String direccion_clase;
 
+    @Column(nullable = false)
+    private Integer posicion_clase;
+
     @ManyToOne
     @JoinColumn(name = "id_curso")
     @JsonIgnore
