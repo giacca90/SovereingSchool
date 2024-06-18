@@ -70,7 +70,7 @@ public class LoginController {
 		try {
 			return new ResponseEntity<>(this.service.changePasswordLogin(changepassword), HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -79,7 +79,7 @@ public class LoginController {
 		try {
 			return new ResponseEntity<String>(this.service.deleteLogin(id), HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

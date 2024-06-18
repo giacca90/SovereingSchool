@@ -117,7 +117,7 @@ public class CursoController {
 		try {
 			return new ResponseEntity<String>(this.service.createCurso(curso), HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -130,7 +130,7 @@ public class CursoController {
 
 			return new ResponseEntity<String>("Curso actualizado con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -142,7 +142,7 @@ public class CursoController {
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
 			return new ResponseEntity<String>("Curso eliminado con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -159,7 +159,7 @@ public class CursoController {
 			}
 			return new ResponseEntity<String>("Clase no encontrada", HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -186,15 +186,12 @@ public class CursoController {
 		}
 	}
 
-	// TODO testear
 	@PutMapping("/{idCurso}/addClase")
 	public ResponseEntity<?> addClase(@PathVariable Long idCurso, @RequestBody Clase clase) {
 		try {
 			Curso curso = this.service.getCurso(idCurso);
 			if (curso == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			if (!clase.getCurso_clase().getId_curso().equals(curso.getId_curso()))
-				return new ResponseEntity<String>("Esta clase no es de este curso", HttpStatus.FAILED_DEPENDENCY);
 			List<Clase> clases = curso.getClases_curso();
 			if (clase.getPosicion_clase() == null)
 				clase.setPosicion_clase((clases.size()) + 1);
@@ -203,12 +200,13 @@ public class CursoController {
 					if (fclase.getPosicion_clase() == clase.getPosicion_clase())
 						clase.setPosicion_clase((clases.size()) + 1);
 				});
+			clase.setCurso_clase(curso);
 			clases.add(clase);
 			curso.setClases_curso(clases);
 			this.service.updateCurso(curso);
-			return new ResponseEntity<>("Update Result", HttpStatus.OK);
+			return new ResponseEntity<>("Clase añadida con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

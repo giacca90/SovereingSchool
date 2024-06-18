@@ -35,7 +35,7 @@ public class UsuarioController {
 				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
 			return new ResponseEntity<Usuario>(usuario, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
