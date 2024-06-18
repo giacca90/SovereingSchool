@@ -128,7 +128,7 @@ public class CursoController {
 			if (result == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
 
-			return new ResponseEntity<String>("Curso actualizado con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Curso actualizado con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -140,7 +140,7 @@ public class CursoController {
 			String result = this.service.deleteCurso(id);
 			if (result == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Curso eliminado con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Curso eliminado con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -177,7 +177,7 @@ public class CursoController {
 					clases.add(clase);
 					curso.setClases_curso(clases);
 					this.service.updateCurso(curso);
-					return new ResponseEntity<>("Clase editada con exito!!!", HttpStatus.OK);
+					return new ResponseEntity<>("Clase editada con éxito!!!", HttpStatus.OK);
 				}
 			}
 			return new ResponseEntity<>("Clase no encontrada", HttpStatus.NOT_FOUND);
@@ -204,7 +204,7 @@ public class CursoController {
 			clases.add(clase);
 			curso.setClases_curso(clases);
 			this.service.updateCurso(curso);
-			return new ResponseEntity<>("Clase añadida con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<>("Clase añadida con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

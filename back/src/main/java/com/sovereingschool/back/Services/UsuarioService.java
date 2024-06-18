@@ -49,7 +49,7 @@ public class UsuarioService implements IUsuarioService {
         login.setCorreo_electronico(new_usuario.getCorreo_electronico());
         login.setPassword(new_usuario.getPassword());
         this.loginRepo.save(login);
-        return "Usuario creado con exito!!!";
+        return "Usuario creado con éxito!!!";
     }
 
     @Override
@@ -123,7 +123,7 @@ public class UsuarioService implements IUsuarioService {
         }
         this.loginRepo.deleteById(id);
         this.repo.deleteById(id);
-        return "Usuario eliminado con exito!!!";
+        return "Usuario eliminado con éxito!!!";
     }
 
 }

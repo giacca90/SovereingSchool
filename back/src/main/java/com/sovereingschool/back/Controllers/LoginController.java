@@ -60,9 +60,9 @@ public class LoginController {
 	public ResponseEntity<?> changeCorreoLogin(@RequestBody Login login) {
 		try {
 			if (login.getCorreo_electronico() == null)
-				return new ResponseEntity<>("El correo electronico no puede ser vacio", HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>("El correo electrónico no puede ser vació", HttpStatus.NOT_FOUND);
 			if (login.getCorreo_electronico().length() < 1)
-				return new ResponseEntity<>("El correo electronico no puede ser vacio", HttpStatus.FAILED_DEPENDENCY);
+				return new ResponseEntity<>("El correo electrónico no puede ser vació", HttpStatus.FAILED_DEPENDENCY);
 			return new ResponseEntity<>(this.service.changeCorreoLogin(login), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -77,7 +77,7 @@ public class LoginController {
 				return new ResponseEntity<String>("La contraseña no puede estar vacía", HttpStatus.FAILED_DEPENDENCY);
 			if (respuesta == 0)
 				return new ResponseEntity<>("Las contraseñas no coinciden", HttpStatus.FAILED_DEPENDENCY);
-			return new ResponseEntity<>("Contraseña cambiada con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<>("Contraseña cambiada con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

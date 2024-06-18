@@ -25,7 +25,7 @@ public class LoginService implements ILoginService {
     @Override
     public String createNuevoLogin(Login login) {
         this.repo.save(login);
-        return "Nuevo Usuario creado con Exito!!!";
+        return "Nuevo Usuario creado con éxito!!!";
     }
 
     @Override
@@ -41,7 +41,7 @@ public class LoginService implements ILoginService {
     @Override
     public String changeCorreoLogin(Login login) {
         this.repo.changeCorreoLoginForId(login.getId_usuario(), login.getCorreo_electronico());
-        return "Correo cambiado con exito!!!";
+        return "Correo cambiado con éxito!!!";
     }
 
     @Override
@@ -58,7 +58,7 @@ public class LoginService implements ILoginService {
     @Override
     public String deleteLogin(Long id_usuario) {
         this.repo.deleteById(id_usuario);
-        return "Login eliminado con exito!!!";
+        return "Login eliminado con éxito!!!";
     }
 
 }

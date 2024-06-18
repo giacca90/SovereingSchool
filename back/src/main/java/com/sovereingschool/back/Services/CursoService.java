@@ -96,7 +96,7 @@ public class CursoService implements ICursoService {
         if (!this.repo.findById(id_curso).isPresent())
             return null;
         this.repo.deleteById(id_curso);
-        return "Curso eliminado con exito!!!";
+        return "Curso eliminado con éxito!!!";
     }
 
 }

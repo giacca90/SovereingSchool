@@ -114,7 +114,7 @@ public class UsuarioController {
 			Integer result = this.service.changeNombreUsuario(usuario);
 			if (result == 0)
 				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Nombre cambiado con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Nombre cambiado con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -126,7 +126,7 @@ public class UsuarioController {
 			Integer resultado = this.service.changeFotosUsuario(usuario);
 			if (resultado == 0)
 				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Fotos cambiadas con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Fotos cambiadas con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -138,7 +138,7 @@ public class UsuarioController {
 			Integer resultado = this.service.changePlanUsuario(usuario);
 			if (resultado == 0)
 				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Plan cambiado con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Plan cambiado con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -150,7 +150,7 @@ public class UsuarioController {
 			Integer resultado = this.service.changeCursosUsuario(usuario);
 			if (resultado == 0)
 				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Cursos actualizados con exito!!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Cursos actualizados con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
