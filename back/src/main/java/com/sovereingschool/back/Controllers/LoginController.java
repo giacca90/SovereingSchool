@@ -50,25 +50,34 @@ public class LoginController {
 	@PostMapping("/new")
 	public ResponseEntity<?> createNuevoLogin(@RequestBody Login login) {
 		try {
-			return new ResponseEntity<>(this.service.createNuevoLogin(login), HttpStatus.OK);
+			return new ResponseEntity<String>(this.service.createNuevoLogin(login), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	@PutMapping("/cambiacorreo")
+	@PutMapping("/cambiaCorreo")
 	public ResponseEntity<?> changeCorreoLogin(@RequestBody Login login) {
 		try {
+			if (login.getCorreo_electronico() == null)
+				return new ResponseEntity<>("El correo electronico no puede ser vacio", HttpStatus.NOT_FOUND);
+			if (login.getCorreo_electronico().length() < 1)
+				return new ResponseEntity<>("El correo electronico no puede ser vacio", HttpStatus.FAILED_DEPENDENCY);
 			return new ResponseEntity<>(this.service.changeCorreoLogin(login), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	@PutMapping("/cambiapassword")
+	@PutMapping("/cambiaPassword")
 	public ResponseEntity<?> changePasswordLogin(@RequestBody ChangePassword changepassword) {
 		try {
-			return new ResponseEntity<>(this.service.changePasswordLogin(changepassword), HttpStatus.OK);
+			Integer respuesta = this.service.changePasswordLogin(changepassword);
+			if (respuesta == null)
+				return new ResponseEntity<String>("La contraseña no puede estar vacía", HttpStatus.FAILED_DEPENDENCY);
+			if (respuesta == 0)
+				return new ResponseEntity<>("Las contraseñas no coinciden", HttpStatus.FAILED_DEPENDENCY);
+			return new ResponseEntity<>("Contraseña cambiada con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

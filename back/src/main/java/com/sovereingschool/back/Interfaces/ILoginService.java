@@ -12,7 +12,7 @@ public interface ILoginService {
 
     public String changeCorreoLogin(Login login);
 
-    public String changePasswordLogin(ChangePassword changepassword);
+    public Integer changePasswordLogin(ChangePassword changepassword);
 
     public String deleteLogin(Long id_usuario);
 }

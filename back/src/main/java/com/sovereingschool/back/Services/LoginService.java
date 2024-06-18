@@ -40,24 +40,23 @@ public class LoginService implements ILoginService {
 
     @Override
     public String changeCorreoLogin(Login login) {
-
         this.repo.changeCorreoLoginForId(login.getId_usuario(), login.getCorreo_electronico());
         return "Correo cambiado con exito!!!";
     }
 
     @Override
-    public String changePasswordLogin(ChangePassword changepassword) {
-        if (this.repo.findPasswordLoginForId(changepassword.getId_usuario()) == changepassword.getOld_password()) {
+    public Integer changePasswordLogin(ChangePassword changepassword) {
+        if (changepassword.getNew_password().length() < 1 || changepassword.getOld_password().length() < 1)
+            return null;
+        if (this.repo.findPasswordLoginForId(changepassword.getId_usuario()).equals(changepassword.getOld_password())) {
             this.repo.changePasswordLoginForId(changepassword.getId_usuario(), changepassword.getNew_password());
-            return "Contraseña cambiada con exito!!!";
+            return 1;
         }
-        return "La contraseña antigua no es correcta!!!";
+        return 0;
     }
 
     @Override
     public String deleteLogin(Long id_usuario) {
-        // Usuario usuario = new Usuario();
-        // usuario.setId_usuario(id_usuario);
         this.repo.deleteById(id_usuario);
         return "Login eliminado con exito!!!";
     }
