@@ -49,7 +49,7 @@ VALUES (
 	),
 	(
 		'http://corso2/clase1',
-		'Clase 2 - Partes del Trust??',
+		'Clase 2 - Partes del Trust',
 		2,
 		1,
 		2

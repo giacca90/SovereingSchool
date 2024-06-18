@@ -29,10 +29,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @Query("SELECT u.roll_usuario FROM Usuario u WHERE u.id_usuario = :id")
     Integer findRollUsuarioForId(@Param("id") Long id);
 
-    @Query("SELECT p FROM Plan p WHERE p.id_plan = (SELECT u.plan.id_plan FROM Usuario u WHERE u.id_usuario = :id)")
+    @Query("SELECT p FROM Plan p WHERE p.id_plan = (SELECT u.plan_usuario.id_plan FROM Usuario u WHERE u.id_usuario = :id)")
     Plan findPlanUsuarioForId(@Param("id") Long id);
 
-    @Query("SELECT u.cursos FROM Usuario u WHERE u.id_usuario = :id ")
+    @Query("SELECT u.cursos_usuario FROM Usuario u WHERE u.id_usuario = :id ")
     List<Curso> findCursosUsuarioForId(@Param("id") Long id);
 
     @Modifying
@@ -47,7 +47,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Usuario u SET u.plan = :new_plan WHERE u.id_usuario = :id")
+    @Query("UPDATE Usuario u SET u.plan_usuario = :new_plan WHERE u.id_usuario = :id")
     Integer changePlanUsuarioForId(@Param("id") Long id, @Param("new_plan") Plan new_plan);
 
 }

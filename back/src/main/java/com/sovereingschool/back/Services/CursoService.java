@@ -12,6 +12,7 @@ import com.sovereingschool.back.Interfaces.ICursoService;
 import com.sovereingschool.back.Models.Clase;
 import com.sovereingschool.back.Models.Curso;
 import com.sovereingschool.back.Models.Plan;
+import com.sovereingschool.back.Repositories.ClaseRepository;
 import com.sovereingschool.back.Repositories.CursoRepository;
 
 import jakarta.persistence.EntityManager;
@@ -24,6 +25,9 @@ public class CursoService implements ICursoService {
 
     @Autowired
     private CursoRepository repo;
+
+    @Autowired
+    private ClaseRepository claseRepo;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -75,11 +79,22 @@ public class CursoService implements ICursoService {
 
     @Override
     public Curso updateCurso(Curso curso) {
+        Optional<Curso> respuesta = this.repo.findById(curso.getId_curso());
+        if (!respuesta.isPresent())
+            return null;
+        Curso oldCurso = respuesta.get();
+        for (Clase clase : curso.getClases_curso()) {
+            if (!oldCurso.getClases_curso().contains(clase))
+                this.claseRepo.updateClase(clase.getId_clase(), clase.getNombre_clase(), clase.getTipo_clase(),
+                        clase.getDireccion_clase(), clase.getPosicion_clase());
+        }
         return this.repo.save(curso);
     }
 
     @Override
     public String deleteCurso(Long id_curso) {
+        if (!this.repo.findById(id_curso).isPresent())
+            return null;
         this.repo.deleteById(id_curso);
         return "Curso eliminado con exito!!!";
     }

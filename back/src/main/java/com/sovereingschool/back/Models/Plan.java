@@ -14,7 +14,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,10 +39,7 @@ public class Plan implements Serializable {
     private BigDecimal precio_plan;
 
     @Column(nullable = false)
-    @ManyToMany(mappedBy = "planes", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "planes_curso", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Curso> cursos;
-
-    @Transient
-    private List<Long> cursos_plan;
+    private List<Curso> cursos_plan;
 }

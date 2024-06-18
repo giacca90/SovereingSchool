@@ -3,6 +3,9 @@ package com.sovereingschool.back.DTOs;
 import java.util.Date;
 import java.util.List;
 
+import com.sovereingschool.back.Models.Curso;
+import com.sovereingschool.back.Models.Plan;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,9 +26,9 @@ public class NewUsuario {
 
 	private List<String> foto_usuario;
 
-	private Long plan_usuario;
+	private Plan plan_usuario;
 
-	private List<Long> cursos_usuario;
+	private List<Curso> cursos_usuario;
 
 	private Date fecha_registro_usuario;
 }

@@ -124,7 +124,11 @@ public class CursoController {
 	@PutMapping("/update")
 	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
 		try {
-			return new ResponseEntity<>(this.service.updateCurso(curso), HttpStatus.OK);
+			Curso result = this.service.updateCurso(curso);
+			if (result == null)
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+
+			return new ResponseEntity<String>("Curso actualizado con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -133,7 +137,10 @@ public class CursoController {
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
 		try {
-			return new ResponseEntity<String>(this.service.deleteCurso(id), HttpStatus.OK);
+			String result = this.service.deleteCurso(id);
+			if (result == null)
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Curso eliminado con exito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -145,7 +152,7 @@ public class CursoController {
 			Curso curso = this.service.getCurso(idCurso);
 			if (curso == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			List<Clase> clases = curso.getClases();
+			List<Clase> clases = curso.getClases_curso();
 			for (Clase clase : clases) {
 				if (clase.getId_clase().equals(idClase))
 					return new ResponseEntity<Clase>(clase, HttpStatus.OK);
@@ -156,26 +163,26 @@ public class CursoController {
 		}
 	}
 
-	// TODO falta actualizar la base de datos
 	@PutMapping("/{idCurso}/editClase")
 	public ResponseEntity<?> update(@PathVariable Long idCurso, @RequestBody Clase clase) {
 		try {
 			Curso curso = this.service.getCurso(idCurso);
 			if (curso == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			List<Clase> clases = curso.getClases();
+			List<Clase> clases = curso.getClases_curso();
 			for (Clase claseVieja : clases) {
 				if (claseVieja.getId_clase().equals(clase.getId_clase())) {
 					clases.remove(claseVieja);
+					clase.setCurso_clase(curso);
 					clases.add(clase);
-					curso.setClases(clases);
+					curso.setClases_curso(clases);
 					this.service.updateCurso(curso);
 					return new ResponseEntity<>("Clase editada con exito!!!", HttpStatus.OK);
 				}
 			}
 			return new ResponseEntity<>("Clase no encontrada", HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -186,9 +193,9 @@ public class CursoController {
 			Curso curso = this.service.getCurso(idCurso);
 			if (curso == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			if (!clase.getCurso_clase().equals(curso.getId_curso()))
+			if (!clase.getCurso_clase().getId_curso().equals(curso.getId_curso()))
 				return new ResponseEntity<String>("Esta clase no es de este curso", HttpStatus.FAILED_DEPENDENCY);
-			List<Clase> clases = curso.getClases();
+			List<Clase> clases = curso.getClases_curso();
 			if (clase.getPosicion_clase() == null)
 				clase.setPosicion_clase((clases.size()) + 1);
 			else
@@ -197,7 +204,7 @@ public class CursoController {
 						clase.setPosicion_clase((clases.size()) + 1);
 				});
 			clases.add(clase);
-			curso.setClases(clases);
+			curso.setClases_curso(clases);
 			this.service.updateCurso(curso);
 			return new ResponseEntity<>("Update Result", HttpStatus.OK);
 		} catch (Exception e) {

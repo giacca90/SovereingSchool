@@ -12,7 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,10 +43,7 @@ public class Clase implements Serializable {
     private Integer posicion_clase;
 
     @ManyToOne
-    @JoinColumn(name = "id_curso")
+    @JoinColumn(name = "id_curso", nullable = false)
     @JsonIgnore
-    private Curso curso;
-
-    @Transient
-    private Long curso_clase;
+    private Curso curso_clase;
 }

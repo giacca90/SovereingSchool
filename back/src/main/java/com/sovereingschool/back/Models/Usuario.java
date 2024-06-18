@@ -21,7 +21,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -53,18 +52,12 @@ public class Usuario implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_usuario", referencedColumnName = "id_plan")
     @JsonIgnore
-    private Plan plan;
-
-    @Transient
-    private Long plan_usuario;
+    private Plan plan_usuario;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "usuario_curso", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_curso"))
     @JsonIgnore
-    private List<Curso> cursos;
-
-    @Transient
-    private List<Long> cursos_usuario;
+    private List<Curso> cursos_usuario;
 
     @Temporal(TemporalType.DATE)
     private Date fecha_registro_usuario;

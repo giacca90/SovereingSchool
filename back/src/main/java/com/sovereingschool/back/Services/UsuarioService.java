@@ -85,7 +85,7 @@ public class UsuarioService implements IUsuarioService {
         Usuario usuario = this.repo.findUsuarioForId(id_usuario);
         if (usuario == null)
             return null;
-        return usuario.getCursos();
+        return usuario.getCursos_usuario();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public Integer changePlanUsuario(Usuario usuario) {
-        return this.repo.changePlanUsuarioForId(usuario.getId_usuario(), usuario.getPlan());
+        return this.repo.changePlanUsuarioForId(usuario.getId_usuario(), usuario.getPlan_usuario());
     }
 
     @Override
