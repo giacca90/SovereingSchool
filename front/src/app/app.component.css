@@ -1,0 +1,7 @@
+::ng-deep input::placeholder {
+  color: rgb(200, 200, 200);
+}
+
+::ng-deep input {
+  padding-left: 10px;
+}
