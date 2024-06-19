@@ -1,7 +1,9 @@
 {
-  "plugins": ["prettier-plugin-tailwindcss"],
-  "printWidth": 100000000,
-  "proseWrap": "never",
-  "useTabs": true,
-  "tabWidth": 4
+	"plugins": ["prettier-plugin-tailwindcss"],
+	"printWidth": 100000000,
+	"proseWrap": "never",
+	"useTabs": true,
+	"tabWidth": 4,
+	"singleQuote": true,
+	"quoteProps": "preserve"
 }
