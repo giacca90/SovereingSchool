@@ -1,25 +1,28 @@
-<header class="relative w-full rounded-b-lg bg-cyan-500">
-	<h1 class="text-center text-3xl font-bold text-yellow-500">SOVEREIGN SCHOOL</h1>
-	<a class="absolute right-2 top-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.png" alt="login" /></a>
-	<div class="w-full overflow-hidden">
-		<h3 class="inline-block animate-slideIn font-bold text-green-700">El mejor lugar para aprender Soberanía!!!</h3>
-	</div>
-</header>
+<div [class.dimmed]="isModalVisible">
+	<header class="relative w-full rounded-b-lg bg-cyan-500">
+		<h1 class="text-center text-3xl font-bold text-yellow-500">SOVEREIGN SCHOOL</h1>
+		<button type="button" class="absolute right-2 top-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.png" alt="login" (click)="openModal()" /></button>
+		<div class="w-full overflow-hidden">
+			<h3 class="inline-block animate-slideIn font-bold text-green-700">El mejor lugar para aprender Soberanía!!!</h3>
+		</div>
+	</header>
 
-<app-search class="flex p-2"></app-search>
-<div class="flex p-2">
-	<router-outlet></router-outlet>
+	<app-search class="flex p-2"></app-search>
+	<div class="flex p-2">
+		<router-outlet></router-outlet>
+	</div>
+
+	<footer class="flex w-full rounded-t-lg bg-cyan-500">
+		<div class="flex-1 justify-center p-2 text-white">
+			<p>Copyright© <span id="fecha_copyright">2024</span></p>
+			<p>Todos los derechos reservados.</p>
+		</div>
+		<div class="align-center flex flex-1 items-center justify-center p-2 text-white">
+			<a href="">Política de privacidad</a>
+		</div>
+		<div class="flex flex-1 items-center justify-end p-2 text-white">
+			<button type="button" class="justify-end">Cambio estilo</button>
+		</div>
+	</footer>
 </div>
-
-<footer class="flex w-full rounded-t-lg bg-cyan-500">
-	<div class="flex-1 justify-center p-2 text-white">
-		<p>Copyright© <span id="fecha_copyright">2024</span></p>
-		<p>Todos los derechos reservados.</p>
-	</div>
-	<div class="align-center flex flex-1 items-center justify-center p-2 text-white">
-		<a href="">Política de privacidad</a>
-	</div>
-	<div class="flex flex-1 items-center justify-end p-2 text-white">
-		<button type="button" class="justify-end">Cambio estilo</button>
-	</div>
-</footer>
+<app-log-modal *ngIf="isModalVisible"></app-log-modal>
