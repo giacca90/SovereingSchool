@@ -1,13 +1,13 @@
 <div id="content2" class="relative">
 	<br />
-	<div id="message2" class="text-red-600"></div>
-	<span class="m-4 rounded-lg border border-black p-1">Tu Nombre (el que se mostrará a los demás):</span>
+	<div id="message2" class="ml-4 mr-4 text-red-600"></div>
+	<span class="m-4 rounded-lg p-1">Tu Nombre (el que se mostrará a los demás):</span>
 	<br />
-	<input type="text" class="m-4 rounded-lg border border-black p-1" placeholder="Tu Nombre (el que se mostrará a los demás)" />
+	<input type="text" id="nombre2" class="m-4 rounded-lg border border-black p-1" placeholder="Tu Nombre (el que se mostrará a los demás)" />
 	<br />
-	<span class="m-4 rounded-lg border border-black p-1">Tu Correo Electrónico:</span>
+	<span class="m-4 rounded-lg border p-1">Tu Correo Electrónico:</span>
 	<br />
-	<input type="text" id="correo" class="m-4 rounded-lg border border-black p-1" placeholder="Tu Correo Electrónico" />
+	<input type="text" id="correo2" class="m-4 rounded-lg border border-black p-1" placeholder="Tu Correo Electrónico" />
 	<br />
 	<button class="m-4 rounded-lg border border-black bg-green-300 p-1" (click)="compruebaCorreo()">Siguiente</button>
 	<button class="m-4 rounded-lg border border-black bg-red-300 p-1" (click)="close()">Cancelar</button>
