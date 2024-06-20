@@ -4,9 +4,9 @@
 			<button type="button" id="login" class="absolute -top-4 m-4 mb-0 rounded-t-lg border border-black border-b-white p-1 font-bold" (click)="clickLogin()">Entra</button>
 			<button type="button" id="register" class="absolute -top-4 left-12 m-4 mb-0 rounded-t-lg border border-black p-1 font-bold" (click)="clickRegister()">Regístrate</button>
 		</div>
-		<button type="button" class="m-4 rounded-lg border border-black p-1" (click)="close()">X</button>
+		<button type="button" class="m-4 rounded-lg border border-black bg-red-300 p-1" (click)="close()">X</button>
 	</div>
-	<div id="content" class="mt-0 rounded-lg border border-black">
+	<div id="content_component" class="mt-0 rounded-lg border border-black">
 		<app-login [hidden]="isLoginHidden"></app-login>
 		<app-register [hidden]="!isLoginHidden"></app-register>
 	</div>

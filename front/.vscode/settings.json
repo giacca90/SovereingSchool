@@ -1,3 +1,4 @@
 {
-	"cSpell.words": ["Gole", "REML"]
+	"cSpell.words": ["Gole", "REML"],
+	"cSpell.enableFiletypes": ["typescript"]
 }

@@ -15,4 +15,12 @@ export class LoginModalServiceService {
 	hide() {
 		this.isVisible.next(false);
 	}
+
+	compruebaCorreo(correo: String): Boolean {
+		return true;
+	}
+
+	compruebaPassword(password: String): Boolean {
+		return false;
+	}
 }
