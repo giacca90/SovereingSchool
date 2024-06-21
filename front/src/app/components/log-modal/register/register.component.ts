@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { LoginModalServiceService } from '../../../services/login-modal-service.service';
+import { LoginService } from '../../../services/login.service';
 
 @Component({
 	selector: 'app-register',
@@ -9,13 +10,16 @@ import { LoginModalServiceService } from '../../../services/login-modal-service.
 	styleUrl: './register.component.css',
 })
 export class RegisterComponent {
-	constructor(private modalService: LoginModalServiceService) {}
+	constructor(
+		private modalService: LoginModalServiceService,
+		private loginService: LoginService,
+	) {}
 
 	close() {
 		this.modalService.hide();
 	}
 
-	compruebaCorreo() {
+	async compruebaCorreo() {
 		let message: HTMLDivElement = document.getElementById('message2') as HTMLDivElement;
 		message.innerHTML = '';
 		let correo: string = (document.getElementById('correo2') as HTMLInputElement).value;
@@ -40,7 +44,9 @@ export class RegisterComponent {
 			return;
 		}
 
-		if (this.modalService.compruebaCorreo(correo)) {
+		//prueba
+		console.log('PRUEBA: ' + (await this.loginService.compruebaCorreo(correo)));
+		if ((await this.loginService.compruebaCorreo(correo)) == true) {
 			let content: HTMLDivElement = document.getElementById('content2') as HTMLDivElement;
 			content.innerHTML = `
 				<br />
@@ -68,7 +74,7 @@ export class RegisterComponent {
 			}
 		} else {
 			let mex: HTMLParagraphElement = document.createElement('p');
-			mex.textContent = 'Este correo no está registrado!!!';
+			mex.textContent = 'Este correo ya está registrado!!!';
 			message.appendChild(mex);
 			return;
 		}

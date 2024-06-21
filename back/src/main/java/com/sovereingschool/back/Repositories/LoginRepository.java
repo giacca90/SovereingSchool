@@ -13,6 +13,9 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface LoginRepository extends JpaRepository<Login, Long> {
 
+    @Query("SELECT l.id_usuario FROM Login l WHERE l.correo_electronico = :correo")
+    Long compruebaCorreo(@Param("correo") String correo);
+
     @Query("SELECT l.correo_electronico FROM Login l WHERE l.id_usuario = :id")
     String findCorreoLoginForId(@Param("id") Long id);
 

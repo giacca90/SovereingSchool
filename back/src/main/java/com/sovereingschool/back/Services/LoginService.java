@@ -23,6 +23,14 @@ public class LoginService implements ILoginService {
     private EntityManager entityManager;
 
     @Override
+    public Long compruebaCorreo(String correo) {
+        Long result = this.repo.compruebaCorreo(correo);
+        if (result == null)
+            return 0L;
+        return result;
+    }
+
+    @Override
     public String createNuevoLogin(Login login) {
         this.repo.save(login);
         return "Nuevo Usuario creado con éxito!!!";

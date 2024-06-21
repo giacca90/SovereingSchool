@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { LoginModalServiceService } from '../../../services/login-modal-service.service';
+import { LoginService } from '../../../services/login.service';
 
 @Component({
 	selector: 'app-login',
@@ -9,13 +10,16 @@ import { LoginModalServiceService } from '../../../services/login-modal-service.
 	styleUrl: './login.component.css',
 })
 export class LoginComponent {
-	constructor(private modalService: LoginModalServiceService) {}
+	constructor(
+		private modalService: LoginModalServiceService,
+		private loginService: LoginService,
+	) {}
 
 	close() {
 		this.modalService.hide();
 	}
 
-	compruebaCorreo() {
+	async compruebaCorreo() {
 		let message: HTMLDivElement = document.getElementById('message') as HTMLDivElement;
 		message.innerHTML = '';
 		let correo: string = (document.getElementById('correo') as HTMLInputElement).value;
@@ -32,8 +36,7 @@ export class LoginComponent {
 			message.appendChild(mex);
 			return;
 		}
-
-		if (this.modalService.compruebaCorreo(correo)) {
+		if ((await this.loginService.compruebaCorreo(correo)) === true) {
 			let content: HTMLDivElement = document.getElementById('content') as HTMLDivElement;
 			content.innerHTML = `
 				<br />

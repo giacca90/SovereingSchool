@@ -4,6 +4,9 @@ import com.sovereingschool.back.DTOs.ChangePassword;
 import com.sovereingschool.back.Models.Login;
 
 public interface ILoginService {
+
+    public Long compruebaCorreo(String correo);
+
     public String createNuevoLogin(Login login);
 
     public String getCorreoLogin(Long id_usuario);

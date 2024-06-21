@@ -3,6 +3,7 @@ package com.sovereingschool.back.Controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,11 +18,22 @@ import com.sovereingschool.back.Interfaces.ILoginService;
 import com.sovereingschool.back.Models.Login;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
 @RequestMapping("/login")
 public class LoginController {
 
 	@Autowired
 	private ILoginService service;
+
+	// Utilizado
+	@GetMapping("/{correo}")
+	public ResponseEntity<?> conpruebaCorreo(@PathVariable String correo) {
+		try {
+			return new ResponseEntity<Long>(this.service.compruebaCorreo(correo), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 	@GetMapping("/correo/{id}")
 	public ResponseEntity<?> getCorreoLogin(@PathVariable Long id) {
