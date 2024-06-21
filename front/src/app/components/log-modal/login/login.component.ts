@@ -65,14 +65,16 @@ export class LoginComponent {
 		}
 	}
 
-	compruebaPassword(): any {
+	async compruebaPassword() {
 		let message3: HTMLDivElement = document.getElementById('message3') as HTMLDivElement;
 		message3.innerHTML = '';
-		if (this.modalService.compruebaPassword((document.getElementById('password') as HTMLInputElement).value)) {
+		if (await this.loginService.compruebaPassword((document.getElementById('password') as HTMLInputElement).value)) {
+			this.close();
 		} else {
 			let mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'La contraseña no es correcta!!!';
 			message3.appendChild(mex);
+			return;
 		}
 	}
 

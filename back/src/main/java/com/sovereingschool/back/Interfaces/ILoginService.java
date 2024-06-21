@@ -7,6 +7,8 @@ public interface ILoginService {
 
     public Long compruebaCorreo(String correo);
 
+    public Login getLogin(Long id);
+
     public String createNuevoLogin(Login login);
 
     public String getCorreoLogin(Long id_usuario);

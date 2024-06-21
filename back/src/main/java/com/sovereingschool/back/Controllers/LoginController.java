@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back.DTOs.ChangePassword;
 import com.sovereingschool.back.Interfaces.ILoginService;
+import com.sovereingschool.back.Interfaces.IUsuarioService;
 import com.sovereingschool.back.Models.Login;
+import com.sovereingschool.back.Models.Usuario;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
@@ -25,6 +27,9 @@ public class LoginController {
 	@Autowired
 	private ILoginService service;
 
+	@Autowired
+	private IUsuarioService usuarioService;
+
 	// Utilizado
 	@GetMapping("/{correo}")
 	public ResponseEntity<?> conpruebaCorreo(@PathVariable String correo) {
@@ -32,6 +37,24 @@ public class LoginController {
 			return new ResponseEntity<Long>(this.service.compruebaCorreo(correo), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	// Utilizado
+
+	@GetMapping("/{id}/{password}")
+	public ResponseEntity<?> getUsuario(@PathVariable Long id, @PathVariable String password) {
+		try {
+			Login login = this.service.getLogin(id);
+			if (login.getPassword().equals(password)) {
+				Usuario usuario = this.usuarioService.getUsuario(id);
+				return new ResponseEntity<Usuario>(usuario, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

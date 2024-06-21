@@ -22,4 +22,8 @@ export class Usuario {
 		this._cursos_usuario = cursos_usuario;
 		this._fecha_registro_usuario = fecha_registro_usuario;
 	}
+
+	getId() {
+		return this._id_usuario;
+	}
 }

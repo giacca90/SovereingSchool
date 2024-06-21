@@ -1,5 +1,7 @@
 package com.sovereingschool.back.Services;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +69,14 @@ public class LoginService implements ILoginService {
     public String deleteLogin(Long id_usuario) {
         this.repo.deleteById(id_usuario);
         return "Login eliminado con éxito!!!";
+    }
+
+    @Override
+    public Login getLogin(Long id) {
+        Optional<Login> log = this.repo.findById(id);
+        if (log.isPresent())
+            return log.get();
+        return null;
     }
 
 }
