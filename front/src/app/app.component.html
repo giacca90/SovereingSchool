@@ -1,7 +1,12 @@
 <div [class.dimmed]="isModalVisible">
 	<header class="relative w-full rounded-b-lg bg-cyan-500">
 		<h1 class="text-center text-3xl font-bold text-yellow-500">SOVEREIGN SCHOOL</h1>
-		<button type="button" class="absolute right-2 top-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.png" alt="login" (click)="openModal()" /></button>
+		@if (this.loginservice.usuario == null) {
+			<button type="button" class="absolute right-2 top-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.png" alt="login" (click)="openModal()" /></button>
+		} @else {
+			<button class="absolute right-2 top-2 mr-2 justify-end rounded-lg border border-black pl-1 pr-1">Bienvenido {{ this.loginservice.usuario.nombre_usuario }}</button>
+		}
+
 		<div class="w-full overflow-hidden">
 			<h3 class="inline-block animate-slideIn font-bold text-green-700">El mejor lugar para aprender Soberanía!!!</h3>
 		</div>

@@ -1,29 +1,29 @@
 export class Usuario {
-	private _id_usuario: number;
+	private id_usuario: Number;
 
-	private _nombre_usuario: string;
+	public nombre_usuario: String;
 
-	private _foto_usuario: string[];
+	private foto_usuario: String[];
 
-	private _roll_usuario: number;
+	private roll_usuario: Number;
 
-	private _plan_usuario: number;
+	private plan_usuario: Number;
 
-	private _cursos_usuario: number[];
+	private cursos_usuario: Number[];
 
-	private _fecha_registro_usuario: Date;
+	private fecha_registro_usuario: Date;
 
-	constructor(id_usuario: number, nombre_usuario: string, foto_usuario: string[], roll_usuario: number, plan_usuario: number, cursos_usuario: number[], fecha_registro_usuario: Date) {
-		this._id_usuario = id_usuario;
-		this._nombre_usuario = nombre_usuario;
-		this._foto_usuario = foto_usuario;
-		this._roll_usuario = roll_usuario;
-		this._plan_usuario = plan_usuario;
-		this._cursos_usuario = cursos_usuario;
-		this._fecha_registro_usuario = fecha_registro_usuario;
+	constructor(_id_usuario: Number, _nombre_usuario: String, _foto_usuario: String[], _roll_usuario: Number, _plan_usuario: Number, _cursos_usuario: Number[], _fecha_registro_usuario: Date) {
+		this.id_usuario = _id_usuario;
+		this.nombre_usuario = _nombre_usuario;
+		this.foto_usuario = _foto_usuario;
+		this.roll_usuario = _roll_usuario;
+		this.plan_usuario = _plan_usuario;
+		this.cursos_usuario = _cursos_usuario;
+		this.fecha_registro_usuario = _fecha_registro_usuario;
 	}
 
 	getId() {
-		return this._id_usuario;
+		return this.id_usuario;
 	}
 }

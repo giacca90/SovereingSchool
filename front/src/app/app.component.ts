@@ -5,6 +5,7 @@ import { HomeComponent } from './components/home/home.component';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
 import { SearchComponent } from './components/search/search.component';
 import { LoginModalServiceService } from './services/login-modal-service.service';
+import { LoginService } from './services/login.service';
 
 @Component({
 	selector: 'app-root',
@@ -17,7 +18,10 @@ export class AppComponent {
 	title = 'Sovereign School';
 	isModalVisible: boolean = false;
 
-	constructor(private modalService: LoginModalServiceService) {}
+	constructor(
+		private modalService: LoginModalServiceService,
+		public loginservice: LoginService,
+	) {}
 
 	ngOnInit() {
 		this.modalService.isVisible$.subscribe((isVisible) => {
