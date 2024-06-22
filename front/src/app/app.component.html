@@ -4,7 +4,15 @@
 		@if (this.loginservice.usuario == null) {
 			<button type="button" class="absolute right-2 top-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.png" alt="login" (click)="openModal()" /></button>
 		} @else {
-			<button class="absolute right-2 top-2 mr-2 justify-end rounded-lg border border-black pl-1 pr-1">Bienvenido {{ this.loginservice.usuario.nombre_usuario }}</button>
+			<button class="absolute right-2 top-2 mr-2 justify-end rounded-lg border border-black pl-1 pr-1" (click)="this.vistaMenu = !this.vistaMenu">Bienvenido {{ this.loginservice.usuario.nombre_usuario }}</button>
+			@if (this.vistaMenu == true) {
+				<div class="absolute right-2 z-10 mt-2 flex flex-col items-start rounded-lg bg-gray-200 p-4 shadow-lg">
+					<button class="mb-1 hover:text-blue-500" (click)="this.router.navigate(['cursos']); this.vistaMenu = false">Tus Cursos</button>
+					<button class="mb-1 hover:text-blue-500" (click)="this.vistaMenu = false">Tus Chats</button>
+					<button class="mb-1 hover:text-blue-500" (click)="this.vistaMenu = false">Tu perfil</button>
+					<button class="hover:text-blue-500" (click)="this.salir()">Salir</button>
+				</div>
+			}
 		}
 
 		<div class="w-full overflow-hidden">

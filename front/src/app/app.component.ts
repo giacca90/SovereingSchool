@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common'; // Importa CommonModule
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { HomeComponent } from './components/home/home.component';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
 import { SearchComponent } from './components/search/search.component';
-import { LoginModalServiceService } from './services/login-modal-service.service';
+import { LoginModalService } from './services/login-modal.service';
 import { LoginService } from './services/login.service';
 
 @Component({
@@ -17,10 +17,12 @@ import { LoginService } from './services/login.service';
 export class AppComponent {
 	title = 'Sovereign School';
 	isModalVisible: boolean = false;
+	vistaMenu: boolean = false;
 
 	constructor(
-		private modalService: LoginModalServiceService,
+		private modalService: LoginModalService,
 		public loginservice: LoginService,
+		public router: Router,
 	) {}
 
 	ngOnInit() {
@@ -31,5 +33,12 @@ export class AppComponent {
 
 	openModal() {
 		this.modalService.show();
+	}
+
+	salir() {
+		this.vistaMenu = false;
+		this.loginservice.usuario = null;
+		localStorage.clear();
+		this.router.navigate(['']);
 	}
 }

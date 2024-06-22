@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { LoginModalServiceService } from '../../../services/login-modal-service.service';
+import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
 
 @Component({
@@ -11,7 +11,7 @@ import { LoginService } from '../../../services/login.service';
 })
 export class RegisterComponent {
 	constructor(
-		private modalService: LoginModalServiceService,
+		private modalService: LoginModalService,
 		private loginService: LoginService,
 	) {}
 

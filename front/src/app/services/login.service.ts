@@ -43,14 +43,12 @@ export class LoginService {
 		return new Promise(async (resolve, reject) => {
 			this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password).subscribe({
 				next: (response) => {
-					if (response.getId === null) {
+					if (response.id_usuario === null) {
 						resolve(false);
 						return;
 					}
 					this.usuario = response;
-					afterRender(() => {
-						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
-					});
+					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
 					console.log('LOG: ' + JSON.stringify(this.usuario));
 					resolve(true);
 					return;

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component } from '@angular/core';
-import { LoginModalServiceService } from '../../services/login-modal-service.service';
+import { LoginModalService } from '../../services/login-modal.service';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 
@@ -15,7 +15,7 @@ export class LogModalComponent implements AfterViewInit {
 	register: HTMLButtonElement | null = null;
 	isLoginHidden: boolean = false;
 
-	constructor(private modalService: LoginModalServiceService) {}
+	constructor(private modalService: LoginModalService) {}
 
 	ngAfterViewInit(): void {
 		this.login = document.getElementById('login') as HTMLButtonElement;
