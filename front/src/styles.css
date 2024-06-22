@@ -5,7 +5,10 @@
 
 html,
 body {
-  min-height: 100vh;
-  max-height: 500vh;
-  overflow-y: auto;
+	height: 100%;
+	min-height: 100vh;
+	max-height: 500vh;
+	overflow-y: auto;
+	margin: 0;
+	padding: 0;
 }

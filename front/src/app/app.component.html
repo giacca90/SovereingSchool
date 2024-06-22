@@ -1,4 +1,4 @@
-<div [class.dimmed]="isModalVisible">
+<div [class.dimmed]="isModalVisible" class="flex h-full w-full flex-col">
 	<header class="relative w-full rounded-b-lg bg-cyan-500">
 		<h1 class="text-center text-3xl font-bold text-yellow-500">SOVEREIGN SCHOOL</h1>
 		@if (this.loginservice.usuario == null) {
@@ -21,11 +21,11 @@
 	</header>
 
 	<app-search class="flex p-2"></app-search>
-	<div class="flex p-2">
+	<div class="flex h-full w-full flex-grow flex-col p-2">
 		<router-outlet></router-outlet>
 	</div>
 
-	<footer class="flex w-full rounded-t-lg bg-cyan-500">
+	<footer class="mb-0 flex w-full flex-grow rounded-t-lg bg-cyan-500">
 		<div class="flex-1 justify-center p-2 text-white">
 			<p>Copyright© <span id="fecha_copyright">2024</span></p>
 			<p>Todos los derechos reservados.</p>

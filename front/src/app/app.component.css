@@ -11,6 +11,12 @@
 	max-height: 500%;
 	overflow-y: auto;
 	position: relative;
+	display: flex;
+	flex-flow: column;
+}
+
+:host ::ng-deep .child-element {
+	flex-grow: 1; /* Permite que el elemento hijo crezca para llenar el espacio disponible */
 }
 
 .dimmed {
