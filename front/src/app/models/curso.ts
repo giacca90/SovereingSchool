@@ -1,25 +1,25 @@
 export class Curso {
-	private _id_curso: number;
+	public id_curso: number;
 
-	private _nombre_curso: string;
+	public nombre_curso: string;
 
-	private _profesores_curso: number[];
+	public profesores_curso: number[];
 
-	private _fecha_publicacion_curso: Date;
+	public fecha_publicacion_curso: Date;
 
-	private _clases_curso: number[];
+	public clases_curso: number[];
 
-	private _planes_curso: number[];
+	public planes_curso: number[];
 
-	private _precio_curso: number;
+	public precio_curso: number;
 
-	constructor(id_curso: number, nombre_curso: string, profesores_curso: number[], fecha_publicacion_curso: Date, clases_curso: number[], planes_curso: number[], precio_curso: number) {
-		this._id_curso = id_curso;
-		this._nombre_curso = nombre_curso;
-		this._profesores_curso = profesores_curso;
-		this._fecha_publicacion_curso = fecha_publicacion_curso;
-		this._clases_curso = clases_curso;
-		this._planes_curso = planes_curso;
-		this._precio_curso = precio_curso;
+	constructor(_id_curso: number, _nombre_curso: string, _profesores_curso: number[], _fecha_publicacion_curso: Date, _clases_curso: number[], _planes_curso: number[], _precio_curso: number) {
+		this.id_curso = _id_curso;
+		this.nombre_curso = _nombre_curso;
+		this.profesores_curso = _profesores_curso;
+		this.fecha_publicacion_curso = _fecha_publicacion_curso;
+		this.clases_curso = _clases_curso;
+		this.planes_curso = _planes_curso;
+		this.precio_curso = _precio_curso;
 	}
 }

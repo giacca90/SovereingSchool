@@ -1,3 +1,5 @@
+import { Curso } from './curso';
+
 export class Usuario {
 	public id_usuario: Number;
 
@@ -9,11 +11,11 @@ export class Usuario {
 
 	public plan_usuario: Number;
 
-	public cursos_usuario: Number[];
+	public cursos_usuario: Curso[];
 
 	public fecha_registro_usuario: Date;
 
-	constructor(_id_usuario: Number, _nombre_usuario: String, _foto_usuario: String[], _roll_usuario: Number, _plan_usuario: Number, _cursos_usuario: Number[], _fecha_registro_usuario: Date) {
+	constructor(_id_usuario: Number, _nombre_usuario: String, _foto_usuario: String[], _roll_usuario: Number, _plan_usuario: Number, _cursos_usuario: Curso[], _fecha_registro_usuario: Date) {
 		this.id_usuario = _id_usuario;
 		this.nombre_usuario = _nombre_usuario;
 		this.foto_usuario = _foto_usuario;

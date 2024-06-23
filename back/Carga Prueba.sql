@@ -86,9 +86,9 @@ VALUES (
 		1
 	);
 INSERT INTO login (id_usuario, correo_electronico, PASSWORD)
-VALUES (1, 'matt@prueba', 123456),
-	(2, 'ra@prueba', 234567),
-	(3, 'jaime@prueba', 345678);
+VALUES (1, 'matt@prueba.com', 123456),
+	(2, 'ra@prueba.com', 234567),
+	(3, 'jaime@prueba.com', 345678);
 INSERT INTO curso_profesor (id_curso, id_usuario)
 VALUES (1, 2),
 	(2, 1);

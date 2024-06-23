@@ -1,8 +1,14 @@
-<div class="m-0 flex h-full flex-grow flex-col items-center rounded-lg border border-black p-2">
+<div class="m-2 flex h-full flex-grow flex-col items-center rounded-lg border border-black p-2">
 	<h2 class="font-bold text-blue-500">Tus Cursos</h2>
 	<br />
 	@if (this.loginService.usuario?.cursos_usuario?.length == 0) {
 		<h3 class="font-bold text-red-600">No tienes cursos!!!</h3>
-
-	} @else {}
+	} @else {
+		@for (curso of this.loginService.usuario?.cursos_usuario; track curso) {
+			<div class="m-2 flex h-8 w-full rounded-lg border border-black p-1">
+				<p class="mr-1">{{ curso.id_curso }}</p>
+				<p>{{ curso.nombre_curso }}</p>
+			</div>
+		}
+	}
 </div>

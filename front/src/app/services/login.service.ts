@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { afterRender, Injectable } from '@angular/core';
+import { afterNextRender, Injectable } from '@angular/core';
 import { Usuario } from '../models/usuario';
 
 @Injectable({
@@ -11,7 +11,7 @@ export class LoginService {
 	public usuario: Usuario | null = null;
 
 	constructor(private http: HttpClient) {
-		afterRender(() => {
+		afterNextRender(() => {
 			let usuario_guardado: string | null = localStorage.getItem('Usuario');
 			if (usuario_guardado) this.usuario = JSON.parse(usuario_guardado);
 		});
