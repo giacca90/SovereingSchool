@@ -6,7 +6,6 @@
 	} @else {
 		@for (curso of this.loginService.usuario?.cursos_usuario; track curso) {
 			<div class="m-2 flex h-8 w-full rounded-lg border border-black p-1">
-				<p class="mr-1">{{ curso.id_curso }}</p>
 				<p>{{ curso.nombre_curso }}</p>
 			</div>
 		}

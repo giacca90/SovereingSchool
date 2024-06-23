@@ -1,1 +1,6 @@
-<p>reproduction works!</p>
+<!-- video-player.component.html -->
+@if (this.videoUrl) {
+	<video controls [src]="videoUrl" width="640" height="360"></video>
+} @else {
+	<p>Cargando video...</p>
+}
