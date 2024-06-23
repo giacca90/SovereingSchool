@@ -41,10 +41,10 @@ public class StreamingController {
         }
     }
 
-    @GetMapping("/videos/{filename}")
-    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable String filename,
+    @GetMapping("/clases/{direccion_video}")
+    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable String direccion_video,
             @RequestHeader HttpHeaders headers) throws IOException {
-        Path videoPath = Paths.get("path/to/your/videos/" + filename);
+        Path videoPath = Paths.get(direccion_video);
         if (!Files.exists(videoPath)) {
             return ResponseEntity.notFound().build();
         }
@@ -96,4 +96,35 @@ public class StreamingController {
  * RandomAccessFile: Permite el acceso a diferentes partes del archivo de video.
  * LimitedInputStream: Clase interna para limitar la cantidad de datos leídos
  * del archivo.
+ */
+
+/*
+ * @RestController
+ * 
+ * @RequestMapping("/api/user-courses")
+ * public class UserCoursesController {
+ * 
+ * @Autowired
+ * private UserCoursesRepository userCoursesRepository;
+ * 
+ * @Autowired
+ * private SyncService syncService;
+ * 
+ * @GetMapping("/{userId}")
+ * public ResponseEntity<UserCourses> getUserCourses(@PathVariable String
+ * userId) {
+ * UserCourses userCourses = userCoursesRepository.findByUserId(userId);
+ * if (userCourses != null) {
+ * return ResponseEntity.ok(userCourses);
+ * } else {
+ * return ResponseEntity.notFound().build();
+ * }
+ * }
+ * 
+ * @PostMapping("/sync")
+ * public ResponseEntity<Void> syncUserCourses() {
+ * syncService.syncUserCourses();
+ * return ResponseEntity.ok().build();
+ * }
+ * }
  */
