@@ -21,7 +21,7 @@ import lombok.ToString;
 @Document(collection = "user_courses")
 public class UsuarioCursos implements Serializable {
     @Id
-    private Long id;
+    private String id;
     private Long id_usuario;
     @ElementCollection
     private List<StatusCurso> cursos;

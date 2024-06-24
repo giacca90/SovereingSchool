@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRange;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.sovereingschool.back_streaming.Services.UsuarioCursosService;
 
 @RestController
 public class StreamingController {
@@ -40,6 +43,9 @@ public class StreamingController {
             }
         }
     }
+
+    @Autowired
+    private UsuarioCursosService usuarioCursosService;
 
     @GetMapping("/clases/{direccion_video}")
     public ResponseEntity<InputStreamResource> streamVideo(@PathVariable String direccion_video,
@@ -76,6 +82,16 @@ public class StreamingController {
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(rangeLength))
                 .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
                 .body(resource);
+    }
+
+    @GetMapping("/init")
+    public ResponseEntity<?> get() {
+        try {
+            this.usuarioCursosService.syncUserCourses();
+            return new ResponseEntity<String>("Iniciado mongo con exito!!!", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
 

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import com.sovereingschool.back_streaming.Models.UsuarioCursos;
 
 @Repository
-public interface UsuarioCursosRepository extends MongoRepository<UsuarioCursos, Long> {
+public interface UsuarioCursosRepository extends MongoRepository<UsuarioCursos, String> {
 }
