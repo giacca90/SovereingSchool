@@ -1,11 +1,9 @@
 package com.sovereingschool.back_streaming.Models;
 
-import java.io.Serializable;
 import java.util.List;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,11 +16,10 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Document(collection = "user_courses")
-public class UsuarioCursos implements Serializable {
+@Entity
+public class StatusCurso {
     @Id
-    private Long id;
-    private Long id_usuario;
+    private Long id_curso;
     @ElementCollection
-    private List<StatusCurso> cursos;
+    private List<StatusClase> clases;
 }
