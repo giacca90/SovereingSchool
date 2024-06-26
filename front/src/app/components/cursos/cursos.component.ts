@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { Curso } from '../../models/curso';
+import { Curso } from '../../models/Curso';
 import { LoginService } from '../../services/login.service';
 
 @Component({

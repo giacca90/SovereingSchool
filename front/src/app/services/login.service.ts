@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Injectable } from '@angular/core';
-import { Usuario } from '../models/usuario';
+import { Usuario } from '../models/Usuario';
 
 @Injectable({
 	providedIn: 'root',

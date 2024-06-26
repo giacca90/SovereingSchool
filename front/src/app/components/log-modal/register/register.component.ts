@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
+import { NuevoUsuario } from '../../../models/NuevoUsuario';
 import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
+import { RegisterService } from '../../../services/register.service';
 
 @Component({
 	selector: 'app-register',
@@ -9,11 +11,18 @@ import { LoginService } from '../../../services/login.service';
 	templateUrl: './register.component.html',
 	styleUrl: './register.component.css',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
+	private nuevoUsuario: NuevoUsuario = new NuevoUsuario();
+
 	constructor(
 		private modalService: LoginModalService,
 		private loginService: LoginService,
+		private registerService: RegisterService,
 	) {}
+
+	ngOnDestroy(): void {
+		this.nuevoUsuario = new NuevoUsuario();
+	}
 
 	close() {
 		this.modalService.hide();
@@ -46,7 +55,10 @@ export class RegisterComponent {
 
 		//prueba
 		console.log('PRUEBA: ' + (await this.loginService.compruebaCorreo(correo)));
-		if ((await this.loginService.compruebaCorreo(correo)) == true) {
+
+		if ((await this.loginService.compruebaCorreo(correo)) == false) {
+			this.nuevoUsuario.correo_electronico = correo;
+			this.nuevoUsuario.nombre_usuario = (document.getElementById('nombre2') as HTMLInputElement).value;
 			let content: HTMLDivElement = document.getElementById('content2') as HTMLDivElement;
 			content.innerHTML = `
 				<br />
@@ -79,6 +91,7 @@ export class RegisterComponent {
 			return;
 		}
 	}
+
 	compruebaPassword(): any {
 		let message: HTMLDivElement = document.getElementById('message4') as HTMLDivElement;
 		message.innerHTML = '';
@@ -94,6 +107,15 @@ export class RegisterComponent {
 		}
 		if (pass == pass2) {
 			console.log('Contraseña correcta!!!');
+			this.nuevoUsuario.password = pass;
+			this.nuevoUsuario.fecha_registro_usuario = new Date();
+			this.registerService.registrarNuevoUsuario(this.nuevoUsuario);
+			message.classList.remove('text-red-600');
+			message.classList.add('text-green-700');
+			message.innerHTML = 'Te has registrado con éxito!!!';
+			setTimeout(() => {
+				this.close();
+			}, 1000);
 			return;
 		} else {
 			message.textContent = 'Las dos contraseñas no coinciden';
