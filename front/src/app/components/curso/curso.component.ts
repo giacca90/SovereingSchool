@@ -62,20 +62,21 @@ export class CursoComponent {
 							divClases.appendChild(p);
 						}
 					}
-
-					let boton: HTMLButtonElement = document.getElementById('boton') as HTMLButtonElement;
-					if (this.loginService.usuario?.cursos_usuario)
-						for (let cursoUsuario of this.loginService.usuario?.cursos_usuario) {
-							if (cursoUsuario.id_curso == this.curso.id_curso) {
-								boton.textContent = 'Ir al curso';
-								break;
+					if (this.loginService.usuario) {
+						let boton: HTMLButtonElement = document.getElementById('boton') as HTMLButtonElement;
+						if (this.loginService.usuario?.cursos_usuario)
+							for (let cursoUsuario of this.loginService.usuario?.cursos_usuario) {
+								if (cursoUsuario.id_curso == this.curso.id_curso) {
+									boton.textContent = 'Ir al curso';
+									break;
+								}
 							}
-						}
-					for (let planes of this.curso.planes_curso) {
-						if (planes.id_plan == this.loginService.usuario?.plan_usuario) {
-							boton.textContent = 'Ir al curso';
-							let nota: HTMLParagraphElement = document.getElementById('nota') as HTMLParagraphElement;
-							nota.innerHTML = 'Este curso es parte de tu Plan ' + planes.nombre_plan;
+						for (let planes of this.curso.planes_curso) {
+							if (planes.id_plan == this.loginService.usuario?.plan_usuario) {
+								boton.textContent = 'Ir al curso';
+								let nota: HTMLParagraphElement = document.getElementById('nota') as HTMLParagraphElement;
+								nota.innerHTML = 'Este curso es parte de tu Plan ' + planes.nombre_plan;
+							}
 						}
 					}
 				}

@@ -11,7 +11,9 @@
 	<br />
 	<div>
 		<span class="font-bold">Precio: {{ curso?.precio_curso }}€</span>
-		<button id="boton" class="ml-2 rounded-lg border border-black p-2">Compra este curso</button>
+		@if (this.loginService.usuario) {
+			<button id="boton" class="ml-2 rounded-lg border border-black p-2">Compra este curso</button>
+		}
 		<p id="nota"></p>
 	</div>
 </div>
