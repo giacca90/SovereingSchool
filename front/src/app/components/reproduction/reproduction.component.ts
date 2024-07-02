@@ -1,8 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
-import { StreamingService } from '../../services/streaming.service';
 
 @Component({
 	selector: 'app-reproduction',
@@ -16,8 +14,6 @@ export class ReproductionComponent implements OnInit {
 	private isBrowser: boolean;
 	public loading: boolean = true;
 	constructor(
-		private streamingService: StreamingService,
-		private sanitizer: DomSanitizer,
 		private route: ActivatedRoute,
 		@Inject(PLATFORM_ID) private platformId: object,
 	) {

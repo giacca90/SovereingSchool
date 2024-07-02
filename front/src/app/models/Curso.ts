@@ -1,3 +1,5 @@
+import { Clase } from './Clase';
+import { Plan } from './Plan';
 import { Usuario } from './Usuario';
 
 export class Curso {
@@ -9,9 +11,9 @@ export class Curso {
 
 	public fecha_publicacion_curso: Date;
 
-	public clases_curso: number[];
+	public clases_curso: Clase[];
 
-	public planes_curso: number[];
+	public planes_curso: Plan[];
 
 	public descriccion_corta: String;
 
@@ -21,7 +23,7 @@ export class Curso {
 
 	public precio_curso: number;
 
-	constructor(_id_curso: number, _nombre_curso: string, _profesores_curso: Usuario[], _fecha_publicacion_curso: Date, _clases_curso: number[], _planes_curso: number[], _descriccion_corta: String, _descriccion_larga: String, _imagen_curso: String, _precio_curso: number) {
+	constructor(_id_curso: number, _nombre_curso: string, _profesores_curso: Usuario[], _fecha_publicacion_curso: Date, _clases_curso: Clase[], _planes_curso: Plan[], _descriccion_corta: String, _descriccion_larga: String, _imagen_curso: String, _precio_curso: number) {
 		this.id_curso = _id_curso;
 		this.nombre_curso = _nombre_curso;
 		this.profesores_curso = _profesores_curso;
@@ -33,4 +35,13 @@ export class Curso {
 		this.imagen_curso = _imagen_curso;
 		this.precio_curso = _precio_curso;
 	}
+
+	/* get NombresProfesores() {
+		if (this.profesores_curso.length == 1) return this.profesores_curso[0].nombre_usuario;
+		let nombres: string = this.profesores_curso[0].nombre_usuario.toString();
+		for (let i = 1; i < this.profesores_curso.length; i++) {
+			nombres = nombres + ' y ' + this.profesores_curso[i].nombre_usuario;
+		}
+		return nombres;
+	} */
 }

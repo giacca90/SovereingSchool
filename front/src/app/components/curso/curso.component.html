@@ -1,0 +1,17 @@
+<div class="m-2 flex flex-col items-center rounded-lg border border-black p-2">
+	<h3 class="flex-1 items-center text-center font-bold text-green-700">{{ curso?.nombre_curso }}</h3>
+	<br />
+	<p class="font-bold">Por: {{ nombresProfesores }}</p>
+	<br />
+	<p>{{ curso?.descriccion_larga }}</p>
+	<br />
+	<p class="flex-1 items-center font-bold">Este curso tiene las siguientes clases:</p>
+	<br />
+	<div id="clases"></div>
+	<br />
+	<div>
+		<span class="font-bold">Precio: {{ curso?.precio_curso }}€</span>
+		<button id="boton" class="ml-2 rounded-lg border border-black p-2">Compra este curso</button>
+		<p id="nota"></p>
+	</div>
+</div>

@@ -8,8 +8,16 @@ import { Curso } from '../models/Curso';
 export class CursosService {
 	backURL: String = 'http://localhost:8080';
 	public cursos: Curso[] = [];
+
 	constructor(private http: HttpClient) {
 		this.cargaCursos();
+	}
+
+	getCurso(id_curso: Number) {
+		for (let curso of this.cursos) {
+			if (curso.id_curso == id_curso) return curso;
+		}
+		return null;
 	}
 
 	private async cargaCursos() {

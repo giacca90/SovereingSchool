@@ -1,4 +1,5 @@
 import { afterNextRender, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Curso } from '../../models/Curso';
 import { Usuario } from '../../models/Usuario';
 import { CursosService } from '../../services/cursos.service';
@@ -19,10 +20,11 @@ export class HomeComponent implements OnInit {
 		private cursoService: CursosService,
 		private usuarioService: UsuariosService,
 		private cdr: ChangeDetectorRef,
+		public router: Router,
 	) {
 		this.cursoService.cursos.forEach((curso: Curso) => {
 			let div: HTMLDivElement = document.createElement('div');
-			div.classList.add('relative', 'm-2', 'border', 'border-black');
+			div.classList.add('relative', 'm-2', 'border', 'border-black', 'cursor-pointer');
 
 			let fondo: HTMLDivElement = document.createElement('div');
 			fondo.classList.add('absolute', 'inset-0', 'bg-cover', 'bg-center', 'opacity-20', 'transition-opacity', 'duration-300', 'hover:opacity-30');
@@ -52,6 +54,10 @@ export class HomeComponent implements OnInit {
 			desc.classList.add('ml-3', 'mr-3');
 			desc.textContent = curso.descriccion_corta as string;
 			div.appendChild(desc);
+
+			div.addEventListener('click', () => {
+				this.router.navigate(['/curso/' + curso.id_curso]);
+			});
 
 			this.vistaCursos.push(div);
 		});

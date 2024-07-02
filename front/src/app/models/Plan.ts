@@ -1,13 +1,13 @@
 import { Curso } from './Curso';
 
 export class Plan {
-	private id_plan: Number;
+	public id_plan: Number;
 
-	private nombre_plan: String;
+	public nombre_plan: String;
 
-	private precio_plan: Number;
+	public precio_plan: Number;
 
-	private cursos_plan: Curso[];
+	public cursos_plan: Curso[];
 
 	constructor(_id_plan: Number, _nombre_plan: String, _precio_plan: Number, _cursos_plan: Curso[]) {
 		this.id_plan = _id_plan;
