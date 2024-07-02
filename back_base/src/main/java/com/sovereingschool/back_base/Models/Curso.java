@@ -42,20 +42,27 @@ public class Curso implements Serializable {
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "curso_profesor", joinColumns = @JoinColumn(name = "id_curso"), inverseJoinColumns = @JoinColumn(name = "id_usuario"))
-	@JsonIgnoreProperties({ "id_usuario", "foto_usuario", "roll_usuario", "plan_usuario", "cursos_usuario",
+	@JsonIgnoreProperties({ "id_usuario", "roll_usuario", "plan_usuario", "cursos_usuario",
 			"fecha_registro_usuario" })
 	private List<Usuario> profesores_curso;
 
 	private Date fecha_publicacion_curso;
 
 	@OneToMany(mappedBy = "curso_clase", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JsonIgnoreProperties({ "id_clase", "tipo_clase", "direccion_clase", "posicion_clase", "curso_clase" })
+	@JsonIgnoreProperties({ "id_clase", "tipo_clase", "direccion_clase", "curso_clase" })
 	private List<Clase> clases_curso;
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "cursos_plan", joinColumns = @JoinColumn(name = "id_curso"), inverseJoinColumns = @JoinColumn(name = "id_plan"))
 	@JsonIgnoreProperties({ "id_plan", "precio_plan", "cursos_plan" })
 	private List<Plan> planes_curso;
+
+	private String descriccion_corta;
+
+	@Column(length = 1500)
+	private String descriccion_larga;
+
+	private String imagen_curso;
 
 	private BigDecimal precio_curso;
 

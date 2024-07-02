@@ -23,7 +23,7 @@ import com.sovereingschool.back_base.Models.Usuario;
 
 @RestController
 @RequestMapping("/usuario")
-@CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
+@CrossOrigin(origins = { "http://localhost:4200", "https://giacca90.github.io" })
 public class UsuarioController {
 
 	@Autowired
