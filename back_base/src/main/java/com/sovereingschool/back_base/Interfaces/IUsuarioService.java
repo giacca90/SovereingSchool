@@ -31,4 +31,6 @@ public interface IUsuarioService {
     public Integer changeCursosUsuario(Usuario usuario);
 
     public String deleteUsuario(Long id);
+
+    public List<Usuario> getProfes();
 }

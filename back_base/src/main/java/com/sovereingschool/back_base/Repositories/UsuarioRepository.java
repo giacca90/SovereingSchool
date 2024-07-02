@@ -50,4 +50,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @Query("UPDATE Usuario u SET u.plan_usuario = :new_plan WHERE u.id_usuario = :id")
     Integer changePlanUsuarioForId(@Param("id") Long id, @Param("new_plan") Plan new_plan);
 
+    @Query("SELECT u FROM Usuario u WHERE u.roll_usuario < 2")
+    List<Usuario> findProfes();
+
 }

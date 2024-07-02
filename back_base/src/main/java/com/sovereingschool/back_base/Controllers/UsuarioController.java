@@ -169,4 +169,13 @@ public class UsuarioController {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	@GetMapping("/profes")
+	public ResponseEntity<?> getProfes() {
+		try {
+			return new ResponseEntity<List<Usuario>>(this.service.getProfes(), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 }

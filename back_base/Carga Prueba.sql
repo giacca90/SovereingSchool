@@ -12,7 +12,7 @@ VALUES (
 		'Aprende a utilizar la R.E.M.L.,
 la acreditación que te reconoce como el Soberano que eres.',
 		'Curso completo sobre la Republica Errante del Menda Lerenda,
-descubre sus fundamentos juridicos, sus potencialidades, como utilizarla con el D.N.I. o como unica acreditación.
+descubre sus fundamentos jurídicos, sus potencialidades, como utilizarla con el D.N.I. o como única acreditación.
 En este curso hay todo lo que necesitas saber!!!',
 		'/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/Logo-REML.png',
 		50.00
@@ -22,7 +22,7 @@ En este curso hay todo lo que necesitas saber!!!',
 		'Curso S.P.C.',
 		'El mejor remedio al Fraude del nombre legal. Recupera el control sobre tus propiedades,
 embargando al D.N.I.',
-		'En este curso aprenderas como convertirte en Acreedor de parte asegurada, embargand en D.N.I. y convirtiendote en su acreedor.
+		'En este curso aprenderás como convertirte en Acreedor de parte asegurada, embargar en D.N.I. y convirtiéndote en su acreedor.
 		Ademas aprenderás como transferir tus activos a un Trust (fideicomiso) para protegerlas y poderla transferir a tus descendientes sin pagar impuestos.',
 		'/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/sello-ex-libris-1.png',
 		150.00
@@ -31,9 +31,9 @@ embargando al D.N.I.',
 		'2024-08-07 00:00:00',
 		'Curso de Libertad Financiera',
 		'Aprende las técnicas de ingeniería financiera para dejar de pagar impuestos sobre tu trabajo !!',
-		'Cansado de trabajar duro y ganar poco?? Estas arto de pagar impuestos sobre tu trabajo???
+		'Cansado de trabajar duro y ganar poco?? Estas harto de pagar impuestos sobre tu trabajo???
 		Este curso es lo que buscas!!!
-		Aprenderás las mejores tecnicas de ingeniería financiera, como los Fideicomisos, las empresas off-shore y fundaciónes.',
+		Aprenderás las mejores técnicas de ingeniería financiera, como los Fideicomisos, las empresas off-shore y fundaciones.',
 		'/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/roble texto.png',
 		70.00
 	),
@@ -42,7 +42,7 @@ embargando al D.N.I.',
 		'Curso de Copyright',
 		'Desde la base hasta la practica. Registra tu nombre, tu casa, tu coche y todas tus obras como Marcas Registradas y obtiene el control absoluto.',
 		'El derecho de Autor es el principal de los derechos, es el principio por lo cual el Vaticano se declaró como el propietario de toda la creación.
-		Como ellos, nosotros tambien podemos utilizarlo como defensa contra los humanistas seculares.',
+		Como ellos, nosotros también podemos utilizarlo como defensa contra los humanistas seculares.',
 		'/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/Logo LJS morado.png',
 		40.00
 	);
@@ -63,8 +63,8 @@ VALUES (
 		1
 	),
 	(
-		'http://corso1/clase2',
-		'Clase 2 - Introdución',
+		'/home/giacca90/Escritorio/Proyectos/SovereingSchool/Videos/02.mp4',
+		'Clase 2 - Introducción',
 		'Introducción al curso',
 		2,
 		1,
@@ -140,6 +140,7 @@ VALUES ('Absolute', 1500.00),
 INSERT INTO usuario (
 		fecha_registro_usuario,
 		foto_usuario,
+		presentacion,
 		nombre_usuario,
 		roll_usuario,
 		plan_usuario
@@ -147,6 +148,7 @@ INSERT INTO usuario (
 VALUES (
 		'2024-01-01 00:00:00',
 		ARRAY ['/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/roble texto.png'],
+		'El creador de la Autarquía de la Gole, y el creador de esta plataforma.',
 		'Matt I de la Gole®',
 		0,
 		NULL
@@ -154,6 +156,7 @@ VALUES (
 	(
 		'2024-01-01 00:00:00',
 		ARRAY ['/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/sello-ex-libris-1.png'],
+		'El mayor activista de la REML del Mundo!!! Creador del primer Pasaporte Oficial REML.',
 		'Ra Amon de la REML®',
 		1,
 		NULL
@@ -161,6 +164,7 @@ VALUES (
 	(
 		'2024-01-01 00:00:00',
 		ARRAY ['/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/Logo-REML.png'],
+		'Uno de los más antiguos Soberanos de la REML, con muchos años de enseñanza a sus espaldas.',
 		'Rodri KMTR',
 		1,
 		NULL
@@ -168,6 +172,7 @@ VALUES (
 	(
 		'2024-01-01 00:00:00',
 		ARRAY ['/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/Logo LJS morado.png'],
+		'Grupo de Hombre y Mujeres Libres y Soberanos encentrados en crear técnicas Soberanas para cada necesidad.',
 		'El Equipo De L.J.S.',
 		1,
 		NULL
@@ -175,6 +180,7 @@ VALUES (
 	(
 		'2024-01-01 00:00:00',
 		ARRAY ['/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets/jaime.jpg'],
+		'Aprendiz Soberano, con muchas ganar de Libertad.',
 		'Jaime',
 		2,
 		1

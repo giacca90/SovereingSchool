@@ -146,6 +146,11 @@ public class UsuarioService implements IUsuarioService {
         return "Usuario eliminado con éxito!!!";
     }
 
+    @Override
+    public List<Usuario> getProfes() {
+        return this.repo.findProfes();
+    }
+
     private <D> Mono<String> sendDataToStream(D data, Integer tipo) {
 
         if (tipo == 0) {

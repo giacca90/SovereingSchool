@@ -7,7 +7,18 @@ import { Usuario } from '../models/Usuario';
 })
 export class UsuariosService {
 	private apiUrl = 'http://localhost:8080/usuario/';
-	constructor(private http: HttpClient) {}
+	public profes: Usuario[] = [];
+	constructor(private http: HttpClient) {
+		this.http.get<Usuario[]>(this.apiUrl + 'profes').subscribe({
+			next: (response: Usuario[]) => {
+				this.profes = response;
+				console.log(response);
+			},
+			error: (e: Error) => {
+				console.log('Error al cargar profes: ' + e.message);
+			},
+		});
+	}
 
 	getUsuario(id_usuario: Number): any {
 		console.log('Consulta: ' + this.apiUrl + id_usuario);

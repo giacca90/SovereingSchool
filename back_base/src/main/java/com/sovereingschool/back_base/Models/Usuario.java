@@ -47,6 +47,9 @@ public class Usuario implements Serializable {
     @Type(com.vladmihalcea.hibernate.type.array.ListArrayType.class)
     private List<String> foto_usuario;
 
+    @Column(length = 1500)
+    private String presentacion;
+
     @Column(nullable = false)
     private Integer roll_usuario;
 

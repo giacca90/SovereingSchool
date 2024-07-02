@@ -12,5 +12,6 @@
 			"username": "postgres",
 			"password": "giacca90"
 		}
-	]
+	],
+	"cSpell.enableFiletypes": ["sql"]
 }
