@@ -20,24 +20,24 @@ export class LoginComponent {
 	}
 
 	async compruebaCorreo() {
-		let message: HTMLDivElement = document.getElementById('message') as HTMLDivElement;
+		const message: HTMLDivElement = document.getElementById('message') as HTMLDivElement;
 		message.innerHTML = '';
-		let correo: string = (document.getElementById('correo') as HTMLInputElement).value;
+		const correo: string = (document.getElementById('correo') as HTMLInputElement).value;
 		if (correo.length == 0) {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'El correo electrónico no puede estar vació!!!';
 			message.appendChild(mex);
 			return;
 		}
 
 		if (!this.compruebaEmail(correo)) {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'El correo electrónico no tiene un formato valido!!!';
 			message.appendChild(mex);
 			return;
 		}
 		if ((await this.loginService.compruebaCorreo(correo)) === true) {
-			let content: HTMLDivElement = document.getElementById('content') as HTMLDivElement;
+			const content: HTMLDivElement = document.getElementById('content') as HTMLDivElement;
 			content.innerHTML = `
 				<br />
 				<div id="message3" class="text-red-600 ml-4 mr-4"></div>
@@ -59,19 +59,19 @@ export class LoginComponent {
 				cancelButton.addEventListener('click', () => this.close());
 			}
 		} else {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'Este correo no está registrado!!!';
 			message.appendChild(mex);
 		}
 	}
 
 	async compruebaPassword() {
-		let message3: HTMLDivElement = document.getElementById('message3') as HTMLDivElement;
+		const message3: HTMLDivElement = document.getElementById('message3') as HTMLDivElement;
 		message3.innerHTML = '';
 		if (await this.loginService.compruebaPassword((document.getElementById('password') as HTMLInputElement).value)) {
 			this.close();
 		} else {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'La contraseña no es correcta!!!';
 			message3.appendChild(mex);
 			return;

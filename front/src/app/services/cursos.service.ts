@@ -6,15 +6,15 @@ import { Curso } from '../models/Curso';
 	providedIn: 'root',
 })
 export class CursosService {
-	backURL: String = 'http://localhost:8080';
+	backURL: string = 'http://localhost:8080';
 	public cursos: Curso[] = [];
 
 	constructor(private http: HttpClient) {
 		this.cargaCursos();
 	}
 
-	getCurso(id_curso: Number) {
-		for (let curso of this.cursos) {
+	getCurso(id_curso: number) {
+		for (const curso of this.cursos) {
 			if (curso.id_curso == id_curso) return curso;
 		}
 		return null;

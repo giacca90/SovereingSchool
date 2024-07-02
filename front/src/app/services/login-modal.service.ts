@@ -16,11 +16,4 @@ export class LoginModalService {
 		this.isVisible.next(false);
 	}
 
-	compruebaCorreo(correo: String): Boolean {
-		return true;
-	}
-
-	compruebaPassword(password: String): Boolean {
-		return false;
-	}
 }

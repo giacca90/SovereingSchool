@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -9,8 +9,10 @@ import { ActivatedRoute } from '@angular/router';
 	templateUrl: './reproduction.component.html',
 	styleUrl: './reproduction.component.css',
 })
-export class ReproductionComponent implements OnInit {
-	private id_clase: Number = 0;
+export class ReproductionComponent implements OnInit, AfterViewInit {
+	private id_usuario: number = 0;
+	private id_curso: number = 0;
+	private id_clase: number = 0;
 	private isBrowser: boolean;
 	public loading: boolean = true;
 	constructor(
@@ -22,6 +24,8 @@ export class ReproductionComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.route.params.subscribe((params) => {
+			this.id_usuario = params['id_usuario'];
+			this.id_curso = params['id_curso'];
 			this.id_clase = params['id_clase'];
 		});
 	}
@@ -34,7 +38,7 @@ export class ReproductionComponent implements OnInit {
 
 	private async getVideo() {
 		try {
-			let video: HTMLVideoElement = document.getElementById('video') as HTMLVideoElement;
+			const video: HTMLVideoElement = document.getElementById('video') as HTMLVideoElement;
 			const xhr = new XMLHttpRequest();
 			xhr.open('GET', `http://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}`);
 			xhr.responseType = 'blob';

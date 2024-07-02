@@ -17,6 +17,7 @@ import lombok.ToString;
 public class StatusClase {
     @Id
     private Long id_clase;
+    private String direccion_clase;
     private boolean completed;
     private int progress; // Representa el progreso en la clase, por ejemplo en segundos o porcentaje
 }

@@ -41,6 +41,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
                     classStatus.setId_clase(clazz.getId_clase());
                     classStatus.setCompleted(false);
                     classStatus.setProgress(0);
+                    classStatus.setDireccion_clase(clazz.getDireccion_clase());
                     return classStatus;
                 }).collect(Collectors.toList());
 
@@ -93,4 +94,25 @@ public class UsuarioCursosService implements IUsuarioCursosService {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'addCursoUsuario'");
     }
+
+    @Override
+    public String getClase(Long id_usuario, Long id_curso, Long id_clase) {
+        UsuarioCursos usuario = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
+        if (usuario == null)
+            return null;
+        List<StatusCurso> cursos = usuario.getCursos();
+        for (StatusCurso curso : cursos) {
+            if (curso.getId_curso().equals(id_curso)) {
+                List<StatusClase> clases = curso.getClases();
+                for (StatusClase clase : clases) {
+                    if (clase.getId_clase().equals(id_clase)) {
+                        return clase.getDireccion_clase();
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
 }

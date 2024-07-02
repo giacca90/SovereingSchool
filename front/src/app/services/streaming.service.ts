@@ -1,18 +1,16 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class StreamingService {
-	private URL: String = 'http://localhost:8090';
+	private URL: string = 'http://localhost:8090';
 
 	constructor(private http: HttpClient) {}
 
-	getVideo(filename: string) {
-		const headers = new HttpHeaders({
-			'Content-Type': 'application/octet-stream',
-		});
-		return this.http.get(`${this.URL}/videos/${filename}`, { headers, responseType: 'blob' });
+	getVideo(id_usuario: number, id_curso: number, id_clase: number): Observable<Blob> {
+		return this.http.get(`${this.URL}/${id_usuario}/${id_curso}/${id_clase}`, { responseType: 'blob' });
 	}
 }

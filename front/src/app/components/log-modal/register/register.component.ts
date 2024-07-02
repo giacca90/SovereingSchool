@@ -29,25 +29,25 @@ export class RegisterComponent implements OnDestroy {
 	}
 
 	async compruebaCorreo() {
-		let message: HTMLDivElement = document.getElementById('message2') as HTMLDivElement;
+		const message: HTMLDivElement = document.getElementById('message2') as HTMLDivElement;
 		message.innerHTML = '';
-		let correo: string = (document.getElementById('correo2') as HTMLInputElement).value;
+		const correo: string = (document.getElementById('correo2') as HTMLInputElement).value;
 
 		if ((document.getElementById('nombre2') as HTMLInputElement).value.length == 0) {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'El nombre no puede estas vacío.';
 			message.appendChild(mex);
 			return;
 		}
 		if (correo.length == 0) {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'No has puesto el Correo!!!';
 			message.appendChild(mex);
 			return;
 		}
 
 		if (!this.compruebaEmail(correo)) {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'El correo electrónico no tiene un formato valido!!!';
 			message.appendChild(mex);
 			return;
@@ -59,7 +59,7 @@ export class RegisterComponent implements OnDestroy {
 		if ((await this.loginService.compruebaCorreo(correo)) == false) {
 			this.nuevoUsuario.correo_electronico = correo;
 			this.nuevoUsuario.nombre_usuario = (document.getElementById('nombre2') as HTMLInputElement).value;
-			let content: HTMLDivElement = document.getElementById('content2') as HTMLDivElement;
+			const content: HTMLDivElement = document.getElementById('content2') as HTMLDivElement;
 			content.innerHTML = `
 				<br />
 				<div id="message4" class="text-red-600 ml-4 mr-4"></div>
@@ -85,18 +85,18 @@ export class RegisterComponent implements OnDestroy {
 				cancelButton.addEventListener('click', () => this.close());
 			}
 		} else {
-			let mex: HTMLParagraphElement = document.createElement('p');
+			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'Este correo ya está registrado!!!';
 			message.appendChild(mex);
 			return;
 		}
 	}
 
-	compruebaPassword(): any {
-		let message: HTMLDivElement = document.getElementById('message4') as HTMLDivElement;
+	compruebaPassword() {
+		const message: HTMLDivElement = document.getElementById('message4') as HTMLDivElement;
 		message.innerHTML = '';
-		let pass: String = (document.getElementById('password') as HTMLInputElement).value;
-		let pass2: String = (document.getElementById('password2') as HTMLInputElement).value;
+		const pass: string = (document.getElementById('password') as HTMLInputElement).value;
+		const pass2: string = (document.getElementById('password2') as HTMLInputElement).value;
 		if (pass.length === 0) {
 			message.textContent = 'La contraseña no puede estas vacía';
 			return;

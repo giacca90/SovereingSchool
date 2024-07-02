@@ -2,13 +2,13 @@ import { Curso } from './Curso';
 import { Plan } from './Plan';
 
 export class NuevoUsuario {
-	public nombre_usuario: String | null = null;
+	public nombre_usuario: string | null = null;
 
-	public correo_electronico: String | null = null;
+	public correo_electronico: string | null = null;
 
-	public password: String | null = null;
+	public password: string | null = null;
 
-	public foto_usuario: String[] | null = null;
+	public foto_usuario: string[] | null = null;
 
 	public plan_usuario: Plan | null = null;
 

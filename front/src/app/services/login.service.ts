@@ -1,3 +1,4 @@
+/* eslint-disable no-async-promise-executor */
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Injectable } from '@angular/core';
 import { Usuario } from '../models/Usuario';
@@ -7,12 +8,12 @@ import { Usuario } from '../models/Usuario';
 })
 export class LoginService {
 	private apiUrl = 'http://localhost:8080/login/';
-	private id_usuario: Number | null = null;
+	private id_usuario: number | null = null;
 	public usuario: Usuario | null = null;
 
 	constructor(private http: HttpClient) {
 		afterNextRender(() => {
-			let usuario_guardado: string | null = localStorage.getItem('Usuario');
+			const usuario_guardado: string | null = localStorage.getItem('Usuario');
 			if (usuario_guardado) this.usuario = JSON.parse(usuario_guardado);
 		});
 	}
@@ -39,8 +40,8 @@ export class LoginService {
 		});
 	}
 
-	async compruebaPassword(password: String): Promise<boolean> {
-		return new Promise(async (resolve, reject) => {
+	async compruebaPassword(password: string): Promise<boolean> {
+		return new Promise(async (resolve) => {
 			this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password).subscribe({
 				next: (response) => {
 					if (response.id_usuario === null) {
@@ -54,7 +55,7 @@ export class LoginService {
 					return;
 				},
 				error: (error: HttpErrorResponse) => {
-					//console.error('HTTP request failed:', error);
+					console.error('HTTP request failed:', error);
 					resolve(false);
 				},
 			});

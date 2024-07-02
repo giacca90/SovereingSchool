@@ -23,26 +23,26 @@ export class HomeComponent {
 		public router: Router,
 	) {
 		this.cursoService.cursos.forEach((curso: Curso) => {
-			let div: HTMLDivElement = document.createElement('div');
+			const div: HTMLDivElement = document.createElement('div');
 			div.classList.add('relative', 'm-2', 'border', 'border-black', 'cursor-pointer');
 
-			let fondo: HTMLDivElement = document.createElement('div');
+			const fondo: HTMLDivElement = document.createElement('div');
 			fondo.classList.add('absolute', 'inset-0', 'bg-cover', 'bg-center', 'opacity-20', 'transition-opacity', 'duration-300', 'hover:opacity-30');
 			fondo.style.backgroundImage = `url('${curso.imagen_curso.substring(curso.imagen_curso.indexOf('/assets'))}')`;
 			div.appendChild(fondo);
 
-			let nombre: HTMLHeadingElement = document.createElement('h4');
+			const nombre: HTMLHeadingElement = document.createElement('h4');
 			nombre.classList.add('text-center', 'font-bold', 'text-blue-700');
 			nombre.textContent = curso.nombre_curso;
 			div.appendChild(nombre);
 
 			curso.profesores_curso.forEach((profe: Usuario) => {
-				let divProfe: HTMLDivElement = document.createElement('div');
+				const divProfe: HTMLDivElement = document.createElement('div');
 				divProfe.classList.add('m-3', 'flex', 'items-center', 'justify-between');
-				let span: HTMLSpanElement = document.createElement('span');
+				const span: HTMLSpanElement = document.createElement('span');
 				span.textContent = 'Por: ' + profe.nombre_usuario;
 				divProfe.appendChild(span);
-				let logo: HTMLImageElement = document.createElement('img') as HTMLImageElement;
+				const logo: HTMLImageElement = document.createElement('img') as HTMLImageElement;
 				logo.classList.add('h-12', 'w-12', 'object-contain');
 				logo.src = profe.foto_usuario[0].substring(profe.foto_usuario[0].indexOf('/assets'));
 				logo.alt = 'Logo';
@@ -50,7 +50,7 @@ export class HomeComponent {
 				div.appendChild(divProfe);
 			});
 
-			let desc: HTMLParagraphElement = document.createElement('p');
+			const desc: HTMLParagraphElement = document.createElement('p');
 			desc.classList.add('ml-3', 'mr-3');
 			desc.textContent = curso.descriccion_corta as string;
 			div.appendChild(desc);
@@ -93,25 +93,25 @@ export class HomeComponent {
 	}
 
 	async carouselProfes() {
-		let carouselProfes: HTMLDivElement[] = [];
+		const carouselProfes: HTMLDivElement[] = [];
 		this.usuarioService.profes.forEach((profe: Usuario) => {
-			let div: HTMLDivElement = document.createElement('div') as HTMLDivElement;
+			const div: HTMLDivElement = document.createElement('div') as HTMLDivElement;
 			div.classList.add('border', 'border-black', 'rounded-lg', 'flex', 'h-full', 'p-2', 'flex-1', 'opacity-0', 'transition-opacity', 'duration-1000');
 
-			let img: HTMLImageElement = document.createElement('img') as HTMLImageElement;
+			const img: HTMLImageElement = document.createElement('img') as HTMLImageElement;
 			img.classList.add('h-full', 'w-auto', 'object-contain', 'mr-4');
 			img.src = profe.foto_usuario[0].substring(profe.foto_usuario[0].indexOf('/assets'));
 			div.appendChild(img);
 
-			let desc: HTMLDivElement = document.createElement('div') as HTMLDivElement;
+			const desc: HTMLDivElement = document.createElement('div') as HTMLDivElement;
 			desc.classList.add('flex', 'flex-col', 'flex-1', 'items-center', 'justify-center');
 
-			let nombre: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+			const nombre: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 			nombre.classList.add('text-blond', 'text-green-700', 'text-center');
 			nombre.textContent = profe.nombre_usuario.toString();
 			desc.appendChild(nombre);
 
-			let pres: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+			const pres: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 			pres.classList.add('text-center');
 			pres.textContent = profe.presentacion.toString();
 			desc.appendChild(pres);
@@ -120,10 +120,10 @@ export class HomeComponent {
 			carouselProfes.push(div);
 		});
 
-		let profes: HTMLDivElement = document.getElementById('profes') as HTMLDivElement;
+		const profes: HTMLDivElement = document.getElementById('profes') as HTMLDivElement;
 		let reverse: boolean = false;
 		while (carouselProfes.length > 0) {
-			let profe: HTMLDivElement | undefined = carouselProfes.shift();
+			const profe: HTMLDivElement | undefined = carouselProfes.shift();
 			if (profe) {
 				profes.innerHTML = '';
 				carouselProfes.push(profe);

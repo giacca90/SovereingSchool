@@ -15,15 +15,15 @@ export class Curso {
 
 	public planes_curso: Plan[];
 
-	public descriccion_corta: String;
+	public descriccion_corta: string;
 
-	public descriccion_larga: String;
+	public descriccion_larga: string;
 
-	public imagen_curso: String;
+	public imagen_curso: string;
 
 	public precio_curso: number;
 
-	constructor(_id_curso: number, _nombre_curso: string, _profesores_curso: Usuario[], _fecha_publicacion_curso: Date, _clases_curso: Clase[], _planes_curso: Plan[], _descriccion_corta: String, _descriccion_larga: String, _imagen_curso: String, _precio_curso: number) {
+	constructor(_id_curso: number, _nombre_curso: string, _profesores_curso: Usuario[], _fecha_publicacion_curso: Date, _clases_curso: Clase[], _planes_curso: Plan[], _descriccion_corta: string, _descriccion_larga: string, _imagen_curso: string, _precio_curso: number) {
 		this.id_curso = _id_curso;
 		this.nombre_curso = _nombre_curso;
 		this.profesores_curso = _profesores_curso;

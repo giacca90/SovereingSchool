@@ -1,3 +1,4 @@
+/* eslint-disable no-async-promise-executor */
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NuevoUsuario } from '../models/NuevoUsuario';
@@ -11,7 +12,7 @@ export class RegisterService {
 
 	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario) {
 		return new Promise(async (resolve, reject) => {
-			this.http.post<String>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { responseType: 'text' as 'json' }).subscribe({
+			this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { responseType: 'text' as 'json' }).subscribe({
 				next: (response) => {
 					console.log('HTTP response received:', response);
 					resolve(true);

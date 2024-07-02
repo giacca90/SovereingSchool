@@ -20,7 +20,7 @@ export class SearchComponent {
 		public router: Router,
 	) {
 		afterNextRender(() => {
-			let buscador: HTMLInputElement = document.getElementById('buscador') as HTMLInputElement;
+			const buscador: HTMLInputElement = document.getElementById('buscador') as HTMLInputElement;
 			buscador.addEventListener('input', () => {
 				if (buscador.value.length == 0) {
 					this.result = false;
@@ -28,9 +28,9 @@ export class SearchComponent {
 				} else {
 					this.result = true;
 					this.cdr.detectChanges();
-					let cortina: HTMLDivElement = document.getElementById('cortina') as HTMLDivElement;
+					const cortina: HTMLDivElement = document.getElementById('cortina') as HTMLDivElement;
 					cortina.innerHTML = '';
-					let porNombre: Curso[] = this.cursoService.cursos.filter((curso) =>
+					const porNombre: Curso[] = this.cursoService.cursos.filter((curso) =>
 						curso.nombre_curso
 							.toString()
 							.toLowerCase()
@@ -43,7 +43,7 @@ export class SearchComponent {
 									.replace(/[\u0300-\u036f]/g, ''),
 							),
 					);
-					let porDescriccion: Curso[] = this.cursoService.cursos.filter((curso) =>
+					const porDescriccion: Curso[] = this.cursoService.cursos.filter((curso) =>
 						curso.descriccion_corta
 							.toString()
 							.toLowerCase()
@@ -57,12 +57,12 @@ export class SearchComponent {
 							),
 					);
 					if (porNombre.length > 0) {
-						let p: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+						const p: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 						p.classList.add('text-gray-400');
 						p.textContent = 'Coincidencias por nombre:';
 						cortina.appendChild(p);
 						porNombre.forEach((curso) => {
-							let row: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+							const row: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 							row.classList.add('hover:bg-white', 'whitespace-nowrap', 'rounded-lg', 'pr-2', 'pl-2');
 							row.addEventListener('click', () => {
 								this.result = false;
@@ -132,12 +132,12 @@ export class SearchComponent {
 						if (porDescriccion.length > 0) cortina.appendChild(document.createElement('hr'));
 					}
 					if (porDescriccion.length > 0) {
-						let p: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+						const p: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 						p.classList.add('text-gray-400');
 						p.textContent = 'Coincidencias por descripción:';
 						cortina.appendChild(p);
 						porDescriccion.forEach((curso) => {
-							let row: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+							const row: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 							row.classList.add('hover:bg-white', 'whitespace-nowrap', 'rounded-lg', 'pr-2', 'pl-2');
 							row.addEventListener('click', () => {
 								this.result = false;
@@ -207,7 +207,7 @@ export class SearchComponent {
 					}
 
 					if (porNombre.length == 0 && porDescriccion.length == 0) {
-						let p: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+						const p: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 						p.classList.add('text-grey-400');
 						p.textContent = 'No se han encontrado coincidencias...';
 					}

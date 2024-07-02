@@ -20,13 +20,14 @@ export class UsuariosService {
 		});
 	}
 
-	getUsuario(id_usuario: Number): any {
+	getUsuario(id_usuario: number) {
 		console.log('Consulta: ' + this.apiUrl + id_usuario);
 		this.http.get<Usuario>(this.apiUrl + id_usuario).subscribe({
 			next: (response: Usuario) => {
 				return response;
 			},
 			error: (e: Error) => {
+				console.error(e.message)
 				return null;
 			},
 		});

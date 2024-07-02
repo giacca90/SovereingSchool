@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common'; // Importa CommonModule
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { HomeComponent } from './components/home/home.component';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
@@ -14,7 +14,7 @@ import { LoginService } from './services/login.service';
 	styleUrl: './app.component.css',
 	imports: [RouterOutlet, HomeComponent, SearchComponent, LogModalComponent, CommonModule],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 	title = 'Sovereign School';
 	isModalVisible: boolean = false;
 	vistaMenu: boolean = false;

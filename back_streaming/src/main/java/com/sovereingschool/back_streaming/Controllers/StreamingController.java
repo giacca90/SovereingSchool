@@ -61,13 +61,28 @@ public class StreamingController {
         }
     }
 
-    @GetMapping("/clases/{direccion_video}")
-    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable String direccion_video,
+    @GetMapping("/{id_usuario}/{id_curso}/{id_clase}")
+    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable Long id_usuario, @PathVariable Long id_curso,
+            @PathVariable Long id_clase,
             @RequestHeader HttpHeaders headers) throws IOException {
+        String direccion_video = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
+        System.out.println("RUTA RECIBIDA: " + direccion_video);
         Path videoPath = Paths.get(direccion_video);
+        System.out.println("RUTA RECIBIDA2: " + videoPath.toString());
+
         if (!Files.exists(videoPath)) {
             return ResponseEntity.notFound().build();
         }
+
+        // Obtener el tipo MIME del video
+        String contentType = Files.probeContentType(videoPath);
+
+        // Configurar las cabeceras de la respuesta
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.parseMediaType(contentType));
+        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline");
+        responseHeaders.add(HttpHeaders.CACHE_CONTROL, "no-store");
+        responseHeaders.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
         long fileLength = Files.size(videoPath);
         List<HttpRange> ranges = headers.getRange();
@@ -75,6 +90,7 @@ public class StreamingController {
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .contentLength(fileLength)
+                    .headers(responseHeaders)
                     .body(new InputStreamResource(Files.newInputStream(videoPath)));
         }
 
@@ -95,6 +111,7 @@ public class StreamingController {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(rangeLength))
                 .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
+                .headers(responseHeaders)
                 .body(resource);
     }
 
