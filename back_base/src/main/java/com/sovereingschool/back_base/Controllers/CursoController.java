@@ -30,6 +30,15 @@ public class CursoController {
 	@Autowired
 	private ICursoService service;
 
+	@GetMapping("/getAll")
+	public ResponseEntity<?> getAll() {
+		try {
+			return new ResponseEntity<List<Curso>>(this.service.getAll(), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	@GetMapping("/getCurso/{id}")
 	public ResponseEntity<?> getCurso(@PathVariable Long id) {
 		try {

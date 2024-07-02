@@ -3,13 +3,13 @@ import { Curso } from '../../models/Curso';
 import { LoginService } from '../../services/login.service';
 
 @Component({
-	selector: 'app-cursos',
+	selector: 'app-cursos-usuario',
 	standalone: true,
 	imports: [],
-	templateUrl: './cursos.component.html',
-	styleUrl: './cursos.component.css',
+	templateUrl: './cursos-usuario.component.html',
+	styleUrl: './cursos-usuario.component.css',
 })
-export class CursosComponent implements OnInit {
+export class CursosUsuarioComponent implements OnInit {
 	constructor(
 		public loginService: LoginService,
 		private cdr: ChangeDetectorRef,

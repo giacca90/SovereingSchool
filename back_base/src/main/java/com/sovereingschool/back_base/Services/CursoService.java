@@ -99,4 +99,9 @@ public class CursoService implements ICursoService {
         return "Curso eliminado con éxito!!!";
     }
 
+    @Override
+    public List<Curso> getAll() {
+        return this.repo.findAll();
+    }
+
 }

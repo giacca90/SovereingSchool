@@ -9,6 +9,8 @@ import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
 
 public interface ICursoService {
+    public List<Curso> getAll();
+
     public String createCurso(Curso new_curso);
 
     public Curso getCurso(Long id_curso);

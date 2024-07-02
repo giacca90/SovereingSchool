@@ -1,6 +1,8 @@
-<!-- video-player.component.html -->
-@if (this.videoUrl) {
-	<video controls [src]="videoUrl" width="640" height="360"></video>
-} @else {
-	<p>Cargando video...</p>
-}
+<div class="relative m-4 p-2">
+	@if (this.loading) {
+		<div class="absolute inset-0 z-10 flex items-center justify-center">
+			<p class="animate-pulse text-2xl font-bold text-white">Cargando Video</p>
+		</div>
+	}
+	<video id="video" controls class="z-0 w-full"></video>
+</div>

@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { StreamingService } from '../../services/streaming.service';
 
@@ -12,29 +13,52 @@ import { StreamingService } from '../../services/streaming.service';
 })
 export class ReproductionComponent implements OnInit {
 	private id_clase: Number = 0;
-
-	videoUrl: SafeUrl | undefined;
-
+	private isBrowser: boolean;
+	public loading: boolean = true;
 	constructor(
 		private streamingService: StreamingService,
 		private sanitizer: DomSanitizer,
 		private route: ActivatedRoute,
-	) {}
+		@Inject(PLATFORM_ID) private platformId: object,
+	) {
+		this.isBrowser = isPlatformBrowser(platformId);
+	}
 
 	ngOnInit(): void {
 		this.route.params.subscribe((params) => {
 			this.id_clase = params['id_clase'];
 		});
+	}
 
-		this.streamingService.getVideo('your-video-file.mp4').subscribe((blob: Blob) => {
-			this.videoUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
-		});
+	ngAfterViewInit(): void {
+		if (this.isBrowser) {
+			this.getVideo();
+		}
+	}
+
+	private async getVideo() {
+		try {
+			let video: HTMLVideoElement = document.getElementById('video') as HTMLVideoElement;
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', `http://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}`);
+			xhr.responseType = 'blob';
+			xhr.onload = () => {
+				if (xhr.status === 200) {
+					const videoBlob = xhr.response;
+					const videoUrl = URL.createObjectURL(videoBlob);
+					video.src = videoUrl;
+					this.loading = false;
+					video.play();
+				} else {
+					console.error('Failed to load video:', xhr.status, xhr.statusText);
+				}
+			};
+			xhr.onerror = () => {
+				console.error('Network error while loading video.');
+			};
+			xhr.send();
+		} catch (error) {
+			console.error('Error loading video:', error);
+		}
 	}
 }
-
-/* Explicación del componente:
-videoUrl: SafeUrl | undefined: Almacena la URL segura para el video.
-DomSanitizer: Servicio de Angular que ayuda a sanitizar URLs para evitar problemas de seguridad.
-ngOnInit(): Método del ciclo de vida del componente que se ejecuta después de la inicialización del componente.
-subscribe(blob => { ... }): Maneja la respuesta de la solicitud de video y convierte el blob en una URL segura para el video.
- */
