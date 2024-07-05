@@ -7,6 +7,7 @@ import java.util.List;
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.Usuario;
 
 public interface ICursoService {
     public List<Curso> getAll();
@@ -17,7 +18,7 @@ public interface ICursoService {
 
     public String getNombreCurso(Long id_curso);
 
-    public List<String> getNombresProfesoresCurso(Long id_curso);
+    public List<Usuario> getProfesoresCurso(Long id_curso);
 
     public Date getFechaCreacionCurso(Long id_curso);
 

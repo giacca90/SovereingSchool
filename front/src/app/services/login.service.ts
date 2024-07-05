@@ -22,7 +22,6 @@ export class LoginService {
 		return new Promise(async (resolve, reject) => {
 			this.http.get<number>(`${this.apiUrl}${correo}`).subscribe({
 				next: (response) => {
-					console.log('HTTP response received:', response);
 					if (response == 0) {
 						resolve(false);
 					}
@@ -50,7 +49,6 @@ export class LoginService {
 					}
 					this.usuario = response;
 					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
-					console.log('LOG: ' + JSON.stringify(this.usuario));
 					resolve(true);
 					return;
 				},

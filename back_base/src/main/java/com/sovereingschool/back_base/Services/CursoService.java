@@ -12,6 +12,7 @@ import com.sovereingschool.back_base.Interfaces.ICursoService;
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.Usuario;
 import com.sovereingschool.back_base.Repositories.ClaseRepository;
 import com.sovereingschool.back_base.Repositories.CursoRepository;
 
@@ -53,8 +54,8 @@ public class CursoService implements ICursoService {
     }
 
     @Override
-    public List<String> getNombresProfesoresCurso(Long id_curso) {
-        return this.repo.findNombresProfesoresCursoById(id_curso);
+    public List<Usuario> getProfesoresCurso(Long id_curso) {
+        return this.repo.findProfesoresCursoById(id_curso);
     }
 
     @Override

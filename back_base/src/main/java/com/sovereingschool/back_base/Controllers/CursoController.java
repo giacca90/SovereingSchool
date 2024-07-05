@@ -3,6 +3,7 @@ package com.sovereingschool.back_base.Controllers;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import com.sovereingschool.back_base.Interfaces.ICursoService;
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.Usuario;
 
 @RestController
 @RequestMapping("/cursos")
@@ -66,7 +68,9 @@ public class CursoController {
 	@GetMapping("/getNombresProfesoresCurso/{id}")
 	public ResponseEntity<?> getNombresProfesoresCurso(@PathVariable Long id) {
 		try {
-			List<String> nombres_profesores = this.service.getNombresProfesoresCurso(id);
+			List<Usuario> profesores = this.service.getProfesoresCurso(id);
+			List<String> nombres_profesores = profesores.stream().map(Usuario::getNombre_usuario)
+					.collect(Collectors.toList());
 			if (nombres_profesores.isEmpty())
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
 			return new ResponseEntity<List<String>>(nombres_profesores, HttpStatus.OK);

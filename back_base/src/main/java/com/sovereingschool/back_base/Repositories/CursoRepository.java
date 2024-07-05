@@ -12,14 +12,19 @@ import org.springframework.stereotype.Repository;
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.Usuario;
 
 @Repository
 public interface CursoRepository extends JpaRepository<Curso, Long> {
+
+    @Query("SELECT c FROM Curso c")
+    List<Curso> getAllCursos();
+
     @Query("SELECT c.nombre_curso FROM Curso c WHERE c.id_curso = :id")
     String findNombreCursoById(@Param("id") Long id);
 
-    @Query("SELECT u.nombre_usuario FROM Usuario u WHERE u IN (SELECT c.profesores_curso FROM Curso c WHERE c.id_curso = :id)")
-    List<String> findNombresProfesoresCursoById(@Param("id") Long id);
+    @Query("SELECT u FROM Usuario u WHERE u IN (SELECT c.profesores_curso FROM Curso c WHERE c.id_curso = :id)")
+    List<Usuario> findProfesoresCursoById(@Param("id") Long id);
 
     @Query("SELECT c.fecha_publicacion_curso FROM Curso c WHERE c.id_curso = :id")
     Date findFechaCreacionCursoById(@Param("id") Long id);
@@ -32,5 +37,11 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
 
     @Query("SELECT c.precio_curso FROM Curso c WHERE c.id_curso = :id")
     BigDecimal findPrecioCursoById(@Param("id") Long id);
+
+    /*
+     * @Query("SELECT new com.sovereingschool.back_base.DTOs.CursosInit.java(c.id_curso, c.nombre_curso, c.descriccion_corta, c.imagen_curso) FROM Curso c"
+     * )
+     * List<CursosInit> getInit();
+     */
 
 }

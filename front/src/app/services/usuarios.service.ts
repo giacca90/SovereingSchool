@@ -12,16 +12,14 @@ export class UsuariosService {
 		this.http.get<Usuario[]>(this.apiUrl + 'profes').subscribe({
 			next: (response: Usuario[]) => {
 				this.profes = response;
-				console.log(response);
 			},
 			error: (e: Error) => {
-				console.log('Error al cargar profes: ' + e.message);
+				console.error('Error al cargar profes: ' + e.message);
 			},
 		});
 	}
 
 	getUsuario(id_usuario: number) {
-		console.log('Consulta: ' + this.apiUrl + id_usuario);
 		this.http.get<Usuario>(this.apiUrl + id_usuario).subscribe({
 			next: (response: Usuario) => {
 				return response;

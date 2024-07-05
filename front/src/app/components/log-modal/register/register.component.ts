@@ -53,9 +53,6 @@ export class RegisterComponent implements OnDestroy {
 			return;
 		}
 
-		//prueba
-		console.log('PRUEBA: ' + (await this.loginService.compruebaCorreo(correo)));
-
 		if ((await this.loginService.compruebaCorreo(correo)) == false) {
 			this.nuevoUsuario.correo_electronico = correo;
 			this.nuevoUsuario.nombre_usuario = (document.getElementById('nombre2') as HTMLInputElement).value;
@@ -106,7 +103,6 @@ export class RegisterComponent implements OnDestroy {
 			return;
 		}
 		if (pass == pass2) {
-			console.log('Contraseña correcta!!!');
 			this.nuevoUsuario.password = pass;
 			this.nuevoUsuario.fecha_registro_usuario = new Date();
 			this.registerService.registrarNuevoUsuario(this.nuevoUsuario);

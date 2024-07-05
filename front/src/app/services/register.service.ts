@@ -13,8 +13,7 @@ export class RegisterService {
 	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario) {
 		return new Promise(async (resolve, reject) => {
 			this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { responseType: 'text' as 'json' }).subscribe({
-				next: (response) => {
-					console.log('HTTP response received:', response);
+				next: () => {
 					resolve(true);
 				},
 				error: (error: HttpErrorResponse) => {
