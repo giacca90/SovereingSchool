@@ -19,7 +19,7 @@ public class CursosInit {
 
     private String nombre_curso;
 
-    private List<ProfesInit> profesores_curso;
+    private List<Long> profesores_curso;
 
     private String descriccion_corta;
 

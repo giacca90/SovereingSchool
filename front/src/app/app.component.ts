@@ -4,6 +4,7 @@ import { Router, RouterOutlet } from '@angular/router';
 import { HomeComponent } from './components/home/home.component';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
 import { SearchComponent } from './components/search/search.component';
+import { InitService } from './services/init.service';
 import { LoginModalService } from './services/login-modal.service';
 import { LoginService } from './services/login.service';
 
@@ -21,7 +22,8 @@ export class AppComponent implements OnInit {
 
 	constructor(
 		private modalService: LoginModalService,
-		public loginservice: LoginService,
+		private initService: InitService,
+		public loginService: LoginService,
 		public router: Router,
 	) {}
 
@@ -37,7 +39,7 @@ export class AppComponent implements OnInit {
 
 	salir() {
 		this.vistaMenu = false;
-		this.loginservice.usuario = null;
+		this.loginService.usuario = null;
 		localStorage.clear();
 		this.router.navigate(['']);
 	}

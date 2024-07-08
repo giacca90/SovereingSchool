@@ -54,22 +54,18 @@ public class InitAppService implements IInitAppService {
             init.setNombre_curso(curso.getNombre_curso());
             init.setImagen_curso(curso.getImagen_curso());
             init.setDescriccion_corta(curso.getDescriccion_corta());
-            List<ProfesInit> profesCurso = new ArrayList<>();
             List<Long> ids_profes = new ArrayList<>();
             curso.getProfesores_curso().forEach(profe -> {
                 ids_profes.add(profe.getId_usuario());
             });
-            profesInit.forEach(profe -> {
-                if (ids_profes.contains(profe.getId_usuario()))
-                    profesCurso.add(profe);
-            });
-            init.setProfesores_curso(profesCurso);
+
+            init.setProfesores_curso(ids_profes);
             cursosInit.add(init);
         });
 
         InitApp init = new InitApp();
-        init.setCursos(cursosInit);
-        init.setProfesores(profesInit);
+        init.setCursosInit(cursosInit);
+        init.setProfesInit(profesInit);
 
         return init;
 

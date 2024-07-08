@@ -14,8 +14,8 @@ import lombok.ToString;
 @Setter
 @ToString
 public class InitApp {
-    private List<CursosInit> cursos;
+    private List<CursosInit> CursosInit;
 
-    private List<ProfesInit> profesores;
+    private List<ProfesInit> ProfesInit;
 
 }

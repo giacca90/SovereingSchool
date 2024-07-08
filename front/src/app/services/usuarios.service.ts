@@ -9,14 +9,14 @@ export class UsuariosService {
 	private apiUrl = 'http://localhost:8080/usuario/';
 	public profes: Usuario[] = [];
 	constructor(private http: HttpClient) {
-		this.http.get<Usuario[]>(this.apiUrl + 'profes').subscribe({
+		/* this.http.get<Usuario[]>(this.apiUrl + 'profes').subscribe({
 			next: (response: Usuario[]) => {
 				this.profes = response;
 			},
 			error: (e: Error) => {
 				console.error('Error al cargar profes: ' + e.message);
 			},
-		});
+		}); */
 	}
 
 	getUsuario(id_usuario: number) {
@@ -25,9 +25,13 @@ export class UsuariosService {
 				return response;
 			},
 			error: (e: Error) => {
-				console.error(e.message)
+				console.error(e.message);
 				return null;
 			},
 		});
+	}
+
+	getNombreProfe(id: number) {
+		return this.profes.find((profe: Usuario) => profe.id_usuario === id)?.nombre_usuario.toString();
 	}
 }

@@ -36,18 +36,21 @@ export class HomeComponent {
 			nombre.textContent = curso.nombre_curso;
 			div.appendChild(nombre);
 
-			curso.profesores_curso.forEach((profe: Usuario) => {
+			curso.profesores_curso.forEach((profeId: number) => {
 				const divProfe: HTMLDivElement = document.createElement('div');
 				divProfe.classList.add('m-3', 'flex', 'items-center', 'justify-between');
 				const span: HTMLSpanElement = document.createElement('span');
-				span.textContent = 'Por: ' + profe.nombre_usuario;
-				divProfe.appendChild(span);
-				const logo: HTMLImageElement = document.createElement('img') as HTMLImageElement;
-				logo.classList.add('h-12', 'w-12', 'object-contain');
-				logo.src = profe.foto_usuario[0].substring(profe.foto_usuario[0].indexOf('/assets'));
-				logo.alt = 'Logo';
-				divProfe.appendChild(logo);
-				div.appendChild(divProfe);
+				const profe: Usuario | undefined = this.usuarioService.profes.find((usuario) => usuario.id_usuario === profeId);
+				if (profe) {
+					span.textContent = 'Por: ' + profe?.nombre_usuario;
+					divProfe.appendChild(span);
+					const logo: HTMLImageElement = document.createElement('img') as HTMLImageElement;
+					logo.classList.add('h-12', 'w-12', 'object-contain');
+					logo.src = profe.foto_usuario[0].substring(profe.foto_usuario[0].indexOf('/assets'));
+					logo.alt = 'Logo';
+					divProfe.appendChild(logo);
+					div.appendChild(divProfe);
+				}
 			});
 
 			const desc: HTMLParagraphElement = document.createElement('p');
