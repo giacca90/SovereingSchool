@@ -7,8 +7,14 @@
 	<br />
 	<p class="flex-1 items-center font-bold">Este curso tiene las siguientes clases:</p>
 	<br />
-	<div id="clases"></div>
-	<br />
+	@for (clase of this.curso?.clases_curso; track clase.id_clase) {
+		<div class="m-2 flex-grow items-start rounded-lg border border-black p-2">
+			<p>{{ clase.posicion_clase }}: {{ clase.nombre_clase }}</p>
+			<p>{{ clase.descriccion_clase }}</p>
+			<br />
+		</div>
+	}
+
 	<div>
 		<span class="font-bold">Precio: {{ curso?.precio_curso }}€</span>
 		@if (this.loginService.usuario) {
