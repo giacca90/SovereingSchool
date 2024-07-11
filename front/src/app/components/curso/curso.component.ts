@@ -47,7 +47,7 @@ export class CursoComponent {
 	}
 
 	compruebaPlan(planUsuario: Plan | undefined): Plan | null {
-		if (planUsuario !== undefined && this.curso?.planes_curso) {
+		if (planUsuario !== undefined && planUsuario !== null && this.curso?.planes_curso) {
 			for (const plan of this.curso.planes_curso) {
 				if (plan.id_plan == planUsuario.id_plan) {
 					return plan;

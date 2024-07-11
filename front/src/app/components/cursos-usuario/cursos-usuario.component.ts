@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { LoginService } from '../../services/login.service';
 
 @Component({
@@ -12,6 +13,7 @@ export class CursosUsuarioComponent implements OnInit {
 	constructor(
 		public loginService: LoginService,
 		private cdr: ChangeDetectorRef,
+		public router: Router,
 	) {}
 	ngOnInit(): void {
 		this.cdr.detectChanges();

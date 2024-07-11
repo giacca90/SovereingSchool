@@ -198,7 +198,9 @@ VALUES (1, 3),
 	(4, 4);
 INSERT INTO usuario_curso (id_usuario, id_curso)
 VALUES (3, 1),
-	(3, 2);
+	(1, 3),
+	(4, 4),
+	(2, 2);
 INSERT INTO cursos_plan (id_curso, id_plan)
 VALUES (1, 2),
 	(2, 1);
