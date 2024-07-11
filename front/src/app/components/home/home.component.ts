@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Curso } from '../../models/Curso';
 import { Usuario } from '../../models/Usuario';
 import { CursosService } from '../../services/cursos.service';
+import { InitService } from '../../services/init.service';
 import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
@@ -19,6 +20,7 @@ export class HomeComponent {
 	constructor(
 		private cursoService: CursosService,
 		private usuarioService: UsuariosService,
+		public initService: InitService,
 		private cdr: ChangeDetectorRef,
 		public router: Router,
 	) {

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Curso } from '../models/Curso';
+import { Estadistica } from '../models/Estadistica';
 import { Init } from '../models/Init';
 import { Usuario } from '../models/Usuario';
 import { CursosService } from './cursos.service';
@@ -11,6 +12,7 @@ import { UsuariosService } from './usuarios.service';
 })
 export class InitService {
 	private apiUrl = 'http://localhost:8080/init';
+	public estadistica: Estadistica | null = null;
 	constructor(
 		private http: HttpClient,
 		private cursoService: CursosService,
@@ -24,6 +26,7 @@ export class InitService {
 				response.cursosInit.forEach((curso) => {
 					this.cursoService.cursos.push(new Curso(curso.id_curso, curso.nombre_curso, curso.profesores_curso, curso.descriccion_corta, curso.imagen_curso));
 				});
+				this.estadistica = response.estadistica;
 			},
 			error(e: Error) {
 				console.error('Error en init: ' + e.message);

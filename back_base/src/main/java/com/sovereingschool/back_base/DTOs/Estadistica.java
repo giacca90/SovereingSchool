@@ -1,7 +1,5 @@
 package com.sovereingschool.back_base.DTOs;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,11 +11,12 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class InitApp {
-    private List<CursosInit> CursosInit;
+public class Estadistica {
+    int profesores;
 
-    private List<ProfesInit> ProfesInit;
+    Long alumnos;
 
-    private Estadistica estadistica;
+    Long cursos;
 
+    Long clases;
 }

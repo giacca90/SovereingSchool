@@ -16,4 +16,17 @@
 	<h2 class="font-bold text-blue-700">LOS PROFESORES:</h2>
 	<div id="profes" class="h-5/6 flex-1 p-2"></div>
 </div>
-<div id="estadisticas" class="mb-2 border border-black">estadisticas</div>
+@if (this.initService.estadistica) {
+	<div id="estadisticas" class="m-2 border border-black p-2">
+		<div class="flex">
+			<div class="flex w-1/2 flex-col items-center justify-center">
+				<p>Profesores: {{ this.initService.estadistica.profesores }}</p>
+				<p>Alumnos: {{ this.initService.estadistica.alumnos }}</p>
+			</div>
+			<div class="flex w-1/2 flex-col items-center justify-center">
+				<p>Cursos: {{ this.initService.estadistica.cursos }}</p>
+				<p>Clases: {{ this.initService.estadistica.clases }}</p>
+			</div>
+		</div>
+	</div>
+}

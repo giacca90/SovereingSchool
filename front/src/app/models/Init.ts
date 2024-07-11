@@ -1,10 +1,14 @@
+import { Estadistica } from './Estadistica';
+
 export class Init {
 	public profesInit: ProfesInit[];
 	public cursosInit: CursosInit[];
+	public estadistica: Estadistica;
 
-	constructor(_curso: CursosInit[], _prof: ProfesInit[]) {
+	constructor(_curso: CursosInit[], _prof: ProfesInit[], _estadistica: Estadistica) {
 		this.profesInit = _prof;
 		this.cursosInit = _curso;
+		this.estadistica = _estadistica;
 	}
 }
 
