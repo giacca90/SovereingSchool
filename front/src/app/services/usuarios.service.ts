@@ -8,16 +8,7 @@ import { Usuario } from '../models/Usuario';
 export class UsuariosService {
 	private apiUrl = 'http://localhost:8080/usuario/';
 	public profes: Usuario[] = [];
-	constructor(private http: HttpClient) {
-		/* this.http.get<Usuario[]>(this.apiUrl + 'profes').subscribe({
-			next: (response: Usuario[]) => {
-				this.profes = response;
-			},
-			error: (e: Error) => {
-				console.error('Error al cargar profes: ' + e.message);
-			},
-		}); */
-	}
+	constructor(private http: HttpClient) {}
 
 	getUsuario(id_usuario: number) {
 		this.http.get<Usuario>(this.apiUrl + id_usuario).subscribe({

@@ -37,11 +37,4 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
 
     @Query("SELECT c.precio_curso FROM Curso c WHERE c.id_curso = :id")
     BigDecimal findPrecioCursoById(@Param("id") Long id);
-
-    /*
-     * @Query("SELECT new com.sovereingschool.back_base.DTOs.CursosInit.java(c.id_curso, c.nombre_curso, c.descriccion_corta, c.imagen_curso) FROM Curso c"
-     * )
-     * List<CursosInit> getInit();
-     */
-
 }

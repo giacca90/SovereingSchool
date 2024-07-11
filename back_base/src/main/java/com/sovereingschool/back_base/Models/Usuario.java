@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.hibernate.annotations.Type;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -53,9 +52,9 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private Integer roll_usuario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "plan_usuario", referencedColumnName = "id_plan")
-    @JsonIgnore
+    // @JsonIgnore
     private Plan plan_usuario;
 
     @ManyToMany(fetch = FetchType.LAZY)

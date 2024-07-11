@@ -54,7 +54,7 @@ public class Curso implements Serializable {
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "cursos_plan", joinColumns = @JoinColumn(name = "id_curso"), inverseJoinColumns = @JoinColumn(name = "id_plan"))
-	@JsonIgnoreProperties({ "id_plan", "precio_plan", "cursos_plan" })
+	@JsonIgnoreProperties({ "precio_plan", "cursos_plan" })
 	private List<Plan> planes_curso;
 
 	private String descriccion_corta;
