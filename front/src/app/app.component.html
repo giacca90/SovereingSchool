@@ -1,6 +1,6 @@
 <!-- eslint-disable @angular-eslint/template/interactive-supports-focus -->
 <!-- eslint-disable @angular-eslint/template/click-events-have-key-events -->
-<div [class.dimmed]="isModalVisible" class="flex h-full w-full flex-col">
+<div [class.dimmed]="isModalVisible" class="flex h-full min-h-dvh w-full flex-col">
 	<header class="relative w-full rounded-b-lg bg-cyan-500">
 		<div class="text-center text-3xl font-bold text-yellow-500">
 			<h1 class="cursor-pointer" (click)="this.router.navigate(['']); this.vistaMenu = false">SOVEREIGN SCHOOL</h1>
@@ -26,9 +26,9 @@
 
 	<app-search class="flex p-2"></app-search>
 
-	<router-outlet class="flex-grow"></router-outlet>
+	<router-outlet></router-outlet>
 
-	<footer class="mb-0 flex w-full flex-grow rounded-t-lg bg-cyan-500">
+	<footer class="mb-0 flex w-full rounded-t-lg bg-cyan-500">
 		<div class="flex-1 justify-center p-2 text-white">
 			<p>Copyright© <span id="fecha_copyright">2024</span></p>
 			<p>Todos los derechos reservados.</p>
