@@ -49,7 +49,7 @@ public class Curso implements Serializable {
 	private Date fecha_publicacion_curso;
 
 	@OneToMany(mappedBy = "curso_clase", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JsonIgnoreProperties({ "id_clase", "tipo_clase", "direccion_clase", "curso_clase" })
+	@JsonIgnoreProperties({ "curso_clase" })
 	private List<Clase> clases_curso;
 
 	@ManyToMany(fetch = FetchType.EAGER)

@@ -9,12 +9,11 @@
 				<div class="m-2 flex flex-grow rounded-lg border border-black p-2">
 					<p>{{ curso.nombre_curso }}</p>
 				</div>
-				<!-- Lo siguiente falla porque el curso no tiene clases -->
-				@if (this.loginService.usuario && this.loginService.usuario.id_usuario !== null && curso.clases_curso) {
+				@if (this.loginService.usuario && this.loginService.usuario.id_usuario !== null) {
 					@if (this.loginService.usuario.roll_usuario !== undefined && this.loginService.usuario.roll_usuario < 2) {
 						<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['editorCurso/' + curso.id_curso])">Editar este curso</button>
 					} @else {
-						<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['repro/' + this.loginService.usuario.id_usuario + '/' + curso.id_curso + '/' + curso.clases_curso[0].id_clase])">Ir al curso</button>
+						<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['repro/' + this.loginService.usuario.id_usuario + '/' + curso.id_curso])">Ir al curso</button>
 					}
 				}
 			</div>
