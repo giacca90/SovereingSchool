@@ -8,7 +8,7 @@
 					<div class="m-2 items-start rounded-lg border border-black p-2">
 						<p>{{ clase.posicion_clase }}</p>
 					</div>
-					<div id="clase-{{ clase.id_clase }}" class="m-2 flex flex-grow items-start rounded-lg border border-black p-2" draggable="true" (dragstart)="onDragStart($event, clase.id_clase)" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)" (dragend)="this.onDragEnd()">
+					<div id="clase-{{ clase.id_clase }}" class="m-2 flex flex-grow items-start rounded-lg border border-black p-2" draggable="true" (dragstart)="onDragStart($event, clase.id_clase)" (dragover)="this.onDragOver($event, clase.id_clase)" (drop)="this.onDrop($event)" (dragend)="this.onDragEnd($event)">
 						<p>{{ clase.nombre_clase }}</p>
 						<p class="ml-2 text-gray-500">{{ clase.descriccion_clase }}</p>
 					</div>
