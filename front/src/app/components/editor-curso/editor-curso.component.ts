@@ -15,7 +15,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	private subscription: Subscription = new Subscription();
 	id_curso: number = 0;
 	curso: Curso | null = null;
-	cursoOriginal: Curso | null = null;
 	draggedElementId: number | null = null;
 	editado: boolean = false;
 
@@ -27,8 +26,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		this.route.params.subscribe((params) => {
 			this.id_curso = params['id_curso'];
 			this.cursoService.getCurso(this.id_curso).then((curso) => {
-				this.curso = curso;
-				this.cursoOriginal = JSON.parse(JSON.stringify(curso));
+				this.curso = JSON.parse(JSON.stringify(curso));
 			});
 		});
 	}
@@ -59,7 +57,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	onDragStart(event: Event, id: number) {
-		console.log('Start');
 		const event2: DragEvent = event as DragEvent;
 		const div = event2.target as HTMLDivElement;
 		const img = div.cloneNode(true) as HTMLDivElement;
@@ -78,8 +75,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 
 	onDragOver(event: Event, id: number) {
 		event.preventDefault();
-		const event2: DragEvent = event as DragEvent;
-		console.log('Over ' + this.getClosestElementId(event2));
 		if (this.draggedElementId === null || this.draggedElementId === id) {
 			return;
 		}
@@ -130,6 +125,23 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	compruebaCambios() {
-		this.editado = JSON.stringify(this.curso) === JSON.stringify(this.cursoOriginal);
+		this.cursoService.getCurso(this.id_curso).then((curso) => {
+			this.editado = JSON.stringify(this.curso) !== JSON.stringify(curso);
+		});
+	}
+
+	updateCurso() {
+		this.cursoService.updateCurso(this.curso).subscribe({
+			next: (success: boolean) => {
+				if (success) {
+					this.editado = false;
+				} else {
+					console.error('Falló la actualización del curso');
+				}
+			},
+			error: (error) => {
+				console.error('Error al actualizar el curso:', error);
+			},
+		});
 	}
 }

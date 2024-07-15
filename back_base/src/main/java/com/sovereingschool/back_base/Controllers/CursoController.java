@@ -2,7 +2,9 @@ package com.sovereingschool.back_base.Controllers;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,15 +139,20 @@ public class CursoController {
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
+	public ResponseEntity<Map<String, Object>> updateCurso(@RequestBody Curso curso) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Curso result = this.service.updateCurso(curso);
-			if (result == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			if (result == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
 
-			return new ResponseEntity<String>("Curso actualizado con éxito!!!", HttpStatus.OK);
+			response.put("message", "Curso actualizado con éxito!!!");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error interno del servidor");
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

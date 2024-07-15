@@ -1,12 +1,13 @@
 import { Clase } from './Clase';
 import { Plan } from './Plan';
+import { Usuario } from './Usuario';
 
 export class Curso {
 	public id_curso: number;
 
 	public nombre_curso: string;
 
-	public profesores_curso: number[];
+	public profesores_curso: Usuario[];
 
 	public fecha_publicacion_curso?: Date;
 
@@ -22,7 +23,7 @@ export class Curso {
 
 	public precio_curso?: number;
 
-	constructor(_id_curso: number, _nombre_curso: string, _profesores_curso: number[], _descriccion_corta: string, _imagen_curso: string, _fecha_publicacion_curso?: Date, _clases_curso?: Clase[], _planes_curso?: Plan[], _descriccion_larga?: string, _precio_curso?: number) {
+	constructor(_id_curso: number, _nombre_curso: string, _profesores_curso: Usuario[], _descriccion_corta: string, _imagen_curso: string, _fecha_publicacion_curso?: Date, _clases_curso?: Clase[], _planes_curso?: Plan[], _descriccion_larga?: string, _precio_curso?: number) {
 		this.id_curso = _id_curso;
 		this.nombre_curso = _nombre_curso;
 		this.profesores_curso = _profesores_curso;

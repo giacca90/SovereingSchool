@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -42,7 +43,7 @@ public class Curso implements Serializable {
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "curso_profesor", joinColumns = @JoinColumn(name = "id_curso"), inverseJoinColumns = @JoinColumn(name = "id_usuario"))
-	@JsonIgnoreProperties({ "id_usuario", "roll_usuario", "plan_usuario", "cursos_usuario",
+	@JsonIgnoreProperties({ "roll_usuario", "plan_usuario", "cursos_usuario",
 			"fecha_registro_usuario" })
 	private List<Usuario> profesores_curso;
 
@@ -50,6 +51,7 @@ public class Curso implements Serializable {
 
 	@OneToMany(mappedBy = "curso_clase", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JsonIgnoreProperties({ "curso_clase" })
+	@JsonManagedReference
 	private List<Clase> clases_curso;
 
 	@ManyToMany(fetch = FetchType.EAGER)

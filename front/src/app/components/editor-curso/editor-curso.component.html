@@ -2,7 +2,7 @@
 	<h2 class="font-bold text-blue-500">Editor del curso: {{ this.curso?.nombre_curso }}</h2>
 	<br />
 	@if (this.curso?.clases_curso) {
-		<div id="curso" class="w-full">
+		<div id="curso" class="w-full cursor-pointer">
 			@for (clase of this.curso?.clases_curso; track clase.id_clase) {
 				<div class="flex w-full">
 					<div class="m-2 items-start rounded-lg border border-black p-2">
@@ -17,11 +17,10 @@
 			}
 		</div>
 		<div class="flex">
-			<button class="m-2 rounded-lg border border-black p-2">Reordenar las clases</button>
 			<button class="m-2 rounded-lg border border-black p-2">Añadir una nueva clase</button>
 			<button class="m-2 rounded-lg border border-black p-2">Eliminar una clase</button>
 			@if (editado) {
-				<button class="m-2 rounded-lg border border-black p-2">Guardar cambios</button>
+				<button class="m-2 rounded-lg border border-black p-2" (click)="updateCurso()">Guardar cambios</button>
 			}
 		</div>
 	}

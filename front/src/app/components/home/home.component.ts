@@ -38,7 +38,8 @@ export class HomeComponent {
 			nombre.textContent = curso.nombre_curso;
 			div.appendChild(nombre);
 
-			curso.profesores_curso.forEach((profeId: number) => {
+			curso.profesores_curso.forEach((prof: Usuario) => {
+				const profeId = prof.id_usuario;
 				const divProfe: HTMLDivElement = document.createElement('div');
 				divProfe.classList.add('m-3', 'flex', 'items-center', 'justify-between');
 				const span: HTMLSpanElement = document.createElement('span');

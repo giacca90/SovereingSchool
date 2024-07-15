@@ -34,11 +34,11 @@ export class CursoComponent {
 		this.cursoService.getCurso(this.id_curso).then((curso) => {
 			this.curso = curso;
 			if (this.curso) {
-				if (this.curso.profesores_curso.length == 1) this.nombresProfesores = this.usuarioService.getNombreProfe(this.curso.profesores_curso[0]);
+				if (this.curso.profesores_curso.length == 1) this.nombresProfesores = this.usuarioService.getNombreProfe(this.curso.profesores_curso[0].id_usuario);
 				else {
-					let nombres: string | undefined = this.usuarioService.getNombreProfe(this.curso.profesores_curso[0])?.toString();
+					let nombres: string | undefined = this.usuarioService.getNombreProfe(this.curso.profesores_curso[0].id_usuario)?.toString();
 					for (let i = 1; i < this.curso.profesores_curso.length; i++) {
-						nombres = nombres + ' y ' + this.usuarioService.getNombreProfe(this.curso.profesores_curso[i]);
+						nombres = nombres + ' y ' + this.usuarioService.getNombreProfe(this.curso.profesores_curso[i].id_usuario);
 					}
 					this.nombresProfesores = nombres;
 				}
