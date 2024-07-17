@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Usuario } from '../../models/Usuario';
 import { LoginService } from '../../services/login.service';
@@ -19,6 +19,7 @@ export class PerfilUsuarioComponent {
 	constructor(
 		private loginService: LoginService,
 		private http: HttpClient,
+		private cdr: ChangeDetectorRef,
 	) {
 		this.usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 	}
@@ -54,48 +55,66 @@ export class PerfilUsuarioComponent {
 					formData.append('files', file, file.name);
 				});
 
-				this.http.post(this.url + 'subeFotos', formData).subscribe({
+				this.http.post<string[]>(this.url + 'subeFotos', formData).subscribe({
 					next: (response) => {
-						console.log('Response: ' + response.toString());
-						const temp: Usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
-						if (temp?.foto_usuario && this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
-							temp.foto_usuario.push(response.toString());
-							temp.nombre_usuario = this.usuario?.nombre_usuario;
-							temp.presentacion = this.usuario.presentacion;
-							temp.cursos_usuario?.forEach((curso) => {
-								curso.clases_curso = undefined;
-								curso.planes_curso = undefined;
-								curso.precio_curso = undefined;
-								curso.profesores_curso.forEach((profe) => {
-									profe.fecha_registro_usuario = undefined;
-									profe.cursos_usuario = undefined;
-									profe.plan_usuario = undefined;
-									profe.roll_usuario = undefined;
-									if (profe.id_usuario === this.usuario?.id_usuario) {
-										profe.foto_usuario = temp.foto_usuario;
-									}
-								});
+						if (this.usuario?.foto_usuario) {
+							const temp: string[] = [];
+							for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
+								if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) temp.push(this.usuario.foto_usuario[i]);
+							}
+							this.usuario.foto_usuario = temp;
+							console.log('Response: ' + response);
+							response.forEach((resp) => {
+								this.usuario?.foto_usuario.push(resp);
 							});
-
-							if (temp.plan_usuario?.nombre_plan) temp.plan_usuario.nombre_plan = undefined;
-							if (temp.plan_usuario?.precio_plan) temp.plan_usuario.precio_plan = undefined;
-							console.log('Objecto a enviar: \n' + JSON.stringify(temp));
-							const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-							this.http.put(this.url + 'edit', temp, { headers, responseType: 'text' }).subscribe({
-								next: (resp) => {
-									console.log(resp);
-								},
-								error: (e: Error) => {
-									console.error('Error en actualizar el usuario: ' + e.message);
-								},
-							});
+							this.actualizaUsuario();
 						}
 					},
 					error: (error: Error) => {
 						console.error('Error al subir las fotos: ' + error.message);
 					},
 				});
+			} else {
+				this.actualizaUsuario();
 			}
+		}
+	}
+
+	actualizaUsuario() {
+		const temp: Usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
+		if (temp?.foto_usuario && this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
+			temp.foto_usuario = this.usuario.foto_usuario;
+			temp.nombre_usuario = this.usuario?.nombre_usuario;
+			temp.presentacion = this.usuario.presentacion;
+			temp.cursos_usuario?.forEach((curso) => {
+				curso.clases_curso = undefined;
+				curso.planes_curso = undefined;
+				curso.precio_curso = undefined;
+				curso.profesores_curso.forEach((profe) => {
+					profe.fecha_registro_usuario = undefined;
+					profe.cursos_usuario = undefined;
+					profe.plan_usuario = undefined;
+					profe.roll_usuario = undefined;
+					if (profe.id_usuario === this.usuario?.id_usuario) {
+						profe.foto_usuario = temp.foto_usuario;
+					}
+				});
+			});
+
+			if (temp.plan_usuario?.nombre_plan) temp.plan_usuario.nombre_plan = undefined;
+			if (temp.plan_usuario?.precio_plan) temp.plan_usuario.precio_plan = undefined;
+			console.log('Objecto a enviar: \n' + JSON.stringify(temp));
+			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+			this.http.put(this.url + 'edit', temp, { headers, responseType: 'text' }).subscribe({
+				next: (resp) => {
+					console.log(resp);
+					localStorage.clear;
+					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
+				},
+				error: (e: Error) => {
+					console.error('Error en actualizar el usuario: ' + e.message);
+				},
+			});
 		}
 	}
 }
