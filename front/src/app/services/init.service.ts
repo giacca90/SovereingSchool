@@ -27,7 +27,9 @@ export class InitService {
 					const profes: Usuario[] = [];
 					curso.profesores_curso.forEach((id) => {
 						const prof = response.profesInit.find((profe) => profe.id_usuario === id);
-						if (prof) profes.push(prof);
+						if (prof) {
+							profes.push(prof);
+						}
 					});
 					this.cursoService.cursos.push(new Curso(curso.id_curso, curso.nombre_curso, profes, curso.descriccion_corta, curso.imagen_curso));
 				});

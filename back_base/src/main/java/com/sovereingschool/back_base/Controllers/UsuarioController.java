@@ -1,10 +1,18 @@
 package com.sovereingschool.back_base.Controllers;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
@@ -23,11 +32,13 @@ import com.sovereingschool.back_base.Models.Usuario;
 
 @RestController
 @RequestMapping("/usuario")
-@CrossOrigin(origins = { "http://localhost:4200", "https://giacca90.github.io" })
+@CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
 public class UsuarioController {
 
 	@Autowired
 	private IUsuarioService service;
+
+	private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets";
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
@@ -110,25 +121,14 @@ public class UsuarioController {
 		}
 	}
 
-	@PutMapping("/nombre")
-	public ResponseEntity<?> changeNombreUsuario(@RequestBody Usuario usuario) {
+	@PutMapping("/edit")
+	public ResponseEntity<?> editUsuario(@RequestBody Usuario usuario) {
+		System.out.println("SE ACTUALIZA USUARIO");
 		try {
-			Integer result = this.service.changeNombreUsuario(usuario);
-			if (result == 0)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Nombre cambiado con éxito!!!", HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@PutMapping("/fotos")
-	public ResponseEntity<?> changeFotosUsuario(@RequestBody Usuario usuario) {
-		try {
-			Integer resultado = this.service.changeFotosUsuario(usuario);
+			Long resultado = this.service.updateUsuario(usuario).getId_usuario();
 			if (resultado == 0)
 				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Fotos cambiadas con éxito!!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Usuario editado con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -177,5 +177,28 @@ public class UsuarioController {
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@PostMapping("/subeFotos")
+	public ResponseEntity<List<String>> uploadImages(@RequestBody MultipartFile[] files) {
+		System.out.println("Se suben fotos");
+		List<String> fileNames = new ArrayList<>();
+
+		for (MultipartFile file : files) {
+			// Genera un nombre único para cada archivo para evitar colisiones
+			String fileName = UUID.randomUUID().toString() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
+			Path filePath = Paths.get(uploadDir, fileName);
+			System.out.println("Foto: " + filePath.toString());
+
+			try {
+				Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+				fileNames.add(filePath.toString());
+			} catch (IOException e) {
+				e.printStackTrace();
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			}
+		}
+
+		return ResponseEntity.ok(fileNames);
 	}
 }

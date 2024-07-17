@@ -54,7 +54,6 @@ public class Usuario implements Serializable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "plan_usuario", referencedColumnName = "id_plan")
-    // @JsonIgnore
     private Plan plan_usuario;
 
     @ManyToMany(fetch = FetchType.LAZY)

@@ -22,9 +22,7 @@ public interface IUsuarioService {
 
     public List<Curso> getCursosUsuario(Long id_usuario);
 
-    public Integer changeNombreUsuario(Usuario usuario);
-
-    public Integer changeFotosUsuario(Usuario usuario);
+    public Usuario updateUsuario(Usuario usuario);
 
     public Integer changePlanUsuario(Usuario usuario);
 

@@ -8,30 +8,30 @@
 				<div class="flex flex-wrap">
 					@for (foto of this.usuario.foto_usuario; track foto; let i = $index) {
 						@if (i === 0) {
-							<img class="m-1 aspect-square w-1/4 border border-black p-1" [src]="foto.substring(foto.indexOf('/assets'))" alt="Foto" />
+							<img class="m-1 aspect-square w-1/4 border border-black p-1" [src]="foto.substring(foto.indexOf('/assets'))" alt="Foto {{ i + 1 }}" />
 						} @else {
-							<img class="m-1 aspect-square w-1/4 border border-black p-1 blur" [src]="foto.substring(foto.indexOf('/assets'))" alt="Foto" />
+							<img class="m-1 aspect-square w-1/4 border border-black p-1" [src]="foto.substring(foto.indexOf('/assets'))" alt="Foto {{ i + 1 }}" />
 						}
 					}
 				</div>
 				@if (this.editable) {
 					<div class="mt-2">
-						<label for="file-upload" class="mt-2 cursor-pointer rounded-lg border border-black p-2" (change)="cargaFoto()"> Sube tus fotos!! </label>
-						<input id="file-upload" type="file" accept="image/jpeg, image/png, image/gif, image/webp, image/svg+xml" multiple class="hidden" />
+						<label for="file-upload" class="mt-2 cursor-pointer rounded-lg border border-black p-2"> Sube tus fotos!! </label>
+						<input id="file-upload" type="file" accept="image/jpeg, image/png, image/gif, image/webp, image/svg+xml" multiple class="hidden" (change)="cargaFoto($event)" />
 					</div>
 				}
 			</div>
-			<div class="flex flex-grow flex-col items-center justify-center">
+			<div class="flex flex-grow flex-col items-center">
 				<span>Nombre: </span>
 				@if (editable) {
-					<input class="border-2 border-black bg-transparent" id="nombre" type="text" placeholder="Tu nombre" value="{{ this.usuario.nombre_usuario }}" />
+					<input class="border-2 border-black bg-transparent" id="nombre" type="text" placeholder="Tu nombre" [(ngModel)]="usuario.nombre_usuario" />
 				} @else {
 					<p>{{ this.usuario.nombre_usuario }}</p>
 				}
 				<br />
 				<span>Presentación: </span>
 				@if (editable) {
-					<textarea class="w-full border-2 border-black bg-transparent p-2" id="presentacion" placeholder="Tu Presentación" maxlength="255" cols="64" rows="4">{{ this.usuario.presentacion }}</textarea>
+					<textarea class="w-full border-2 border-black bg-transparent p-2" id="presentacion" placeholder="Tu Presentación" maxlength="255" cols="64" rows="4" [(ngModel)]="usuario.presentacion"></textarea>
 				} @else {
 					<p>{{ this.usuario.presentacion }}</p>
 				}
@@ -39,7 +39,7 @@
 		</div>
 		<div class="flex">
 			@if (editable) {
-				<button class="m-2 rounded-lg border border-black p-2" (click)="this.editable = false">Guardar</button>
+				<button class="m-2 rounded-lg border border-black p-2" (click)="save(); this.editable = false">Guardar</button>
 			} @else {
 				<button class="m-2 rounded-lg border border-black p-2" (click)="this.editable = true">Editar</button>
 			}

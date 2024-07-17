@@ -102,17 +102,8 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public Integer changeNombreUsuario(Usuario usuario) {
-        return this.repo.changeNombreUsuarioForId(usuario.getId_usuario(), usuario.getNombre_usuario());
-    }
-
-    @Override
-    public Integer changeFotosUsuario(Usuario usuario) {
-        Usuario old_usuario = this.repo.findUsuarioForId(usuario.getId_usuario());
-        if (old_usuario == null)
-            return 0;
-        old_usuario.setFoto_usuario(usuario.getFoto_usuario());
-        return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario);
+    public Usuario updateUsuario(Usuario usuario) {
+        return this.repo.save(usuario);
     }
 
     @Override
