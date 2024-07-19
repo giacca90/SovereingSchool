@@ -1,5 +1,6 @@
 package com.sovereingschool.back_base.Controllers;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,9 +9,14 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -38,7 +44,7 @@ public class UsuarioController {
 	@Autowired
 	private IUsuarioService service;
 
-	private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/front/src/assets";
+	private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Fotos";
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
@@ -64,16 +70,42 @@ public class UsuarioController {
 		}
 	}
 
-	@GetMapping("/fotos/{id}")
-	public ResponseEntity<?> getFotosUsuario(@PathVariable Long id) {
-		try {
-			List<String> fotos = this.service.getFotosUsuario(id);
-			if (fotos == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<List<String>>(fotos, HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+	@GetMapping("/fotos/{nombreFoto}")
+	public ResponseEntity<?> getFotos(@PathVariable String nombreFoto) {
+		System.out.println("LOG. " + nombreFoto);
+		final String photosDirectory = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Fotos";
+
+		// Construir la ruta del archivo y resolver posibles vulnerabilidades de
+		// directorio transversal
+		Path photoPath = Paths.get(photosDirectory).resolve(nombreFoto).normalize();
+		File photoFile = photoPath.toFile();
+		System.out.println("LOG2: " + photoFile.getAbsolutePath());
+
+		if (!photoFile.exists() || !photoFile.isFile()) {
+			return new ResponseEntity<String>("Foto no encontrada.", HttpStatus.NOT_FOUND);
 		}
+
+		// Construir el recurso a partir del archivo
+		FileSystemResource resource = new FileSystemResource(photoFile);
+
+		// Determinar el tipo de contenido
+		String contentType;
+		try {
+			contentType = Files.probeContentType(photoPath);
+		} catch (IOException e) {
+			return new ResponseEntity<String>("Error determinando el tipo de contenido.",
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		// Configurar cache control
+		CacheControl cacheControl = CacheControl.maxAge(30, TimeUnit.DAYS); // 30 días de caché
+
+		return ResponseEntity.ok()
+				.cacheControl(cacheControl)
+				.contentType(contentType != null ? MediaType.parseMediaType(contentType)
+						: MediaType.APPLICATION_OCTET_STREAM)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+				.body(resource);
 	}
 
 	@GetMapping("/roll/{id}")
@@ -192,7 +224,7 @@ public class UsuarioController {
 
 			try {
 				Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-				fileNames.add(filePath.toString());
+				fileNames.add("http://localhost:8080/usuario/fotos/" + fileName);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

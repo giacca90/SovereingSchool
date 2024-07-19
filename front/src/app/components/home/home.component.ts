@@ -30,7 +30,7 @@ export class HomeComponent {
 
 			const fondo: HTMLDivElement = document.createElement('div');
 			fondo.classList.add('absolute', 'inset-0', 'bg-cover', 'bg-center', 'opacity-20', 'transition-opacity', 'duration-300', 'hover:opacity-30');
-			fondo.style.backgroundImage = `url('${curso.imagen_curso.substring(curso.imagen_curso.indexOf('/assets'))}')`;
+			fondo.style.backgroundImage = `url('${curso.imagen_curso}')`;
 			div.appendChild(fondo);
 
 			const nombre: HTMLHeadingElement = document.createElement('h4');
@@ -49,7 +49,7 @@ export class HomeComponent {
 					divProfe.appendChild(span);
 					const logo: HTMLImageElement = document.createElement('img') as HTMLImageElement;
 					logo.classList.add('h-12', 'w-12', 'object-contain');
-					logo.src = profe.foto_usuario[0].substring(profe.foto_usuario[0].indexOf('/assets'));
+					logo.src = profe.foto_usuario[0];
 					logo.alt = 'Logo';
 					divProfe.appendChild(logo);
 					div.appendChild(divProfe);
@@ -106,7 +106,7 @@ export class HomeComponent {
 
 			const img: HTMLImageElement = document.createElement('img') as HTMLImageElement;
 			img.classList.add('h-full', 'w-auto', 'object-contain', 'mr-4');
-			img.src = profe.foto_usuario[0].substring(profe.foto_usuario[0].indexOf('/assets'));
+			img.src = profe.foto_usuario[0];
 			div.appendChild(img);
 
 			const desc: HTMLDivElement = document.createElement('div') as HTMLDivElement;

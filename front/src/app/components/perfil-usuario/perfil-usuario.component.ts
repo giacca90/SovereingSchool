@@ -60,7 +60,9 @@ export class PerfilUsuarioComponent {
 						if (this.usuario?.foto_usuario) {
 							const temp: string[] = [];
 							for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
-								if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) temp.push(this.usuario.foto_usuario[i]);
+								if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
+									temp.push(this.usuario.foto_usuario[i]);
+								}
 							}
 							this.usuario.foto_usuario = temp;
 							console.log('Response: ' + response);
