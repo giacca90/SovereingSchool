@@ -20,6 +20,20 @@
 	<dependencies>
 
 		<dependency>
+			<groupId>org.imgscalr</groupId>
+			<artifactId>imgscalr-lib</artifactId>
+			<version>4.2</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.sejda.webp-imageio</groupId>
+			<artifactId>webp-imageio-sejda</artifactId>
+			<version>0.1.0</version>
+		</dependency>
+
+
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 			<version>3.3.1</version>

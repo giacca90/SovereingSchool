@@ -1,5 +1,6 @@
 package com.sovereingschool.back_base.Controllers;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,6 +12,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+
+import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.CacheControl;
@@ -221,13 +229,38 @@ public class UsuarioController {
 			String fileName = UUID.randomUUID().toString() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
 			Path filePath = Paths.get(uploadDir, fileName);
 			System.out.println("Foto: " + filePath.toString());
+			if (!fileName.substring(fileName.lastIndexOf(".")).toLowerCase().equals(".svg")) {
 
-			try {
-				Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-				fileNames.add("http://localhost:8080/usuario/fotos/" + fileName);
-			} catch (IOException e) {
-				e.printStackTrace();
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+				try {
+					// Convertir la imagen a WebP
+					BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+					BufferedImage webpImage = Scalr.resize(bufferedImage, Scalr.Method.QUALITY,
+							bufferedImage.getWidth(),
+							bufferedImage.getHeight());
+					String webpFileName = fileName.replaceFirst("[.][^.]+$", "") + ".webp";
+					Path webpFilePath = Paths.get(uploadDir, webpFileName);
+					Files.createDirectories(webpFilePath.getParent());
+					ImageWriter writer = ImageIO.getImageWritersByMIMEType("image/webp").next();
+					try (ImageOutputStream ios = ImageIO.createImageOutputStream(webpFilePath.toFile())) {
+						writer.setOutput(ios);
+						ImageWriteParam param = writer.getDefaultWriteParam();
+						writer.write(null, new IIOImage(webpImage, null, null), param);
+					}
+					// Files.copy(file.getInputStream(), filePath,
+					// StandardCopyOption.REPLACE_EXISTING);
+					fileNames.add("http://localhost:8080/usuario/fotos/" + webpFileName);
+				} catch (IOException e) {
+					e.printStackTrace();
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+				}
+			} else {
+				try {
+					Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+					fileNames.add("http://localhost:8080/usuario/fotos/" + fileName);
+				} catch (IOException e) {
+					e.printStackTrace();
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+				}
 			}
 		}
 

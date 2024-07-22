@@ -1,5 +1,9 @@
 package com.sovereingschool.back_base.Services;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 
@@ -38,6 +42,8 @@ public class UsuarioService implements IUsuarioService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Fotos";
 
     @Override
     public String createUsuario(NewUsuario new_usuario) {
@@ -103,6 +109,24 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public Usuario updateUsuario(Usuario usuario) {
+        Usuario usuario_old = this.getUsuario(usuario.getId_usuario());
+        System.out.println("PRUEBA: " + usuario.getFoto_usuario().toString());
+        usuario_old.getFoto_usuario().forEach(foto -> {
+            if (!usuario.getFoto_usuario().contains(foto)) {
+                Path photoPath = Paths.get(uploadDir, foto.substring(foto.lastIndexOf("/")));
+                try {
+                    if (Files.exists(photoPath)) {
+                        Files.delete(photoPath);
+                        System.out.println("Foto eliminada: " + photoPath.toString());
+                    } else {
+                        System.out.println("Foto no encontrada: " + photoPath.toString());
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error al eliminar la foto: " + photoPath.toString());
+                    e.printStackTrace();
+                }
+            }
+        });
         return this.repo.save(usuario);
     }
 
