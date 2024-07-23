@@ -226,7 +226,8 @@ public class UsuarioController {
 
 		for (MultipartFile file : files) {
 			// Genera un nombre único para cada archivo para evitar colisiones
-			String fileName = UUID.randomUUID().toString() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
+			String fileName = UUID.randomUUID().toString() + "_"
+					+ StringUtils.cleanPath(file.getOriginalFilename()).replaceAll(" ", "_");
 			Path filePath = Paths.get(uploadDir, fileName);
 			System.out.println("Foto: " + filePath.toString());
 			if (!fileName.substring(fileName.lastIndexOf(".")).toLowerCase().equals(".svg")) {

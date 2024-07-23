@@ -24,14 +24,11 @@ export class PerfilUsuarioComponent {
 		this.usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 	}
 	cargaFoto(event: Event) {
-		console.log('Llamado cargaFoto');
 		const input = event.target as HTMLInputElement;
 		if (!input.files) {
-			console.log('input nulo');
 			return;
 		}
 		this.fotos = input.files;
-		console.log('Fotos: ' + this.fotos.length);
 
 		Array.from(this.fotos).forEach((file) => {
 			const reader = new FileReader();
@@ -45,13 +42,10 @@ export class PerfilUsuarioComponent {
 	}
 
 	save() {
-		if (JSON.stringify(this.usuario) !== JSON.stringify(this.loginService.usuario)) {
-			console.log('Hay cambios!!!');
-
+		if (JSON.stringify(this.usuario) !== JSON.stringify(this.loginService.usuario) || (document.getElementById('fotoPrincipal') as HTMLImageElement).src !== this.usuario?.foto_usuario[0]) {
 			const formData = new FormData();
 			if (this.fotos) {
 				Array.from(this.fotos).forEach((file) => {
-					console.log('For: ' + file.name);
 					formData.append('files', file, file.name);
 				});
 
@@ -65,11 +59,11 @@ export class PerfilUsuarioComponent {
 								}
 							}
 							this.usuario.foto_usuario = temp;
-							console.log('Response: ' + response);
 							response.forEach((resp) => {
 								this.usuario?.foto_usuario.push(resp);
 							});
 							this.actualizaUsuario();
+							this.fotos = null;
 						}
 					},
 					error: (error: Error) => {
@@ -84,7 +78,18 @@ export class PerfilUsuarioComponent {
 
 	actualizaUsuario() {
 		const temp: Usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
-		if (temp?.foto_usuario && this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
+		if (this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
+			const fotoPrincipal: string = (document.getElementById('fotoPrincipal') as HTMLImageElement).src;
+			if (fotoPrincipal !== this.usuario.foto_usuario[0]) {
+				const f: string[] = [];
+				f.push(fotoPrincipal);
+				this.usuario.foto_usuario.forEach((foto: string) => {
+					if (foto !== fotoPrincipal) {
+						f.push(foto);
+					}
+				});
+				this.usuario.foto_usuario = f;
+			}
 			temp.foto_usuario = this.usuario.foto_usuario;
 			temp.nombre_usuario = this.usuario?.nombre_usuario;
 			temp.presentacion = this.usuario.presentacion;
@@ -105,11 +110,9 @@ export class PerfilUsuarioComponent {
 
 			if (temp.plan_usuario?.nombre_plan) temp.plan_usuario.nombre_plan = undefined;
 			if (temp.plan_usuario?.precio_plan) temp.plan_usuario.precio_plan = undefined;
-			console.log('Objecto a enviar: \n' + JSON.stringify(temp));
 			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 			this.http.put(this.url + 'edit', temp, { headers, responseType: 'text' }).subscribe({
-				next: (resp) => {
-					console.log(resp);
+				next: () => {
 					localStorage.clear;
 					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
 				},
@@ -117,6 +120,20 @@ export class PerfilUsuarioComponent {
 					console.error('Error en actualizar el usuario: ' + e.message);
 				},
 			});
+		}
+	}
+
+	cambiaFoto(index: number) {
+		if (this.usuario?.foto_usuario) {
+			(document.getElementById('fotoPrincipal') as HTMLImageElement).src = this.usuario.foto_usuario[index];
+			if (this.editable) {
+				for (let i = 0; i < this.usuario?.foto_usuario.length; i++) {
+					document.getElementById('foto-' + i)?.classList.remove('border-black');
+					document.getElementById('foto-' + i)?.classList.remove('border');
+				}
+				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add('border');
+				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add('border-black');
+			}
 		}
 	}
 }

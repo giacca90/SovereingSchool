@@ -34,7 +34,7 @@ embargando al D.N.I.',
 		'Cansado de trabajar duro y ganar poco?? Estas harto de pagar impuestos sobre tu trabajo???
 		Este curso es lo que buscas!!!
 		Aprenderás las mejores técnicas de ingeniería financiera, como los Fideicomisos, las empresas off-shore y fundaciones.',
-		'http://localhost:8080/usuario/fotos/roble texto.png',
+		'http://localhost:8080/usuario/fotos/roble_texto.svg',
 		70.00
 	),
 	(
@@ -43,7 +43,7 @@ embargando al D.N.I.',
 		'Desde la base hasta la practica. Registra tu nombre, tu casa, tu coche y todas tus obras como Marcas Registradas y obtiene el control absoluto.',
 		'El derecho de Autor es el principal de los derechos, es el principio por lo cual el Vaticano se declaró como el propietario de toda la creación.
 		Como ellos, nosotros también podemos utilizarlo como defensa contra los humanistas seculares.',
-		'http://localhost:8080/usuario/fotos/Logo LJS morado.png',
+		'http://localhost:8080/usuario/fotos/Logo_LJS_morado.png',
 		40.00
 	);
 INSERT INTO clase (
@@ -147,7 +147,7 @@ INSERT INTO usuario (
 	)
 VALUES (
 		'2024-01-01 00:00:00',
-		ARRAY ['http://localhost:8080/usuario/fotos/roble texto.png'],
+		ARRAY ['http://localhost:8080/usuario/fotos/roble_texto.svg'],
 		'El creador de la Autarquía de la Gole, y el creador de esta plataforma.',
 		'Matt I de la Gole®',
 		0,
@@ -171,7 +171,7 @@ VALUES (
 	),
 	(
 		'2024-01-01 00:00:00',
-		ARRAY ['http://localhost:8080/usuario/fotos/Logo LJS morado.png'],
+		ARRAY ['http://localhost:8080/usuario/fotos/Logo_LJS_morado.png'],
 		'Grupo de Hombre y Mujeres Libres y Soberanos encentrados en crear técnicas Soberanas para cada necesidad.',
 		'El Equipo De L.J.S.',
 		1,

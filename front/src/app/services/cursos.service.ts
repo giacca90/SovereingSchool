@@ -13,7 +13,6 @@ export class CursosService {
 	constructor(private http: HttpClient) {}
 
 	async getCurso(id_curso: number) {
-		console.log('GETCURSO');
 		for (let i = 0; i < this.cursos.length; i++) {
 			if (this.cursos[i].id_curso == id_curso) {
 				if (this.cursos[i].clases_curso === undefined) {
