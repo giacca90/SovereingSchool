@@ -1,6 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
 
@@ -17,6 +18,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	curso: Curso | null = null;
 	draggedElementId: number | null = null;
 	editado: boolean = false;
+	editar: Clase | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
