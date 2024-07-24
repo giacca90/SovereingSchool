@@ -36,6 +36,9 @@ public class Clase implements Serializable {
     @Column(length = 1000)
     private String descriccion_clase;
 
+    @Column(length = 10000)
+    private String contenido_clase;
+
     @Column(nullable = false)
     private int tipo_clase;
 

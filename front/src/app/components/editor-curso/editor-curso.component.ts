@@ -146,4 +146,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 			},
 		});
 	}
+
+	nuevaClase() {
+		this.editar = new Clase(0, '', '', '', 0, '', 0, 0);
+	}
 }
