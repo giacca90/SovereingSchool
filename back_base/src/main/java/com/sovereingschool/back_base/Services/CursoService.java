@@ -85,9 +85,14 @@ public class CursoService implements ICursoService {
             return null;
         Curso oldCurso = respuesta.get();
         for (Clase clase : curso.getClases_curso()) {
-            if (!oldCurso.getClases_curso().contains(clase))
-                this.claseRepo.updateClase(clase.getId_clase(), clase.getNombre_clase(), clase.getTipo_clase(),
-                        clase.getDireccion_clase(), clase.getPosicion_clase());
+            if (!oldCurso.getClases_curso().contains(clase)) {
+                if (clase.getId_clase() == 0) {
+                    clase = this.claseRepo.save(clase);
+                } else {
+                    this.claseRepo.updateClase(clase.getId_clase(), clase.getNombre_clase(), clase.getTipo_clase(),
+                            clase.getDireccion_clase(), clase.getPosicion_clase());
+                }
+            }
         }
         return this.repo.save(curso);
     }

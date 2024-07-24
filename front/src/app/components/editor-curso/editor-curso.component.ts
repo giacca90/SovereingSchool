@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Clase } from '../../models/Clase';
@@ -8,7 +9,7 @@ import { CursosService } from '../../services/cursos.service';
 @Component({
 	selector: 'app-editor-curso',
 	standalone: true,
-	imports: [],
+	imports: [FormsModule],
 	templateUrl: './editor-curso.component.html',
 	styleUrl: './editor-curso.component.css',
 })
@@ -148,6 +149,24 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	nuevaClase() {
-		this.editar = new Clase(0, '', '', '', 0, '', 0, 0);
+		if (this.curso) this.editar = new Clase(0, '', '', '', 0, '', 0, this.curso.id_curso);
+	}
+
+	guardarCambios() {
+		console.log('LOG: ' + JSON.stringify(this.editar));
+		if (this.editar && this.curso) {
+			this.editar.curso_clase = this.curso?.id_curso;
+			if (this.editar?.id_clase === 0) {
+				this.cursoService.createClass(this.editar);
+			} else {
+				this.cursoService.editClass(this.editar);
+			}
+		}
+	}
+
+	eliminaClase(clase: Clase) {
+		if (confirm('Esto eliminará definitivamente la clase. Estás seguro??')) {
+			this.cursoService.deleteClass(clase);
+		}
 	}
 }

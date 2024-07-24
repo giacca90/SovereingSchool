@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, firstValueFrom, map, Observable, throwError } from 'rxjs';
+import { Clase } from '../models/Clase';
 import { Curso } from '../models/Curso';
 
 @Injectable({
@@ -57,5 +58,36 @@ export class CursosService {
 		} else {
 			return throwError(() => new Error('El curso es nulo'));
 		}
+	}
+
+	editClass(editar: Clase) {
+		const curso_clase: number | undefined = editar.curso_clase;
+		editar.curso_clase = undefined;
+		console.log('ENVIO: ' + JSON.stringify(editar));
+		this.http.put<string>(this.backURL + '/cursos/' + curso_clase + '/editClase', editar, { responseType: 'text' as 'json' }).subscribe({
+			next: (resp) => {
+				console.log('RESP: ' + resp);
+			},
+			error(e: Error) {
+				console.error('Error en editar la clase: ' + e.message);
+			},
+		});
+	}
+
+	createClass(editar: Clase) {
+		const curso_clase: number | undefined = editar.curso_clase;
+		editar.curso_clase = undefined;
+		this.http.put(this.backURL + '/cursos/' + curso_clase + '/addClase', editar).subscribe({
+			next: (resp) => {
+				console.log('RESP: ' + resp);
+			},
+			error(e: Error) {
+				console.error('Error en crear la clase: ' + e.message);
+			},
+		});
+	}
+
+	deleteClass(clase: Clase) {
+		throw new Error('Method not implemented.');
 	}
 }

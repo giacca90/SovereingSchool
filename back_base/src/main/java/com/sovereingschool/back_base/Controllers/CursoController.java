@@ -199,10 +199,10 @@ public class CursoController {
 					clases.add(clase);
 					curso.setClases_curso(clases);
 					this.service.updateCurso(curso);
-					return new ResponseEntity<>("Clase editada con éxito!!!", HttpStatus.OK);
+					return new ResponseEntity<String>("Clase editada con éxito!!!", HttpStatus.OK);
 				}
 			}
-			return new ResponseEntity<>("Clase no encontrada", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Clase no encontrada", HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -215,7 +215,7 @@ public class CursoController {
 			if (curso == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
 			List<Clase> clases = curso.getClases_curso();
-			if (clase.getPosicion_clase() == null)
+			if (clase.getPosicion_clase() == null || clase.getPosicion_clase() == 0)
 				clase.setPosicion_clase((clases.size()) + 1);
 			else
 				clases.forEach((Clase fclase) -> {
@@ -229,6 +229,17 @@ public class CursoController {
 			return new ResponseEntity<>("Clase añadida con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@DeleteMapping("/{idCurso}/deleteClase")
+	public ResponseEntity<?> destroy(@PathVariable Integer id) {
+		try {
+			// TODO Implement Your Logic To Destroy Data And Return Result Through
+			// ResponseEntity
+			return new ResponseEntity<>("Destroy Result", HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }
