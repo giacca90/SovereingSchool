@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { HomeComponent } from './components/home/home.component';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
 import { SearchComponent } from './components/search/search.component';
@@ -15,10 +16,11 @@ import { LoginService } from './services/login.service';
 	styleUrl: './app.component.css',
 	imports: [RouterOutlet, HomeComponent, SearchComponent, LogModalComponent, CommonModule],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 	title = 'Sovereign School';
 	isModalVisible: boolean = false;
 	vistaMenu: boolean = false;
+	private subscription: Subscription = new Subscription();
 
 	constructor(
 		private modalService: LoginModalService,
@@ -28,9 +30,11 @@ export class AppComponent implements OnInit {
 	) {}
 
 	ngOnInit() {
-		this.modalService.isVisible$.subscribe((isVisible) => {
-			this.isModalVisible = isVisible;
-		});
+		this.subscription.add(
+			this.modalService.isVisible$.subscribe((isVisible) => {
+				this.isModalVisible = isVisible;
+			}),
+		);
 	}
 
 	openModal() {
@@ -42,5 +46,8 @@ export class AppComponent implements OnInit {
 		this.loginService.usuario = null;
 		localStorage.clear();
 		this.router.navigate(['']);
+	}
+	ngOnDestroy(): void {
+		this.subscription.unsubscribe();
 	}
 }

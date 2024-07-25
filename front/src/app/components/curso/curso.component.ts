@@ -1,6 +1,7 @@
 /* eslint-disable no-unsafe-optional-chaining */
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { Curso } from '../../models/Curso';
 import { Plan } from '../../models/Plan';
 import { CursosService } from '../../services/cursos.service';
@@ -14,10 +15,11 @@ import { UsuariosService } from '../../services/usuarios.service';
 	templateUrl: './curso.component.html',
 	styleUrl: './curso.component.css',
 })
-export class CursoComponent {
+export class CursoComponent implements OnDestroy {
 	private id_curso: number = 0;
 	public curso: Curso | null = null;
 	public nombresProfesores: string | undefined = '';
+	private subscription: Subscription = new Subscription();
 
 	constructor(
 		private route: ActivatedRoute,
@@ -27,9 +29,11 @@ export class CursoComponent {
 		public loginService: LoginService,
 		public router: Router,
 	) {
-		this.route.params.subscribe((params) => {
-			this.id_curso = params['id_curso'];
-		});
+		this.subscription.add(
+			this.route.params.subscribe((params) => {
+				this.id_curso = params['id_curso'];
+			}),
+		);
 
 		this.cursoService.getCurso(this.id_curso).then((curso) => {
 			this.curso = curso;
@@ -55,5 +59,9 @@ export class CursoComponent {
 			}
 		}
 		return null;
+	}
+
+	ngOnDestroy(): void {
+		this.subscription.unsubscribe();
 	}
 }

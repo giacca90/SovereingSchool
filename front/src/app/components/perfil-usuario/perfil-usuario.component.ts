@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { Usuario } from '../../models/Usuario';
 import { LoginService } from '../../services/login.service';
 
@@ -11,10 +12,12 @@ import { LoginService } from '../../services/login.service';
 	templateUrl: './perfil-usuario.component.html',
 	styleUrl: './perfil-usuario.component.css',
 })
-export class PerfilUsuarioComponent {
+export class PerfilUsuarioComponent implements OnDestroy {
 	editable: boolean = false;
 	usuario: Usuario | null = null;
 	fotos: FileList | null = null;
+	private subscription: Subscription = new Subscription();
+
 	url: string = 'http://localhost:8080/usuario/';
 	constructor(
 		private loginService: LoginService,
@@ -49,27 +52,29 @@ export class PerfilUsuarioComponent {
 					formData.append('files', file, file.name);
 				});
 
-				this.http.post<string[]>(this.url + 'subeFotos', formData).subscribe({
-					next: (response) => {
-						if (this.usuario?.foto_usuario) {
-							const temp: string[] = [];
-							for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
-								if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
-									temp.push(this.usuario.foto_usuario[i]);
+				this.subscription.add(
+					this.http.post<string[]>(this.url + 'subeFotos', formData).subscribe({
+						next: (response) => {
+							if (this.usuario?.foto_usuario) {
+								const temp: string[] = [];
+								for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
+									if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
+										temp.push(this.usuario.foto_usuario[i]);
+									}
 								}
+								this.usuario.foto_usuario = temp;
+								response.forEach((resp) => {
+									this.usuario?.foto_usuario.push(resp);
+								});
+								this.actualizaUsuario();
+								this.fotos = null;
 							}
-							this.usuario.foto_usuario = temp;
-							response.forEach((resp) => {
-								this.usuario?.foto_usuario.push(resp);
-							});
-							this.actualizaUsuario();
-							this.fotos = null;
-						}
-					},
-					error: (error: Error) => {
-						console.error('Error al subir las fotos: ' + error.message);
-					},
-				});
+						},
+						error: (error: Error) => {
+							console.error('Error al subir las fotos: ' + error.message);
+						},
+					}),
+				);
 			} else {
 				this.actualizaUsuario();
 			}
@@ -111,15 +116,17 @@ export class PerfilUsuarioComponent {
 			if (temp.plan_usuario?.nombre_plan) temp.plan_usuario.nombre_plan = undefined;
 			if (temp.plan_usuario?.precio_plan) temp.plan_usuario.precio_plan = undefined;
 			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-			this.http.put(this.url + 'edit', temp, { headers, responseType: 'text' }).subscribe({
-				next: () => {
-					localStorage.clear;
-					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
-				},
-				error: (e: Error) => {
-					console.error('Error en actualizar el usuario: ' + e.message);
-				},
-			});
+			this.subscription.add(
+				this.http.put(this.url + 'edit', temp, { headers, responseType: 'text' }).subscribe({
+					next: () => {
+						localStorage.clear;
+						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
+					},
+					error: (e: Error) => {
+						console.error('Error en actualizar el usuario: ' + e.message);
+					},
+				}),
+			);
 		}
 	}
 
@@ -135,5 +142,8 @@ export class PerfilUsuarioComponent {
 				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add('border-black');
 			}
 		}
+	}
+	ngOnDestroy(): void {
+		this.subscription.unsubscribe();
 	}
 }
