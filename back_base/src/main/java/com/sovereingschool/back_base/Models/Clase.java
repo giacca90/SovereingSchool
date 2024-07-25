@@ -42,7 +42,12 @@ public class Clase implements Serializable {
     @Column(nullable = false)
     private int tipo_clase;
 
-    @Column(nullable = false)
+    /*
+     * @Column(nullable = false)
+     * private String direccion_clase;
+     */
+
+    @Column()
     private String direccion_clase;
 
     @Column(nullable = false)

@@ -153,20 +153,60 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	guardarCambios() {
-		console.log('LOG: ' + JSON.stringify(this.editar));
 		if (this.editar && this.curso) {
 			this.editar.curso_clase = this.curso?.id_curso;
 			if (this.editar?.id_clase === 0) {
-				this.cursoService.createClass(this.editar);
+				this.cursoService.createClass(this.editar).subscribe({
+					next: (resp: boolean) => {
+						if (resp && this.curso) {
+							this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
+								if (response) {
+									this.curso = response;
+									this.editar = null;
+								}
+							});
+						} else {
+							console.error('Error en actualizar!!!');
+						}
+					},
+					error: (e: Error) => {
+						console.error('Error en crear la clase: ' + e.message);
+					},
+				});
 			} else {
-				this.cursoService.editClass(this.editar);
+				this.cursoService.editClass(this.editar).subscribe({
+					next: (resp: boolean) => {
+						if (resp) {
+							this.editar = null;
+						} else {
+							console.error('Error en actualizar!!!');
+						}
+					},
+					error: (e: Error) => {
+						console.error('Error en editar la clase: ' + e.message);
+					},
+				});
 			}
 		}
 	}
 
 	eliminaClase(clase: Clase) {
 		if (confirm('Esto eliminará definitivamente la clase. Estás seguro??')) {
-			this.cursoService.deleteClass(clase);
+			clase.curso_clase = this.curso?.id_curso;
+			this.cursoService.deleteClass(clase).subscribe({
+				next: (resp: boolean) => {
+					if (resp && this.curso) {
+						this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
+							if (response) {
+								this.curso = response;
+							}
+						});
+					}
+				},
+				error: (e: Error) => {
+					console.error('Error en eliminar Clase: ' + e.message);
+				},
+			});
 		}
 	}
 }

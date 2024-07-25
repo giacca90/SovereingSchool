@@ -110,4 +110,14 @@ public class CursoService implements ICursoService {
         return this.repo.findAll();
     }
 
+    @Override
+    public void deleteClase(Clase clase) {
+        Optional<Clase> optionalClase = this.claseRepo.findById(clase.getId_clase());
+        if (optionalClase.isPresent()) {
+            this.claseRepo.delete(optionalClase.get());
+        } else {
+            System.err.println("Clase no encontrada con ID: " + clase.getId_clase());
+        }
+    }
+
 }

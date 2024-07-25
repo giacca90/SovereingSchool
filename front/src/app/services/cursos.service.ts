@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, firstValueFrom, map, Observable, throwError } from 'rxjs';
+import { catchError, firstValueFrom, map, Observable, of, throwError } from 'rxjs';
 import { Clase } from '../models/Clase';
 import { Curso } from '../models/Curso';
 
@@ -60,34 +60,47 @@ export class CursosService {
 		}
 	}
 
-	editClass(editar: Clase) {
+	editClass(editar: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
-		console.log('ENVIO: ' + JSON.stringify(editar));
-		this.http.put<string>(this.backURL + '/cursos/' + curso_clase + '/editClase', editar, { responseType: 'text' as 'json' }).subscribe({
-			next: (resp) => {
-				console.log('RESP: ' + resp);
-			},
-			error(e: Error) {
-				console.error('Error en editar la clase: ' + e.message);
-			},
-		});
+		return this.http.put<string>(`${this.backURL}/cursos/${curso_clase}/editClase`, editar, { responseType: 'text' as 'json' }).pipe(
+			map(() => {
+				return true;
+			}),
+			catchError((error: Error) => {
+				console.error('Error en editar la clase: ' + error.message);
+				return of(false);
+			}),
+		);
 	}
 
-	createClass(editar: Clase) {
+	createClass(editar: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
-		this.http.put(this.backURL + '/cursos/' + curso_clase + '/addClase', editar).subscribe({
-			next: (resp) => {
-				console.log('RESP: ' + resp);
-			},
-			error(e: Error) {
+		return this.http.put<string>(this.backURL + '/cursos/' + curso_clase + '/addClase', editar, { responseType: 'text' as 'json' }).pipe(
+			map(() => {
+				this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
+				return true;
+			}),
+			catchError((e: Error) => {
 				console.error('Error en crear la clase: ' + e.message);
-			},
-		});
+				return of(false);
+			}),
+		);
 	}
 
-	deleteClass(clase: Clase) {
-		throw new Error('Method not implemented.');
+	deleteClass(clase: Clase): Observable<boolean> {
+		const curso_clase: number | undefined = clase.curso_clase;
+		clase.curso_clase = undefined;
+		return this.http.delete<string>(this.backURL + '/cursos/' + curso_clase + '/deleteClase/' + clase.id_clase, { responseType: 'text' as 'json' }).pipe(
+			map(() => {
+				this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
+				return true;
+			}),
+			catchError((e: Error) => {
+				console.error('Error en crear la clase: ' + e.message);
+				return of(false);
+			}),
+		);
 	}
 }

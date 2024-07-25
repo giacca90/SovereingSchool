@@ -19,7 +19,6 @@
 		</div>
 		<div class="flex">
 			<button class="m-2 rounded-lg border border-black p-2" (click)="nuevaClase()">Añadir una nueva clase</button>
-			<button class="m-2 rounded-lg border border-black p-2">Eliminar una clase</button>
 			@if (editado) {
 				<button class="m-2 rounded-lg border border-black p-2" (click)="updateCurso()">Guardar cambios</button>
 			}
@@ -27,7 +26,7 @@
 	}
 </div>
 @if (editar) {
-	<div class="absolute left-0 top-0 z-10 flex h-screen w-full flex-col bg-white/90">
+	<div class="absolute left-0 top-0 z-10 flex h-full w-full flex-col bg-white/90">
 		<div class="m-2 mb-2 mt-2 flex flex-grow flex-col rounded-lg border border-black p-2">
 			<input class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" type="text" placeholder="Pon un nombre a tu Clase" [(ngModel)]="editar.nombre_clase" />
 			<div class="flex">

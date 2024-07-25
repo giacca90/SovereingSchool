@@ -32,4 +32,6 @@ public interface ICursoService {
 
     public String deleteCurso(Long id_curso);
 
+    public void deleteClase(Clase clase);
+
 }

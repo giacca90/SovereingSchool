@@ -232,12 +232,33 @@ public class CursoController {
 		}
 	}
 
-	@DeleteMapping("/{idCurso}/deleteClase")
-	public ResponseEntity<?> destroy(@PathVariable Integer id) {
+	@DeleteMapping("/{idCurso}/deleteClase/{idClase}")
+	public ResponseEntity<?> deleteClase(@PathVariable Long idCurso, @PathVariable Long idClase) {
 		try {
-			// TODO Implement Your Logic To Destroy Data And Return Result Through
-			// ResponseEntity
-			return new ResponseEntity<>("Destroy Result", HttpStatus.OK);
+			Curso curso = this.service.getCurso(idCurso);
+			if (curso == null)
+				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			List<Clase> clases = curso.getClases_curso();
+			Clase eliminada = null;
+			for (int i = 0; i < clases.size(); i++) {
+				if (eliminada != null) {
+					clases.get(i).setPosicion_clase(clases.get(i).getPosicion_clase() - 1);
+				} else {
+					if (clases.get(i).getId_clase() == idClase) {
+						eliminada = clases.get(i);
+					}
+				}
+			}
+
+			if (eliminada != null) {
+				clases.remove(eliminada);
+				curso.setClases_curso(clases);
+				this.service.updateCurso(curso);
+				this.service.deleteClase(eliminada);
+				return new ResponseEntity<String>("Clase eliminada con exito!!!", HttpStatus.OK);
+			}
+			return new ResponseEntity<>("Clase no encontrada", HttpStatus.NOT_FOUND);
+
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
