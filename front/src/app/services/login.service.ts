@@ -1,6 +1,7 @@
 /* eslint-disable no-async-promise-executor */
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { afterNextRender, Injectable } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { Usuario } from '../models/Usuario';
 
 @Injectable({
@@ -18,45 +19,33 @@ export class LoginService {
 		});
 	}
 
-	async compruebaCorreo(correo: string): Promise<boolean> {
-		return new Promise(async (resolve, reject) => {
-			this.http.get<number>(`${this.apiUrl}${correo}`).subscribe({
-				next: (response) => {
-					if (response == 0) {
-						resolve(false);
-					}
-
-					if (response > 0) {
-						this.id_usuario = response;
-						resolve(true);
-					}
-				},
-				error: (error: HttpErrorResponse) => {
-					console.error('HTTP request failed:', error);
-					reject(false);
-				},
-			});
-		});
+	async compruebaCorreo(correo: string) {
+		try {
+			const response: number = await firstValueFrom(this.http.get<number>(`${this.apiUrl}${correo}`));
+			if (response == 0) {
+				return false;
+			} else {
+				this.id_usuario = response;
+				return true;
+			}
+		} catch (error) {
+			console.error('HTTP request failed:', error);
+			return false;
+		}
 	}
 
-	async compruebaPassword(password: string): Promise<boolean> {
-		return new Promise(async (resolve) => {
-			this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password).subscribe({
-				next: (response) => {
-					if (response.id_usuario === null) {
-						resolve(false);
-						return;
-					}
-					this.usuario = response;
-					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
-					resolve(true);
-					return;
-				},
-				error: (error: HttpErrorResponse) => {
-					console.error('HTTP request failed:', error);
-					resolve(false);
-				},
-			});
-		});
+	async compruebaPassword(password: string) {
+		try {
+			const response: Usuario = await firstValueFrom(this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password));
+			if (response.id_usuario === null) {
+				return false;
+			}
+			this.usuario = response;
+			localStorage.setItem('Usuario', JSON.stringify(this.usuario));
+			return true;
+		} catch (error) {
+			console.error('HTTP request failed:', error);
+			return false;
+		}
 	}
 }

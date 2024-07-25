@@ -42,14 +42,14 @@
 				} @else {
 					<p>{{ this.usuario.presentacion }}</p>
 				}
+				<div class="mt-auto flex">
+					@if (editable) {
+						<button class="m-2 rounded-lg border border-black p-2" (click)="save(); this.editable = false">Guardar</button>
+					} @else {
+						<button class="m-2 rounded-lg border border-black p-2" (click)="this.editable = true">Editar</button>
+					}
+				</div>
 			</div>
-		</div>
-		<div class="flex">
-			@if (editable) {
-				<button class="m-2 rounded-lg border border-black p-2" (click)="save(); this.editable = false">Guardar</button>
-			} @else {
-				<button class="m-2 rounded-lg border border-black p-2" (click)="this.editable = true">Editar</button>
-			}
 		</div>
 	}
 </div>

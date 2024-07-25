@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { Usuario } from '../models/Usuario';
 
 @Injectable({
@@ -10,16 +11,14 @@ export class UsuariosService {
 	public profes: Usuario[] = [];
 	constructor(private http: HttpClient) {}
 
-	getUsuario(id_usuario: number) {
-		this.http.get<Usuario>(this.apiUrl + id_usuario).subscribe({
-			next: (response: Usuario) => {
-				return response;
-			},
-			error: (e: Error) => {
-				console.error(e.message);
-				return null;
-			},
-		});
+	async getUsuario(id_usuario: number) {
+		try {
+			const response: Usuario = await firstValueFrom(this.http.get<Usuario>(this.apiUrl + id_usuario));
+			return response;
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
 	}
 
 	getNombreProfe(id: number) {

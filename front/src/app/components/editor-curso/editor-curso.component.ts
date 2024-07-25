@@ -136,20 +136,18 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	updateCurso() {
-		this.subscription.add(
-			this.cursoService.updateCurso(this.curso).subscribe({
-				next: (success: boolean) => {
-					if (success) {
-						this.editado = false;
-					} else {
-						console.error('Falló la actualización del curso');
-					}
-				},
-				error: (error) => {
-					console.error('Error al actualizar el curso:', error);
-				},
-			}),
-		);
+		this.cursoService
+			.updateCurso(this.curso)
+			.then((response: boolean) => {
+				if (response) {
+					this.editado = false;
+				} else {
+					console.error('Falló la actualización del curso');
+				}
+			})
+			.catch((error: Error) => {
+				console.error('Error en actualizar el curso: ' + error.message);
+			});
 	}
 
 	nuevaClase() {
@@ -160,40 +158,36 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		if (this.editar && this.curso) {
 			this.editar.curso_clase = this.curso?.id_curso;
 			if (this.editar?.id_clase === 0) {
-				this.subscription.add(
-					this.cursoService.createClass(this.editar).subscribe({
-						next: (resp: boolean) => {
-							if (resp && this.curso) {
-								this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
-									if (response) {
-										this.curso = response;
-										this.editar = null;
-									}
-								});
-							} else {
-								console.error('Error en actualizar!!!');
-							}
-						},
-						error: (e: Error) => {
-							console.error('Error en crear la clase: ' + e.message);
-						},
-					}),
-				);
+				this.cursoService
+					.createClass(this.editar)
+					.then((response: boolean) => {
+						if (response && this.curso) {
+							this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
+								if (response) {
+									this.curso = response;
+									this.editar = null;
+								}
+							});
+						} else {
+							console.error('Error en actualizar!!!');
+						}
+					})
+					.catch((error: Error) => {
+						console.error('Error en crear la clase: ' + error.message);
+					});
 			} else {
-				this.subscription.add(
-					this.cursoService.editClass(this.editar).subscribe({
-						next: (resp: boolean) => {
-							if (resp) {
-								this.editar = null;
-							} else {
-								console.error('Error en actualizar!!!');
-							}
-						},
-						error: (e: Error) => {
-							console.error('Error en editar la clase: ' + e.message);
-						},
-					}),
-				);
+				this.cursoService
+					.editClass(this.editar)
+					.then((response: boolean) => {
+						if (response) {
+							this.editar = null;
+						} else {
+							console.error('Error en actualizar!!!');
+						}
+					})
+					.catch((error: Error) => {
+						console.error('Error en editar la clase: ' + error.message);
+					});
 			}
 		}
 	}
@@ -201,22 +195,20 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	eliminaClase(clase: Clase) {
 		if (confirm('Esto eliminará definitivamente la clase. Estás seguro??')) {
 			clase.curso_clase = this.curso?.id_curso;
-			this.subscription.add(
-				this.cursoService.deleteClass(clase).subscribe({
-					next: (resp: boolean) => {
-						if (resp && this.curso) {
-							this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
-								if (response) {
-									this.curso = response;
-								}
-							});
-						}
-					},
-					error: (e: Error) => {
-						console.error('Error en eliminar Clase: ' + e.message);
-					},
-				}),
-			);
+			this.cursoService
+				.deleteClass(clase)
+				.then((response: boolean) => {
+					if (response && this.curso) {
+						this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
+							if (response) {
+								this.curso = response;
+							}
+						});
+					}
+				})
+				.catch((error: Error) => {
+					console.error('Error en eliminar Clase: ' + error.message);
+				});
 		}
 	}
 }

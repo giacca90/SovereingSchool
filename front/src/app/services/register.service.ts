@@ -1,6 +1,7 @@
 /* eslint-disable no-async-promise-executor */
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { NuevoUsuario } from '../models/NuevoUsuario';
 
 @Injectable({
@@ -11,16 +12,12 @@ export class RegisterService {
 	constructor(private http: HttpClient) {}
 
 	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario) {
-		return new Promise(async (resolve, reject) => {
-			this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { responseType: 'text' as 'json' }).subscribe({
-				next: () => {
-					resolve(true);
-				},
-				error: (error: HttpErrorResponse) => {
-					console.error('HTTP request failed:', error);
-					reject(false);
-				},
-			});
-		});
+		try {
+			await firstValueFrom(this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { responseType: 'text' as 'json' }));
+			return true;
+		} catch (error) {
+			console.error('HTTP request failed:', error);
+			return false;
+		}
 	}
 }

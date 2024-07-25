@@ -226,6 +226,7 @@ public class UsuarioController {
 
 		for (MultipartFile file : files) {
 			// Genera un nombre único para cada archivo para evitar colisiones
+			@SuppressWarnings("null")
 			String fileName = UUID.randomUUID().toString() + "_"
 					+ StringUtils.cleanPath(file.getOriginalFilename()).replaceAll(" ", "_");
 			Path filePath = Paths.get(uploadDir, fileName);
