@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { map } from 'rxjs';
 
 @Component({
 	selector: 'app-reproduction',
@@ -10,12 +10,11 @@ import { Subscription } from 'rxjs';
 	templateUrl: './reproduction.component.html',
 	styleUrl: './reproduction.component.css',
 })
-export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ReproductionComponent implements OnInit, AfterViewInit {
 	private id_usuario: number = 0;
 	private id_curso: number = 0;
 	private id_clase: number = 0;
 	private isBrowser: boolean;
-	private subscription: Subscription = new Subscription();
 	public loading: boolean = true;
 	constructor(
 		private route: ActivatedRoute,
@@ -25,8 +24,8 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	ngOnInit(): void {
-		this.subscription.add(
-			this.route.params.subscribe((params) => {
+		this.route.params.pipe(
+			map((params) => {
 				this.id_usuario = params['id_usuario'];
 				this.id_curso = params['id_curso'];
 				this.id_clase = params['id_clase'];
@@ -64,8 +63,5 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 		} catch (error) {
 			console.error('Error loading video:', error);
 		}
-	}
-	ngOnDestroy(): void {
-		this.subscription.unsubscribe();
 	}
 }

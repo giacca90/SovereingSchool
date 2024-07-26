@@ -1,7 +1,7 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { map } from 'rxjs';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
@@ -13,8 +13,7 @@ import { CursosService } from '../../services/cursos.service';
 	templateUrl: './editor-curso.component.html',
 	styleUrl: './editor-curso.component.css',
 })
-export class EditorCursoComponent implements OnInit, OnDestroy {
-	private subscription: Subscription = new Subscription();
+export class EditorCursoComponent implements OnInit {
 	id_curso: number = 0;
 	curso: Curso | null = null;
 	draggedElementId: number | null = null;
@@ -26,32 +25,25 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		private router: Router,
 		public cursoService: CursosService,
 	) {
-		this.subscription.add(
-			this.route.params.subscribe((params) => {
-				this.id_curso = params['id_curso'];
-				this.cursoService.getCurso(this.id_curso).then((curso) => {
-					this.curso = JSON.parse(JSON.stringify(curso));
-				});
-			}),
-		);
+		this.route.params.pipe(map((params) => (this.id_curso = params['id_curso'])));
+		this.cursoService.getCurso(this.id_curso).then((curso) => {
+			this.curso = JSON.parse(JSON.stringify(curso));
+		});
 	}
 
 	ngOnInit(): void {
-		this.subscription.add(
-			this.router.events.subscribe((event) => {
+		this.router.events.pipe(
+			map((event) => {
 				if (event instanceof NavigationStart && this.editado) {
 					this.cursoService.getCurso(this.id_curso).then((curso) => (this.curso = curso));
 
 					const userConfirmed = window.confirm('Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?');
 					if (!userConfirmed) {
-						this.router.navigateByUrl(this.router.url); // Mantén al usuario en la misma página
+						this.router.navigateByUrl(this.router.url);
 					}
 				}
 			}),
 		);
-	}
-	ngOnDestroy(): void {
-		this.subscription.unsubscribe();
 	}
 
 	@HostListener('window:beforeunload', ['$event'])
