@@ -37,19 +37,20 @@
 				}
 				<br />
 				<span>Presentación: </span>
-				@if (editable) {
-					<textarea class="w-full border-2 border-black bg-transparent p-2" id="presentacion" placeholder="Tu Presentación" maxlength="255" cols="64" rows="4" [(ngModel)]="usuario.presentacion"></textarea>
-				} @else {
-					<p>{{ this.usuario.presentacion }}</p>
-				}
-				<div class="mt-auto flex">
+				<div class="flex-grow">
 					@if (editable) {
-						<button class="m-2 rounded-lg border border-black p-2" (click)="save(); this.editable = false">Guardar</button>
+						<textarea class="w-full border-2 border-black bg-transparent p-2" id="presentacion" placeholder="Tu Presentación" maxlength="255" cols="64" rows="4" [(ngModel)]="usuario.presentacion"></textarea>
 					} @else {
-						<button class="m-2 rounded-lg border border-black p-2" (click)="this.editable = true">Editar</button>
+						<p>{{ this.usuario.presentacion }}</p>
 					}
 				</div>
+				@if (editable) {
+					<button class="m-2 rounded-lg border border-black p-2" (click)="save(); this.editable = false">Guardar</button>
+				} @else {
+					<button class="m-2 rounded-lg border border-black p-2" (click)="this.editable = true">Editar</button>
+				}
 			</div>
 		</div>
+		<div class="flex"></div>
 	}
 </div>

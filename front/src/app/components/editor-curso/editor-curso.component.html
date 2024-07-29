@@ -32,7 +32,10 @@
 			<div class="flex">
 				<div class="m-2 flex w-2/5 flex-col">
 					<video id="video" controls></video>
-					<button type="button" class="m-2 rounded-lg border border-black bg-transparent p-2">Cambiar Video</button>
+					<div class="flex">
+						<label for="file-upload" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center"> Sube un Video </label>
+						<input id="file-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
+					</div>
 				</div>
 				<div class="m-2 flex w-3/5 flex-col">
 					<input type="text" class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" placeholder="Pon una breve descripción de tu clase." [(ngModel)]="editar.descriccion_clase" />

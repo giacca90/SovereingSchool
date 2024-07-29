@@ -90,7 +90,7 @@ export class HomeComponent {
 			if (this.cursoService.cursos.length < numeroVistas) numeroRealVistas = this.cursoService.cursos.length;
 
 			for (let i = 0; i < numeroRealVistas; i++) {
-				this.vista?.appendChild(this.vistaCursos[i] as HTMLDivElement);
+				this.vista?.appendChild(this.vistaCursos[i]);
 			}
 
 			this.cdr.detectChanges();

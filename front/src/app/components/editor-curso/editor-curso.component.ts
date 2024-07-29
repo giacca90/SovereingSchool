@@ -1,7 +1,7 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
@@ -13,7 +13,8 @@ import { CursosService } from '../../services/cursos.service';
 	templateUrl: './editor-curso.component.html',
 	styleUrl: './editor-curso.component.css',
 })
-export class EditorCursoComponent implements OnInit {
+export class EditorCursoComponent implements OnInit, OnDestroy {
+	private subscription: Subscription = new Subscription();
 	id_curso: number = 0;
 	curso: Curso | null = null;
 	draggedElementId: number | null = null;
@@ -25,25 +26,32 @@ export class EditorCursoComponent implements OnInit {
 		private router: Router,
 		public cursoService: CursosService,
 	) {
-		this.route.params.pipe(map((params) => (this.id_curso = params['id_curso'])));
-		this.cursoService.getCurso(this.id_curso).then((curso) => {
-			this.curso = JSON.parse(JSON.stringify(curso));
-		});
+		this.subscription.add(
+			this.route.params.subscribe((params) => {
+				this.id_curso = params['id_curso'];
+				this.cursoService.getCurso(this.id_curso).then((curso) => {
+					this.curso = JSON.parse(JSON.stringify(curso));
+				});
+			}),
+		);
 	}
 
 	ngOnInit(): void {
-		this.router.events.pipe(
-			map((event) => {
+		this.subscription.add(
+			this.router.events.subscribe((event) => {
 				if (event instanceof NavigationStart && this.editado) {
 					this.cursoService.getCurso(this.id_curso).then((curso) => (this.curso = curso));
 
 					const userConfirmed = window.confirm('Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?');
 					if (!userConfirmed) {
-						this.router.navigateByUrl(this.router.url);
+						this.router.navigateByUrl(this.router.url); // Mantén al usuario en la misma página
 					}
 				}
 			}),
 		);
+	}
+	ngOnDestroy(): void {
+		this.subscription.unsubscribe();
 	}
 
 	@HostListener('window:beforeunload', ['$event'])
@@ -128,18 +136,20 @@ export class EditorCursoComponent implements OnInit {
 	}
 
 	updateCurso() {
-		this.cursoService
-			.updateCurso(this.curso)
-			.then((response: boolean) => {
-				if (response) {
-					this.editado = false;
-				} else {
-					console.error('Falló la actualización del curso');
-				}
-			})
-			.catch((error: Error) => {
-				console.error('Error en actualizar el curso: ' + error.message);
-			});
+		this.subscription.add(
+			this.cursoService.updateCurso(this.curso).subscribe({
+				next: (success: boolean) => {
+					if (success) {
+						this.editado = false;
+					} else {
+						console.error('Falló la actualización del curso');
+					}
+				},
+				error: (error) => {
+					console.error('Error al actualizar el curso:', error);
+				},
+			}),
+		);
 	}
 
 	nuevaClase() {
@@ -150,36 +160,40 @@ export class EditorCursoComponent implements OnInit {
 		if (this.editar && this.curso) {
 			this.editar.curso_clase = this.curso?.id_curso;
 			if (this.editar?.id_clase === 0) {
-				this.cursoService
-					.createClass(this.editar)
-					.then((response: boolean) => {
-						if (response && this.curso) {
-							this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
-								if (response) {
-									this.curso = response;
-									this.editar = null;
-								}
-							});
-						} else {
-							console.error('Error en actualizar!!!');
-						}
-					})
-					.catch((error: Error) => {
-						console.error('Error en crear la clase: ' + error.message);
-					});
+				this.subscription.add(
+					this.cursoService.createClass(this.editar).subscribe({
+						next: (resp: boolean) => {
+							if (resp && this.curso) {
+								this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
+									if (response) {
+										this.curso = response;
+										this.editar = null;
+									}
+								});
+							} else {
+								console.error('Error en actualizar!!!');
+							}
+						},
+						error: (e: Error) => {
+							console.error('Error en crear la clase: ' + e.message);
+						},
+					}),
+				);
 			} else {
-				this.cursoService
-					.editClass(this.editar)
-					.then((response: boolean) => {
-						if (response) {
-							this.editar = null;
-						} else {
-							console.error('Error en actualizar!!!');
-						}
-					})
-					.catch((error: Error) => {
-						console.error('Error en editar la clase: ' + error.message);
-					});
+				this.subscription.add(
+					this.cursoService.editClass(this.editar).subscribe({
+						next: (resp: boolean) => {
+							if (resp) {
+								this.editar = null;
+							} else {
+								console.error('Error en actualizar!!!');
+							}
+						},
+						error: (e: Error) => {
+							console.error('Error en editar la clase: ' + e.message);
+						},
+					}),
+				);
 			}
 		}
 	}
@@ -187,20 +201,42 @@ export class EditorCursoComponent implements OnInit {
 	eliminaClase(clase: Clase) {
 		if (confirm('Esto eliminará definitivamente la clase. Estás seguro??')) {
 			clase.curso_clase = this.curso?.id_curso;
-			this.cursoService
-				.deleteClass(clase)
-				.then((response: boolean) => {
-					if (response && this.curso) {
-						this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
-							if (response) {
-								this.curso = response;
-							}
-						});
-					}
-				})
-				.catch((error: Error) => {
-					console.error('Error en eliminar Clase: ' + error.message);
-				});
+			this.subscription.add(
+				this.cursoService.deleteClass(clase).subscribe({
+					next: (resp: boolean) => {
+						if (resp && this.curso) {
+							this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
+								if (response) {
+									this.curso = response;
+								}
+							});
+						}
+					},
+					error: (e: Error) => {
+						console.error('Error en eliminar Clase: ' + e.message);
+					},
+				}),
+			);
 		}
+	}
+
+	cargaVideo(event: Event) {
+		const input = event.target as HTMLInputElement;
+		if (!input.files) {
+			return;
+		}
+		const reader = new FileReader();
+		reader.onload = (e: ProgressEvent<FileReader>) => {
+			if (e.target) {
+				const vid: HTMLVideoElement = document.getElementById('video') as HTMLVideoElement;
+				vid.src = e.target.result as string;
+				if (input.files)
+					this.cursoService.subeVideo(input.files[0]).subscribe((result) => {
+						console.log('Video subido: ' + result);
+						if (result) vid.src = result;
+					});
+			}
+		};
+		reader.readAsDataURL(input.files[0]);
 	}
 }

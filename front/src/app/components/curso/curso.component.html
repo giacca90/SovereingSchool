@@ -1,4 +1,7 @@
-<div class="m-2 flex flex-col items-center rounded-lg border border-black p-2">
+<div id="contenedor" class="relative m-2 flex flex-col items-center rounded-lg border border-black p-2">
+	@if (this.curso?.imagen_curso) {
+		<img class="absolute -z-10 h-full content-center opacity-20" [src]="this.curso?.imagen_curso" alt="" />
+	}
 	<h3 class="flex-1 items-center text-center font-bold text-green-700">{{ curso?.nombre_curso }}</h3>
 	<br />
 	<p class="font-bold">Por: {{ nombresProfesores }}</p>

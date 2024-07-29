@@ -1,15 +1,21 @@
 package com.sovereingschool.back_base.Controllers;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +24,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
 import com.sovereingschool.back_base.Models.Clase;
@@ -30,6 +38,8 @@ import com.sovereingschool.back_base.Models.Usuario;
 @RequestMapping("/cursos")
 @CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
 public class CursoController {
+
+	private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Videos";
 
 	@Autowired
 	private ICursoService service;
@@ -135,6 +145,27 @@ public class CursoController {
 			return new ResponseEntity<String>(this.service.createCurso(curso), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PostMapping("/subeVideo")
+	public ResponseEntity<?> create(@RequestParam("video") MultipartFile file) {
+		try {
+			if (file.isEmpty()) {
+				return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
+			}
+			// Obtiene el nombre del archivo
+			String fileName = UUID.randomUUID().toString() + "_"
+					+ StringUtils.cleanPath(file.getOriginalFilename()).replaceAll(" ", "_");
+			// Define el path para guardar el archivo
+			Path path = Paths.get(uploadDir, fileName);
+
+			// Guarda el archivo en el servidor
+			Files.write(path, file.getBytes());
+
+			return new ResponseEntity<String>("http://localhost:8080/Videos/" + fileName, HttpStatus.OK);
+		} catch (IOException e) {
+			return new ResponseEntity<>("Error en subir el video: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

@@ -8,6 +8,7 @@
 			<div class="flex w-full">
 				<div class="m-2 flex flex-grow rounded-lg border border-black p-2">
 					<p>{{ curso.nombre_curso }}</p>
+					<p class="ml-2 flex-grow text-gray-500">{{ curso.descriccion_corta }}</p>
 				</div>
 				@if (this.loginService.usuario && this.loginService.usuario.id_usuario !== null) {
 					@if (this.loginService.usuario.roll_usuario !== undefined && this.loginService.usuario.roll_usuario < 2) {

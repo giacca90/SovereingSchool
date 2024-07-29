@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { HomeComponent } from './components/home/home.component';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
 import { SearchComponent } from './components/search/search.component';
+import { InitService } from './services/init.service';
 import { LoginModalService } from './services/login-modal.service';
 import { LoginService } from './services/login.service';
 
@@ -23,6 +24,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	constructor(
 		private modalService: LoginModalService,
+		private initService: InitService,
 		public loginService: LoginService,
 		public router: Router,
 	) {}

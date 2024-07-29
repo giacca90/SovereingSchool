@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { Usuario } from '../../models/Usuario';
 import { LoginService } from '../../services/login.service';
-import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
 	selector: 'app-perfil-usuario',
@@ -12,19 +12,21 @@ import { UsuariosService } from '../../services/usuarios.service';
 	templateUrl: './perfil-usuario.component.html',
 	styleUrl: './perfil-usuario.component.css',
 })
-export class PerfilUsuarioComponent {
+export class PerfilUsuarioComponent implements OnDestroy {
 	editable: boolean = false;
 	usuario: Usuario | null = null;
 	fotos: FileList | null = null;
+	private subscription: Subscription = new Subscription();
 
 	url: string = 'http://localhost:8080/usuario/';
 	constructor(
 		private loginService: LoginService,
-		private usuarioService: UsuariosService,
 		private http: HttpClient,
+		private cdr: ChangeDetectorRef,
 	) {
 		this.usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 	}
+
 	cargaFoto(event: Event) {
 		const input = event.target as HTMLInputElement;
 		if (!input.files) {
@@ -50,27 +52,30 @@ export class PerfilUsuarioComponent {
 				Array.from(this.fotos).forEach((file) => {
 					formData.append('files', file, file.name);
 				});
-				this.usuarioService
-					.save(formData)
-					.then((response) => {
-						if (this.usuario?.foto_usuario && response) {
-							const temp: string[] = [];
-							for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
-								if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
-									temp.push(this.usuario.foto_usuario[i]);
+
+				this.subscription.add(
+					this.http.post<string[]>(this.url + 'subeFotos', formData).subscribe({
+						next: (response) => {
+							if (this.usuario?.foto_usuario) {
+								const temp: string[] = [];
+								for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
+									if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
+										temp.push(this.usuario.foto_usuario[i]);
+									}
 								}
+								this.usuario.foto_usuario = temp;
+								response.forEach((resp) => {
+									this.usuario?.foto_usuario.push(resp);
+								});
+								this.actualizaUsuario();
+								this.fotos = null;
 							}
-							this.usuario.foto_usuario = temp;
-							response.forEach((resp) => {
-								this.usuario?.foto_usuario.push(resp);
-							});
-							this.actualizaUsuario();
-							this.fotos = null;
-						}
-					})
-					.catch((error) => {
-						console.error('Error al subir las fotos: ' + error.message);
-					});
+						},
+						error: (error: Error) => {
+							console.error('Error al subir las fotos: ' + error.message);
+						},
+					}),
+				);
 			} else {
 				this.actualizaUsuario();
 			}
@@ -111,15 +116,18 @@ export class PerfilUsuarioComponent {
 
 			if (temp.plan_usuario?.nombre_plan) temp.plan_usuario.nombre_plan = undefined;
 			if (temp.plan_usuario?.precio_plan) temp.plan_usuario.precio_plan = undefined;
-			this.usuarioService
-				.actializaUsuario(temp)
-				.then(() => {
-					localStorage.clear;
-					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
-				})
-				.catch((error: Error) => {
-					console.error('Error en actualizar el usuario: ' + error.message);
-				});
+			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+			this.subscription.add(
+				this.http.put(this.url + 'edit', temp, { headers, responseType: 'text' }).subscribe({
+					next: () => {
+						localStorage.clear;
+						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
+					},
+					error: (e: Error) => {
+						console.error('Error en actualizar el usuario: ' + e.message);
+					},
+				}),
+			);
 		}
 	}
 
@@ -135,5 +143,8 @@ export class PerfilUsuarioComponent {
 				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add('border-black');
 			}
 		}
+	}
+	ngOnDestroy(): void {
+		this.subscription.unsubscribe();
 	}
 }
