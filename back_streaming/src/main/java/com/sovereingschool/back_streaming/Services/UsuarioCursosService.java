@@ -101,6 +101,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
         if (usuario == null)
             return null;
         List<StatusCurso> cursos = usuario.getCursos();
+
         for (StatusCurso curso : cursos) {
             if (curso.getId_curso().equals(id_curso)) {
                 List<StatusClase> clases = curso.getClases();

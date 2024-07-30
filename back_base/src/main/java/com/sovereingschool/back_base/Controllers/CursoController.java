@@ -163,7 +163,7 @@ public class CursoController {
 			// Guarda el archivo en el servidor
 			Files.write(path, file.getBytes());
 
-			return new ResponseEntity<String>("http://localhost:8080/Videos/" + fileName, HttpStatus.OK);
+			return new ResponseEntity<String>(path.toString(), HttpStatus.OK);
 		} catch (IOException e) {
 			return new ResponseEntity<>("Error en subir el video: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

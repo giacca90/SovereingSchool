@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
+import { LoginService } from '../../services/login.service';
 
 @Component({
 	selector: 'app-editor-curso',
@@ -25,6 +26,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		private route: ActivatedRoute,
 		private router: Router,
 		public cursoService: CursosService,
+		public loginService: LoginService,
 	) {
 		this.subscription.add(
 			this.route.params.subscribe((params) => {
@@ -233,7 +235,17 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				if (input.files)
 					this.cursoService.subeVideo(input.files[0]).subscribe((result) => {
 						console.log('Video subido: ' + result);
-						if (result) vid.src = result;
+						if (result) {
+							const edit: Clase = JSON.parse(JSON.stringify(this.editar));
+							edit.curso_clase = this.curso?.id_curso;
+							edit.direccion_clase = result;
+							this.cursoService.editClass(edit).subscribe((resp: boolean) => {
+								if (resp) {
+									console.log('Todo bien');
+									this.editar = JSON.parse(JSON.stringify(edit));
+								}
+							});
+						}
 					});
 			}
 		};
