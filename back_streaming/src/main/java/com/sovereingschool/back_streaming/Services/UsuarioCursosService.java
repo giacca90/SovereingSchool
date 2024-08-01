@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.sovereingschool.back_streaming.Interfaces.IUsuarioCursosService;
@@ -28,6 +31,9 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
     @Autowired
     private UsuarioCursosRepository usuarioCursosRepository; // Repositorio de MongoDB
+
+    @Autowired
+    private MongoTemplate mongoTemplate; // MongoDB Template
 
     @Override
     public void syncUserCourses() {
@@ -116,4 +122,40 @@ public class UsuarioCursosService implements IUsuarioCursosService {
         return null;
     }
 
+    @Override
+    public Boolean editClase(Long idCurso, Clase clase) {
+        try {
+            // Encuentra el documento que contiene el curso específico
+            Query query = new Query();
+            query.addCriteria(Criteria.where("cursos.id_curso").is(idCurso));
+            List<UsuarioCursos> usuarioCursos = mongoTemplate.find(query, UsuarioCursos.class);
+
+            if (usuarioCursos == null || usuarioCursos.size() == 0) {
+                System.err.println("No se encontró el documento.");
+                return false;
+            }
+
+            // Itera sobre los cursos y clases para actualizar el campo deseado
+            for (UsuarioCursos usuario : usuarioCursos) {
+                for (StatusCurso curso : usuario.getCursos()) {
+                    if (curso.getId_curso().equals(idCurso)) {
+                        for (StatusClase sclase : curso.getClases()) {
+                            if (sclase.getId_clase().equals(clase.getId_clase())) {
+                                sclase.setDireccion_clase(clase.getDireccion_clase());
+                                // Guarda el documento actualizado en la base de datos
+                                mongoTemplate.save(usuario);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error en actualizar la clase: " + e.getMessage());
+            return false;
+        }
+    }
 }

@@ -42,11 +42,6 @@ public class Clase implements Serializable {
     @Column(nullable = false)
     private int tipo_clase;
 
-    /*
-     * @Column(nullable = false)
-     * private String direccion_clase;
-     */
-
     @Column()
     private String direccion_clase;
 
@@ -55,7 +50,6 @@ public class Clase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "id_curso", nullable = false)
-    // @JsonIgnore
     @JsonBackReference
     private Curso curso_clase;
 }

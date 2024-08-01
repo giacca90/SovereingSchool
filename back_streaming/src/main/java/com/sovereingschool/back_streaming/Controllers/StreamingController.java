@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sovereingschool.back_streaming.Models.Clase;
 import com.sovereingschool.back_streaming.Models.Usuario;
 import com.sovereingschool.back_streaming.Services.UsuarioCursosService;
 
@@ -51,15 +53,6 @@ public class StreamingController {
 
     @Autowired
     private UsuarioCursosService usuarioCursosService;
-
-    @PostMapping("/nuevoUsuario")
-    public ResponseEntity<?> create(@RequestBody Usuario usuario) {
-        try {
-            return new ResponseEntity<>(this.usuarioCursosService.addNuevoUsuario(usuario), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
     @GetMapping("/{id_usuario}/{id_curso}/{id_clase}")
     public ResponseEntity<InputStreamResource> streamVideo(@PathVariable Long id_usuario, @PathVariable Long id_curso,
@@ -124,54 +117,26 @@ public class StreamingController {
             return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/nuevoUsuario")
+    public ResponseEntity<?> create(@RequestBody Usuario usuario) {
+        try {
+            return new ResponseEntity<>(this.usuarioCursosService.addNuevoUsuario(usuario), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/editClase/{idCurso}")
+    public ResponseEntity<?> update(@PathVariable Long idCurso, @RequestBody Clase clase) {
+        try {
+            if (this.usuarioCursosService.editClase(idCurso, clase)) {
+                return new ResponseEntity<Boolean>(true, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<Boolean>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
-
-/*
- * Explicación del código:
- * 
- * @GetMapping("/videos/{filename}"): Define una ruta para las solicitudes GET
- * que incluyan el nombre del archivo de video.
- * 
- * @RequestHeader HttpHeaders headers: Obtiene los encabezados de la solicitud
- * HTTP, que incluyen información sobre los rangos solicitados para el video.
- * Files.exists(videoPath): Verifica si el archivo de video existe en la ruta
- * especificada.
- * Files.size(videoPath): Obtiene el tamaño del archivo de video.
- * headers.getRange(): Obtiene la lista de rangos solicitados de los encabezados
- * HTTP.
- * HttpRange: Maneja los rangos de bytes especificados para el streaming.
- * RandomAccessFile: Permite el acceso a diferentes partes del archivo de video.
- * LimitedInputStream: Clase interna para limitar la cantidad de datos leídos
- * del archivo.
- */
-
-/*
- * @RestController
- * 
- * @RequestMapping("/api/user-courses")
- * public class UserCoursesController {
- * 
- * @Autowired
- * private UserCoursesRepository userCoursesRepository;
- * 
- * @Autowired
- * private SyncService syncService;
- * 
- * @GetMapping("/{userId}")
- * public ResponseEntity<UserCourses> getUserCourses(@PathVariable String
- * userId) {
- * UserCourses userCourses = userCoursesRepository.findByUserId(userId);
- * if (userCourses != null) {
- * return ResponseEntity.ok(userCourses);
- * } else {
- * return ResponseEntity.notFound().build();
- * }
- * }
- * 
- * @PostMapping("/sync")
- * public ResponseEntity<Void> syncUserCourses() {
- * syncService.syncUserCourses();
- * return ResponseEntity.ok().build();
- * }
- * }
- */

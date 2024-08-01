@@ -80,14 +80,12 @@ public class UsuarioController {
 
 	@GetMapping("/fotos/{nombreFoto}")
 	public ResponseEntity<?> getFotos(@PathVariable String nombreFoto) {
-		System.out.println("LOG. " + nombreFoto);
 		final String photosDirectory = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Fotos";
 
 		// Construir la ruta del archivo y resolver posibles vulnerabilidades de
 		// directorio transversal
 		Path photoPath = Paths.get(photosDirectory).resolve(nombreFoto).normalize();
 		File photoFile = photoPath.toFile();
-		System.out.println("LOG2: " + photoFile.getAbsolutePath());
 
 		if (!photoFile.exists() || !photoFile.isFile()) {
 			return new ResponseEntity<String>("Foto no encontrada.", HttpStatus.NOT_FOUND);

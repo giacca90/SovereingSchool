@@ -2,7 +2,7 @@ package com.sovereingschool.back_streaming.Models;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,10 +33,16 @@ public class Clase implements Serializable {
     @Column(nullable = false)
     private String nombre_clase;
 
+    @Column(length = 1000)
+    private String descriccion_clase;
+
+    @Column(length = 10000)
+    private String contenido_clase;
+
     @Column(nullable = false)
     private int tipo_clase;
 
-    @Column(nullable = false)
+    @Column()
     private String direccion_clase;
 
     @Column(nullable = false)
@@ -44,6 +50,6 @@ public class Clase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "id_curso", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     private Curso curso_clase;
 }

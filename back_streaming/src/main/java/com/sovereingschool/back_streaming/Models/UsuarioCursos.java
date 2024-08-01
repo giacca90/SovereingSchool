@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +22,5 @@ public class UsuarioCursos implements Serializable {
     @Id
     private String id;
     private Long id_usuario;
-    @ElementCollection
     private List<StatusCurso> cursos;
 }

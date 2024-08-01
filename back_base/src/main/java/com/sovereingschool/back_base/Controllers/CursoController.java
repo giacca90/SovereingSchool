@@ -27,12 +27,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
 import com.sovereingschool.back_base.Models.Usuario;
+
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/cursos")
@@ -43,6 +46,9 @@ public class CursoController {
 
 	@Autowired
 	private ICursoService service;
+
+	@Autowired
+	private WebClient.Builder webClientBuilder;
 
 	@GetMapping("/getAll")
 	public ResponseEntity<?> getAll() {
@@ -162,7 +168,6 @@ public class CursoController {
 
 			// Guarda el archivo en el servidor
 			Files.write(path, file.getBytes());
-
 			return new ResponseEntity<String>(path.toString(), HttpStatus.OK);
 		} catch (IOException e) {
 			return new ResponseEntity<>("Error en subir el video: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -225,11 +230,33 @@ public class CursoController {
 			List<Clase> clases = curso.getClases_curso();
 			for (Clase claseVieja : clases) {
 				if (claseVieja.getId_clase().equals(clase.getId_clase())) {
-					clases.remove(claseVieja);
+					// clases.remove(claseVieja);
 					clase.setCurso_clase(curso);
-					clases.add(clase);
+					// clases.add(clase);
+					claseVieja = clase;
 					curso.setClases_curso(clases);
 					this.service.updateCurso(curso);
+					clase.getCurso_clase().setClases_curso(null);
+					clase.getCurso_clase().setProfesores_curso(null);
+
+					WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
+					webClient.put()
+							.uri("/editClase/" + curso.getId_curso())
+							.body(Mono.just(clase), Clase.class)
+							.retrieve()
+							.bodyToMono(Boolean.class)
+							.doOnError(e -> {
+								// Manejo de errores
+								System.err.println("ERROR: " + e.getMessage());
+								e.printStackTrace();
+							}).subscribe(res -> {
+								// Maneja el resultado cuando esté disponible
+								if (res != null && res) {
+									System.out.println("Actualización exitosa");
+								} else {
+									System.err.println("Error en actualizar el curso en el servicio de reproducción");
+								}
+							});
 					return new ResponseEntity<String>("Clase editada con éxito!!!", HttpStatus.OK);
 				}
 			}
