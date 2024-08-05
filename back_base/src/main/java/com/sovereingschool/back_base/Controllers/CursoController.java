@@ -230,9 +230,7 @@ public class CursoController {
 			List<Clase> clases = curso.getClases_curso();
 			for (Clase claseVieja : clases) {
 				if (claseVieja.getId_clase().equals(clase.getId_clase())) {
-					// clases.remove(claseVieja);
 					clase.setCurso_clase(curso);
-					// clases.add(clase);
 					claseVieja = clase;
 					curso.setClases_curso(clases);
 					this.service.updateCurso(curso);
@@ -262,7 +260,7 @@ public class CursoController {
 			}
 			return new ResponseEntity<String>("Clase no encontrada", HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("Error en editar la clase: " + e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -283,7 +281,31 @@ public class CursoController {
 			clase.setCurso_clase(curso);
 			clases.add(clase);
 			curso.setClases_curso(clases);
-			this.service.updateCurso(curso);
+			Curso actualizado = this.service.updateCurso(curso);
+			actualizado.getClases_curso().forEach((clase2) -> {
+				if (clase2.getNombre_clase().equals(clase.getNombre_clase())) {
+
+					WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
+					webClient.put()
+							.uri("/addClase/" + curso.getId_curso())
+							.body(Mono.just(clase2), Clase.class)
+							.retrieve()
+							.bodyToMono(Boolean.class)
+							.doOnError(e -> {
+								// Manejo de errores
+								System.err.println("ERROR: " + e.getMessage());
+								e.printStackTrace();
+							}).subscribe(res -> {
+								// Maneja el resultado cuando esté disponible
+								if (res != null && res) {
+									System.out.println("Actualización exitosa");
+								} else {
+									System.err.println("Error en actualizar el curso en el servicio de reproducción");
+								}
+							});
+				}
+			});
+
 			return new ResponseEntity<>("Clase añadida con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);

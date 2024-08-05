@@ -158,4 +158,34 @@ public class UsuarioCursosService implements IUsuarioCursosService {
             return false;
         }
     }
+
+    @Override
+    public boolean addClase(Long idCurso, Clase clase) {
+        try {
+            // Encuentra el documento que contiene el curso específico
+            Query query = new Query();
+            query.addCriteria(Criteria.where("cursos.id_curso").is(idCurso));
+            List<UsuarioCursos> usuarioCursos = mongoTemplate.find(query, UsuarioCursos.class);
+
+            if (usuarioCursos == null || usuarioCursos.size() == 0) {
+                System.err.println("No se encontró el documento.");
+                return false;
+            }
+
+            for (UsuarioCursos usuario : usuarioCursos) {
+                for (StatusCurso curso : usuario.getCursos()) {
+                    if (curso.getId_curso().equals(idCurso)) {
+                        curso.getClases()
+                                .add(new StatusClase(clase.getId_clase(), clase.getDireccion_clase(), false, 0));
+                        mongoTemplate.save(usuario);
+                        break;
+                    }
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error en añadir la cueva clase: " + e.getMessage());
+            return false;
+        }
+    }
 }

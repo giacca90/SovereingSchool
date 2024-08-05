@@ -59,6 +59,10 @@ public class StreamingController {
             @PathVariable Long id_clase,
             @RequestHeader HttpHeaders headers) throws IOException {
         String direccion_video = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
+        if (direccion_video == null) {
+            System.err.println("El video no tiene ruta");
+            return ResponseEntity.notFound().build();
+        }
         System.out.println("RUTA RECIBIDA: " + direccion_video);
         Path videoPath = Paths.get(direccion_video);
         System.out.println("RUTA RECIBIDA2: " + videoPath.toString());
@@ -133,7 +137,20 @@ public class StreamingController {
             if (this.usuarioCursosService.editClase(idCurso, clase)) {
                 return new ResponseEntity<Boolean>(true, HttpStatus.OK);
             } else {
-                return new ResponseEntity<Boolean>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<Boolean>(false, HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/addClase/{idCurso}")
+    public ResponseEntity<?> add(@PathVariable Long idCurso, @RequestBody Clase clase) {
+        try {
+            if (this.usuarioCursosService.addClase(idCurso, clase)) {
+                return new ResponseEntity<Boolean>(true, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<Boolean>(false, HttpStatus.OK);
             }
         } catch (Exception e) {
             return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);

@@ -239,12 +239,23 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 							const edit: Clase = JSON.parse(JSON.stringify(this.editar));
 							edit.curso_clase = this.curso?.id_curso;
 							edit.direccion_clase = result;
-							this.cursoService.editClass(edit).subscribe((resp: boolean) => {
-								if (resp) {
-									console.log('Todo bien');
-									this.editar = JSON.parse(JSON.stringify(edit));
-								}
-							});
+							this.editar = JSON.parse(JSON.stringify(edit));
+
+							/* if (edit.id_clase === 0) {
+								this.cursoService.createClass(edit).subscribe((resp: boolean) => {
+									if (resp) {
+										console.log('Todo bien');
+										this.editar = JSON.parse(JSON.stringify(edit));
+									}
+								});
+							} else {
+								this.cursoService.editClass(edit).subscribe((resp: boolean) => {
+									if (resp) {
+										console.log('Todo bien');
+										this.editar = JSON.parse(JSON.stringify(edit));
+									}
+								});
+							} */
 						}
 					});
 			}
