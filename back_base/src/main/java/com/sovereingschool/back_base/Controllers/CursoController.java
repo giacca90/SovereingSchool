@@ -335,6 +335,25 @@ public class CursoController {
 				curso.setClases_curso(clases);
 				this.service.updateCurso(curso);
 				this.service.deleteClase(eliminada);
+
+				WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
+				webClient.delete()
+						.uri("/deleteClase/" + curso.getId_curso() + "/" + idClase)
+						.retrieve()
+						.bodyToMono(Boolean.class)
+						.doOnError(e -> {
+							// Manejo de errores
+							System.err.println("ERROR: " + e.getMessage());
+							e.printStackTrace();
+						}).subscribe(res -> {
+							// Maneja el resultado cuando esté disponible
+							if (res != null && res) {
+								System.out.println("Actualización exitosa");
+							} else {
+								System.err.println("Error en actualizar el curso en el servicio de reproducción");
+							}
+						});
+
 				return new ResponseEntity<String>("Clase eliminada con exito!!!", HttpStatus.OK);
 			}
 			return new ResponseEntity<>("Clase no encontrada", HttpStatus.NOT_FOUND);

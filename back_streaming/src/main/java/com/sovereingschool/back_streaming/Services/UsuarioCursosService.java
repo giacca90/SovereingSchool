@@ -188,4 +188,37 @@ public class UsuarioCursosService implements IUsuarioCursosService {
             return false;
         }
     }
+
+    public boolean deleteClase(Long idCurso, Long idClase) {
+        try {
+            // Encuentra el documento que contiene el curso específico
+            Query query = new Query();
+            query.addCriteria(Criteria.where("cursos.id_curso").is(idCurso));
+            List<UsuarioCursos> usuarioCursos = mongoTemplate.find(query, UsuarioCursos.class);
+
+            if (usuarioCursos == null || usuarioCursos.size() == 0) {
+                System.err.println("No se encontró el documento.");
+                return false;
+            }
+
+            for (UsuarioCursos usuario : usuarioCursos) {
+                for (StatusCurso curso : usuario.getCursos()) {
+                    if (curso.getId_curso().equals(idCurso)) {
+                        for (int i = 0; i < curso.getClases().size(); i++) {
+                            if (curso.getClases().get(i).getId_clase().equals(idClase)) {
+                                curso.getClases().remove(i);
+                                mongoTemplate.save(usuario);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error en borrar la clase: " + e.getMessage());
+            return false;
+        }
+    }
 }

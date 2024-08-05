@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -148,6 +149,19 @@ public class StreamingController {
     public ResponseEntity<?> add(@PathVariable Long idCurso, @RequestBody Clase clase) {
         try {
             if (this.usuarioCursosService.addClase(idCurso, clase)) {
+                return new ResponseEntity<Boolean>(true, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<Boolean>(false, HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/deleteClase/{idCurso}/{idClase}")
+    public ResponseEntity<?> update(@PathVariable Long idCurso, @PathVariable Long idClase) {
+        try {
+            if (this.usuarioCursosService.deleteClase(idCurso, idClase)) {
                 return new ResponseEntity<Boolean>(true, HttpStatus.OK);
             } else {
                 return new ResponseEntity<Boolean>(false, HttpStatus.OK);

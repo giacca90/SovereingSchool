@@ -1,6 +1,9 @@
 package com.sovereingschool.back_base.Services;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -115,6 +118,15 @@ public class CursoService implements ICursoService {
         Optional<Clase> optionalClase = this.claseRepo.findById(clase.getId_clase());
         if (optionalClase.isPresent()) {
             this.claseRepo.delete(optionalClase.get());
+            Path path = Paths.get(clase.getDireccion_clase());
+            try {
+
+                if (Files.exists(path)) {
+                    Files.delete(path);
+                }
+            } catch (Exception e) {
+                System.err.println("Error en borrar el video: " + e.getMessage());
+            }
         } else {
             System.err.println("Clase no encontrada con ID: " + clase.getId_clase());
         }
