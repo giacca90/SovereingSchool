@@ -38,23 +38,40 @@ export class CursosService {
 	updateCurso(curso: Curso | null): Observable<boolean> {
 		if (curso) {
 			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-			return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { headers, observe: 'response' }).pipe(
-				map((response: HttpResponse<string>) => {
-					if (response.status === 200) {
-						const index = this.cursos.findIndex((cur) => cur.id_curso === curso.id_curso);
-						if (index !== -1) {
-							this.cursos[index] = JSON.parse(JSON.stringify(curso));
+			if (curso.id_curso == 0) {
+				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { headers, observe: 'response' }).pipe(
+					map((response: HttpResponse<number>) => {
+						if (response.status === 200 && response.body) {
+							curso.id_curso = response.body;
+							this.cursos.push(curso);
+							return true;
 						}
-						return true;
-					} else {
 						return false;
-					}
-				}),
-				catchError((error: HttpErrorResponse) => {
-					console.error('Error al actualizar: ' + error.message);
-					return throwError(() => new Error('Error al actualizar'));
-				}),
-			);
+					}),
+					catchError((e: HttpErrorResponse) => {
+						console.error('Error en añadir el nuevo curso: ' + e.message);
+						return throwError(() => new Error('Error al actualizar'));
+					}),
+				);
+			} else {
+				return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { headers, observe: 'response' }).pipe(
+					map((response: HttpResponse<string>) => {
+						if (response.status === 200) {
+							const index = this.cursos.findIndex((cur) => cur.id_curso === curso.id_curso);
+							if (index !== -1) {
+								this.cursos[index] = JSON.parse(JSON.stringify(curso));
+							}
+							return true;
+						} else {
+							return false;
+						}
+					}),
+					catchError((error: HttpErrorResponse) => {
+						console.error('Error al actualizar: ' + error.message);
+						return throwError(() => new Error('Error al actualizar'));
+					}),
+				);
+			}
 		} else {
 			return throwError(() => new Error('El curso es nulo'));
 		}

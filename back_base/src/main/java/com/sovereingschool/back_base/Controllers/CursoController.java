@@ -148,7 +148,7 @@ public class CursoController {
 	@PostMapping("/new")
 	public ResponseEntity<?> createCurso(@RequestBody Curso curso) {
 		try {
-			return new ResponseEntity<String>(this.service.createCurso(curso), HttpStatus.OK);
+			return new ResponseEntity<Long>(this.service.createCurso(curso), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

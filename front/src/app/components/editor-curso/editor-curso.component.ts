@@ -31,9 +31,15 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		this.subscription.add(
 			this.route.params.subscribe((params) => {
 				this.id_curso = params['id_curso'];
-				this.cursoService.getCurso(this.id_curso).then((curso) => {
-					this.curso = JSON.parse(JSON.stringify(curso));
-				});
+				if (this.id_curso == 0) {
+					if (this.loginService.usuario) {
+						this.curso = new Curso(0, '', [this.loginService.usuario], '', '', new Date(), [], [], '', 0);
+					}
+				} else {
+					this.cursoService.getCurso(this.id_curso).then((curso) => {
+						this.curso = JSON.parse(JSON.stringify(curso));
+					});
+				}
 			}),
 		);
 	}

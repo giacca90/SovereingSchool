@@ -20,4 +20,7 @@
 			</div>
 		}
 	}
+	@if (this.loginService.usuario && this.loginService.usuario.id_usuario !== null && this.loginService.usuario.roll_usuario !== undefined && this.loginService.usuario.roll_usuario < 2) {
+		<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['editorCurso/' + 0])">Crea un nuevo curso</button>
+	}
 </div>

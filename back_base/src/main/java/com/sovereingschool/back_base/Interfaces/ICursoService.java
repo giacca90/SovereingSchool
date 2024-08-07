@@ -12,7 +12,7 @@ import com.sovereingschool.back_base.Models.Usuario;
 public interface ICursoService {
     public List<Curso> getAll();
 
-    public String createCurso(Curso new_curso);
+    public Long createCurso(Curso new_curso);
 
     public Curso getCurso(Long id_curso);
 

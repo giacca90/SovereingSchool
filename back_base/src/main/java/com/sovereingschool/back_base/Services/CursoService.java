@@ -37,9 +37,10 @@ public class CursoService implements ICursoService {
     private EntityManager entityManager;
 
     @Override
-    public String createCurso(Curso new_curso) {
-        this.repo.save(new_curso);
-        return "Nuevo curso creado correctamente!!!";
+    public Long createCurso(Curso new_curso) {
+        new_curso.setId_curso(null);
+        Curso res = this.repo.save(new_curso);
+        return res.getId_curso();
     }
 
     @Override
