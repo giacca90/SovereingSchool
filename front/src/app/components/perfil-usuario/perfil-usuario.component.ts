@@ -1,9 +1,9 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { Usuario } from '../../models/Usuario';
 import { LoginService } from '../../services/login.service';
+import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
 	selector: 'app-perfil-usuario',
@@ -18,11 +18,9 @@ export class PerfilUsuarioComponent implements OnDestroy {
 	fotos: FileList | null = null;
 	private subscription: Subscription = new Subscription();
 
-	url: string = 'http://localhost:8080/usuario/';
 	constructor(
 		private loginService: LoginService,
-		private http: HttpClient,
-		private cdr: ChangeDetectorRef,
+		private usuarioService: UsuariosService,
 	) {
 		this.usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 	}
@@ -52,9 +50,8 @@ export class PerfilUsuarioComponent implements OnDestroy {
 				Array.from(this.fotos).forEach((file) => {
 					formData.append('files', file, file.name);
 				});
-
 				this.subscription.add(
-					this.http.post<string[]>(this.url + 'subeFotos', formData).subscribe({
+					this.usuarioService.save(formData).subscribe({
 						next: (response) => {
 							if (this.usuario?.foto_usuario) {
 								const temp: string[] = [];
@@ -71,8 +68,8 @@ export class PerfilUsuarioComponent implements OnDestroy {
 								this.fotos = null;
 							}
 						},
-						error: (error: Error) => {
-							console.error('Error al subir las fotos: ' + error.message);
+						error: (e: Error) => {
+							console.error('Error en save() ' + e.message);
 						},
 					}),
 				);
@@ -116,15 +113,14 @@ export class PerfilUsuarioComponent implements OnDestroy {
 
 			if (temp.plan_usuario?.nombre_plan) temp.plan_usuario.nombre_plan = undefined;
 			if (temp.plan_usuario?.precio_plan) temp.plan_usuario.precio_plan = undefined;
-			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 			this.subscription.add(
-				this.http.put(this.url + 'edit', temp, { headers, responseType: 'text' }).subscribe({
+				this.usuarioService.actualizaUsuario(temp).subscribe({
 					next: () => {
 						localStorage.clear;
 						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
 					},
 					error: (e: Error) => {
-						console.error('Error en actualizar el usuario: ' + e.message);
+						console.error('Error en actualizar usuario: ' + e.message);
 					},
 				}),
 			);

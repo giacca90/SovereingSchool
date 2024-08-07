@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Usuario } from '../models/Usuario';
 
@@ -24,5 +24,14 @@ export class UsuariosService {
 
 	getNombreProfe(id: number) {
 		return this.profes.find((profe: Usuario) => profe.id_usuario === id)?.nombre_usuario.toString();
+	}
+
+	save(formData: FormData) {
+		return this.http.post<string[]>(this.apiUrl + 'subeFotos', formData);
+	}
+
+	actualizaUsuario(temp: Usuario) {
+		const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+		return this.http.put(this.apiUrl + 'edit', temp, { headers, responseType: 'text' });
 	}
 }
