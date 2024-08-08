@@ -103,8 +103,12 @@ public class CursoService implements ICursoService {
 
     @Override
     public String deleteCurso(Long id_curso) {
-        if (!this.repo.findById(id_curso).isPresent())
+        if (!this.repo.findById(id_curso).isPresent()) {
             return null;
+        }
+        this.getCurso(id_curso).getClases_curso().forEach((clase) -> {
+            this.deleteClase(clase);
+        });
         this.repo.deleteById(id_curso);
         return "Curso eliminado con éxito!!!";
     }

@@ -166,4 +166,20 @@ export class CursosService {
 		});
 		return cursosProfe;
 	}
+
+	deleteCurso(curso: Curso): Observable<boolean> {
+		return this.http.delete<string>(this.backURL + '/cursos/delete/' + curso.id_curso, { responseType: 'text' as 'json' }).pipe(
+			map(() => {
+				this.cursos = this.cursos.slice(
+					this.cursos.findIndex((curso2) => curso2.id_curso === curso.id_curso),
+					1,
+				);
+				return true;
+			}),
+			catchError((e: Error) => {
+				console.error('Error en eliminar el curso: ' + e.message);
+				return of(false);
+			}),
+		);
+	}
 }

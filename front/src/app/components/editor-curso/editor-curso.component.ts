@@ -278,4 +278,24 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		};
 		reader.readAsDataURL(input.files[0]);
 	}
+
+	deleteCurso() {
+		const confirm = window.confirm('Esta acción borrará definitivamente este curso, incluida todas sus clases con su contenido. \n Tampoco el administrador de la plataforma podrá recuperar el curso una vez borrado.');
+		if (confirm) {
+			const confirm2 = window.confirm('ESTÁS ABSOLUTAMENTE SEGURO DE LO QUE HACES??');
+			if (confirm2 && this.curso) {
+				this.cursoService.deleteCurso(this.curso).subscribe({
+					next: (result: boolean) => {
+						if (result) {
+							console.log('Curso Borrado');
+							this.router.navigate(['cursosUsuario']);
+						}
+					},
+					error: (e: Error) => {
+						console.error('Error en eliminar el curso: ' + e.message);
+					},
+				});
+			}
+		}
+	}
 }

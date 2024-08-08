@@ -35,6 +35,7 @@
 			<button class="m-2 cursor-pointer rounded-lg border border-black p-2" (click)="nuevaClase()">Añadir una nueva clase</button>
 			<label for="file-upload" class="m-2 cursor-pointer rounded-lg border border-black p-2"> Pone una imagen al curso </label>
 			<input id="file-upload" type="file" accept="image/jpeg, image/png, image/gif, image/webp, image/svg+xml" class="hidden" (change)="cargaImagenCurso($event)" />
+			<button class="m-2 cursor-pointer rounded-lg border border-black p-2" (click)="deleteCurso()">Elimina este curso</button>
 
 			@if (editado) {
 				<button class="m-2 rounded-lg border border-black p-2" (click)="updateCurso()">Guardar cambios</button>
@@ -50,8 +51,8 @@
 				<div class="m-2 flex w-2/5 flex-col">
 					<video id="video" controls [src]="'http://localhost:8090/' + this.loginService.usuario?.id_usuario + '/' + this.curso?.id_curso + '/' + this.editar.id_clase"></video>
 					<div class="flex">
-						<label for="file-upload" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center"> Sube un Video </label>
-						<input id="file-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
+						<label for="video-upload" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center"> Sube un Video </label>
+						<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
 					</div>
 				</div>
 				<div class="m-2 flex w-3/5 flex-col">

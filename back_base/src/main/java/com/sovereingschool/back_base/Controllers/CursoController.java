@@ -54,6 +54,7 @@ public class CursoController {
 	@Autowired
 	private WebClient.Builder webClientBuilder;
 
+	/* Parte de gestión de cursos */
 	@GetMapping("/getAll")
 	public ResponseEntity<?> getAll() {
 		try {
@@ -159,26 +160,6 @@ public class CursoController {
 		}
 	}
 
-	@PostMapping("/subeVideo")
-	public ResponseEntity<?> create(@RequestParam("video") MultipartFile file) {
-		try {
-			if (file.isEmpty()) {
-				return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
-			}
-			// Obtiene el nombre del archivo
-			String fileName = UUID.randomUUID().toString() + "_"
-					+ StringUtils.cleanPath(file.getOriginalFilename()).replaceAll(" ", "_");
-			// Define el path para guardar el archivo
-			Path path = Paths.get(uploadDir, fileName);
-
-			// Guarda el archivo en el servidor
-			Files.write(path, file.getBytes());
-			return new ResponseEntity<String>(path.toString(), HttpStatus.OK);
-		} catch (IOException e) {
-			return new ResponseEntity<>("Error en subir el video: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
 	@PutMapping("/update")
 	public ResponseEntity<Map<String, Object>> updateCurso(@RequestBody Curso curso) {
 		Map<String, Object> response = new HashMap<>();
@@ -208,6 +189,8 @@ public class CursoController {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	/* Parte de gestión de clases */
 
 	@GetMapping("/{idCurso}/getClaseForId/{idClase}")
 	public ResponseEntity<?> getClaseForId(@PathVariable Long idCurso, @PathVariable Long idClase) {
@@ -365,6 +348,26 @@ public class CursoController {
 
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PostMapping("/subeVideo")
+	public ResponseEntity<?> create(@RequestParam("video") MultipartFile file) {
+		try {
+			if (file.isEmpty()) {
+				return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
+			}
+			// Obtiene el nombre del archivo
+			String fileName = UUID.randomUUID().toString() + "_"
+					+ StringUtils.cleanPath(file.getOriginalFilename()).replaceAll(" ", "_");
+			// Define el path para guardar el archivo
+			Path path = Paths.get(uploadDir, fileName);
+
+			// Guarda el archivo en el servidor
+			Files.write(path, file.getBytes());
+			return new ResponseEntity<String>(path.toString(), HttpStatus.OK);
+		} catch (IOException e) {
+			return new ResponseEntity<>("Error en subir el video: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }
