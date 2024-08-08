@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
 import com.sovereingschool.back_base.Models.Clase;
@@ -22,6 +23,7 @@ import com.sovereingschool.back_base.Repositories.CursoRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import reactor.core.publisher.Mono;
 
 @Service
 @Transactional
@@ -32,6 +34,9 @@ public class CursoService implements ICursoService {
 
     @Autowired
     private ClaseRepository claseRepo;
+
+    @Autowired
+    private WebClient.Builder webClientBuilder;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -92,6 +97,24 @@ public class CursoService implements ICursoService {
             if (!oldCurso.getClases_curso().contains(clase)) {
                 if (clase.getId_clase() == 0) {
                     clase = this.claseRepo.save(clase);
+                    WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
+                    webClient.put()
+                            .uri("/addClase/" + curso.getId_curso())
+                            .body(Mono.just(clase), Clase.class)
+                            .retrieve()
+                            .bodyToMono(Boolean.class)
+                            .doOnError(e -> {
+                                // Manejo de errores
+                                System.err.println("ERROR: " + e.getMessage());
+                                e.printStackTrace();
+                            }).subscribe(res -> {
+                                // Maneja el resultado cuando esté disponible
+                                if (res != null && res) {
+                                    System.out.println("Actualización exitosa");
+                                } else {
+                                    System.err.println("Error en actualizar el curso en el servicio de reproducción");
+                                }
+                            });
                 } else {
                     this.claseRepo.updateClase(clase.getId_clase(), clase.getNombre_clase(), clase.getTipo_clase(),
                             clase.getDireccion_clase(), clase.getPosicion_clase());

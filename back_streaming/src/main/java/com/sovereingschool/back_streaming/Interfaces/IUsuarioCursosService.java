@@ -11,7 +11,7 @@ public interface IUsuarioCursosService {
 
     public String addCursoUsuario(Usuario usuario);
 
-    public Boolean editClase(Long idCurso, Clase clase);
+    // public Boolean editClase(Long idCurso, Clase clase);
 
     public boolean addClase(Long idCurso, Clase clase);
 

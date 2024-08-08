@@ -10,7 +10,7 @@ export const routes: Routes = [
 	{ path: '', component: HomeComponent },
 	{ path: 'cursosUsuario', component: CursosUsuarioComponent },
 	{ path: 'curso/:id_curso', component: CursoComponent },
-	{ path: 'repro/:id_usuario/:id_curso', component: ReproductionComponent },
+	{ path: 'repro/:id_usuario/:id_curso/:id_clase', component: ReproductionComponent },
 	{ path: 'editorCurso/:id_curso', component: EditorCursoComponent },
 	{ path: 'perfil', component: PerfilUsuarioComponent },
 	{ path: '**', redirectTo: '' },

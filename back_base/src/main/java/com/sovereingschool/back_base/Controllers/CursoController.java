@@ -36,8 +36,6 @@ import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
 import com.sovereingschool.back_base.Models.Usuario;
 
-import reactor.core.publisher.Mono;
-
 @RestController
 @RequestMapping("/cursos")
 @CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
@@ -224,25 +222,6 @@ public class CursoController {
 					this.service.updateCurso(curso);
 					clase.getCurso_clase().setClases_curso(null);
 					clase.getCurso_clase().setProfesores_curso(null);
-
-					WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
-					webClient.put()
-							.uri("/editClase/" + curso.getId_curso())
-							.body(Mono.just(clase), Clase.class)
-							.retrieve()
-							.bodyToMono(Boolean.class)
-							.doOnError(e -> {
-								// Manejo de errores
-								System.err.println("ERROR: " + e.getMessage());
-								e.printStackTrace();
-							}).subscribe(res -> {
-								// Maneja el resultado cuando esté disponible
-								if (res != null && res) {
-									System.out.println("Actualización exitosa");
-								} else {
-									System.err.println("Error en actualizar el curso en el servicio de reproducción");
-								}
-							});
 					return new ResponseEntity<String>("Clase editada con éxito!!!", HttpStatus.OK);
 				}
 			}
@@ -269,31 +248,7 @@ public class CursoController {
 			clase.setCurso_clase(curso);
 			clases.add(clase);
 			curso.setClases_curso(clases);
-			Curso actualizado = this.service.updateCurso(curso);
-			actualizado.getClases_curso().forEach((clase2) -> {
-				if (clase2.getNombre_clase().equals(clase.getNombre_clase())) {
-
-					WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
-					webClient.put()
-							.uri("/addClase/" + curso.getId_curso())
-							.body(Mono.just(clase2), Clase.class)
-							.retrieve()
-							.bodyToMono(Boolean.class)
-							.doOnError(e -> {
-								// Manejo de errores
-								System.err.println("ERROR: " + e.getMessage());
-								e.printStackTrace();
-							}).subscribe(res -> {
-								// Maneja el resultado cuando esté disponible
-								if (res != null && res) {
-									System.out.println("Actualización exitosa");
-								} else {
-									System.err.println("Error en actualizar el curso en el servicio de reproducción");
-								}
-							});
-				}
-			});
-
+			this.service.updateCurso(curso);
 			return new ResponseEntity<>("Clase añadida con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);

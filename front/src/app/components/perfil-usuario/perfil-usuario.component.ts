@@ -2,6 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { Usuario } from '../../models/Usuario';
+import { InitService } from '../../services/init.service';
 import { LoginService } from '../../services/login.service';
 import { UsuariosService } from '../../services/usuarios.service';
 
@@ -21,6 +22,7 @@ export class PerfilUsuarioComponent implements OnDestroy {
 	constructor(
 		private loginService: LoginService,
 		private usuarioService: UsuariosService,
+		private initService: InitService,
 	) {
 		this.usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 	}
@@ -67,6 +69,7 @@ export class PerfilUsuarioComponent implements OnDestroy {
 								this.actualizaUsuario();
 								this.fotos = null;
 							}
+							this.initService.carga();
 						},
 						error: (e: Error) => {
 							console.error('Error en save() ' + e.message);
@@ -118,6 +121,7 @@ export class PerfilUsuarioComponent implements OnDestroy {
 					next: () => {
 						localStorage.clear;
 						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
+						this.initService.carga();
 					},
 					error: (e: Error) => {
 						console.error('Error en actualizar usuario: ' + e.message);

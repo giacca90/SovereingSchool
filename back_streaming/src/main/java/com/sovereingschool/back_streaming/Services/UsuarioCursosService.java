@@ -17,6 +17,8 @@ import com.sovereingschool.back_streaming.Models.StatusClase;
 import com.sovereingschool.back_streaming.Models.StatusCurso;
 import com.sovereingschool.back_streaming.Models.Usuario;
 import com.sovereingschool.back_streaming.Models.UsuarioCursos;
+import com.sovereingschool.back_streaming.Repositories.ClaseRepository;
+import com.sovereingschool.back_streaming.Repositories.CursoRepository;
 import com.sovereingschool.back_streaming.Repositories.UsuarioCursosRepository;
 import com.sovereingschool.back_streaming.Repositories.UsuarioRepository;
 
@@ -28,6 +30,12 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
     @Autowired
     private UsuarioRepository usuarioRepository; // Repositorio de PostgreSQL para usuarios
+
+    @Autowired
+    private CursoRepository cursoRepository; // Repositorio de PostgreSQL para clases
+
+    @Autowired
+    private ClaseRepository claseRepository; // Repositorio de PostgreSQL para clases
 
     @Autowired
     private UsuarioCursosRepository usuarioCursosRepository; // Repositorio de MongoDB
@@ -47,7 +55,6 @@ public class UsuarioCursosService implements IUsuarioCursosService {
                     classStatus.setId_clase(clazz.getId_clase());
                     classStatus.setCompleted(false);
                     classStatus.setProgress(0);
-                    classStatus.setDireccion_clase(clazz.getDireccion_clase());
                     return classStatus;
                 }).collect(Collectors.toList());
 
@@ -59,8 +66,8 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
             UsuarioCursos userCourses = new UsuarioCursos();
             userCourses.setId_usuario(user.getId_usuario());
+            userCourses.setRol_usuario(user.getRoll_usuario());
             userCourses.setCursos(courseStatuses);
-
             usuarioCursosRepository.save(userCourses);
         }
     }
@@ -106,57 +113,36 @@ public class UsuarioCursosService implements IUsuarioCursosService {
         UsuarioCursos usuario = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
         if (usuario == null)
             return null;
+
+        if (id_clase == 0) {
+            if (usuario.getRol_usuario() < 2) {
+                id_clase = this.cursoRepository.findById(id_curso).get().getClases_curso().get(0).getId_clase();
+            }
+        }
+
+        if (usuario.getRol_usuario() < 2) {
+            return this.claseRepository.findById(id_clase).get().getDireccion_clase();
+        }
+
         List<StatusCurso> cursos = usuario.getCursos();
 
         for (StatusCurso curso : cursos) {
             if (curso.getId_curso().equals(id_curso)) {
                 List<StatusClase> clases = curso.getClases();
                 for (StatusClase clase : clases) {
-                    if (clase.getId_clase().equals(id_clase)) {
-                        return clase.getDireccion_clase();
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public Boolean editClase(Long idCurso, Clase clase) {
-        try {
-            // Encuentra el documento que contiene el curso específico
-            Query query = new Query();
-            query.addCriteria(Criteria.where("cursos.id_curso").is(idCurso));
-            List<UsuarioCursos> usuarioCursos = mongoTemplate.find(query, UsuarioCursos.class);
-
-            if (usuarioCursos == null || usuarioCursos.size() == 0) {
-                System.err.println("No se encontró el documento.");
-                return false;
-            }
-
-            // Itera sobre los cursos y clases para actualizar el campo deseado
-            for (UsuarioCursos usuario : usuarioCursos) {
-                for (StatusCurso curso : usuario.getCursos()) {
-                    if (curso.getId_curso().equals(idCurso)) {
-                        for (StatusClase sclase : curso.getClases()) {
-                            if (sclase.getId_clase().equals(clase.getId_clase())) {
-                                sclase.setDireccion_clase(clase.getDireccion_clase());
-                                // Guarda el documento actualizado en la base de datos
-                                mongoTemplate.save(usuario);
-                                break;
-                            }
+                    if (id_clase == 0) {
+                        if (!clase.isCompleted()) {
+                            return this.claseRepository.findById(clase.getId_clase()).get().getDireccion_clase();
                         }
-                        break;
+                        continue;
+                    }
+                    if (clase.getId_clase().equals(id_clase)) {
+                        return this.claseRepository.findById(id_clase).get().getDireccion_clase();
                     }
                 }
             }
-
-            return true;
-        } catch (Exception e) {
-            System.err.println("Error en actualizar la clase: " + e.getMessage());
-            return false;
         }
+        return null;
     }
 
     @Override
@@ -176,7 +162,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
                 for (StatusCurso curso : usuario.getCursos()) {
                     if (curso.getId_curso().equals(idCurso)) {
                         curso.getClases()
-                                .add(new StatusClase(clase.getId_clase(), clase.getDireccion_clase(), false, 0));
+                                .add(new StatusClase(clase.getId_clase(), false, 0));
                         mongoTemplate.save(usuario);
                         break;
                     }

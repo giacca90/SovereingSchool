@@ -132,19 +132,6 @@ public class StreamingController {
         }
     }
 
-    @PutMapping("/editClase/{idCurso}")
-    public ResponseEntity<?> update(@PathVariable Long idCurso, @RequestBody Clase clase) {
-        try {
-            if (this.usuarioCursosService.editClase(idCurso, clase)) {
-                return new ResponseEntity<Boolean>(true, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<Boolean>(false, HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @PutMapping("/addClase/{idCurso}")
     public ResponseEntity<?> add(@PathVariable Long idCurso, @RequestBody Clase clase) {
         try {
