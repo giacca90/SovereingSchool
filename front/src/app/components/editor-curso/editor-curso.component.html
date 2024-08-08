@@ -25,11 +25,16 @@
 					</div>
 				}
 			</div>
+			<div class="flex">
+				<span>Precio: </span>
+				<input type="number" (input)="this.compruebaCambios()" class="w-14 bg-transparent" [(ngModel)]="this.curso.precio_curso" />
+				<span>€</span>
+			</div>
 		}
 		<div class="flex">
-			<button class="m-2 rounded-lg border border-black p-2" (click)="nuevaClase()">Añadir una nueva clase</button>
-			<button class="m-2 rounded-lg border border-black p-2">Pone una imagen al curso</button>
-			<button class="m-2 rounded-lg border border-black p-2">Edita descripciones</button>
+			<button class="m-2 cursor-pointer rounded-lg border border-black p-2" (click)="nuevaClase()">Añadir una nueva clase</button>
+			<label for="file-upload" class="m-2 cursor-pointer rounded-lg border border-black p-2"> Pone una imagen al curso </label>
+			<input id="file-upload" type="file" accept="image/jpeg, image/png, image/gif, image/webp, image/svg+xml" class="hidden" (change)="cargaImagenCurso($event)" />
 
 			@if (editado) {
 				<button class="m-2 rounded-lg border border-black p-2" (click)="updateCurso()">Guardar cambios</button>

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, firstValueFrom, map, Observable, of, throwError } from 'rxjs';
 import { Clase } from '../models/Clase';
 import { Curso } from '../models/Curso';
+import { Usuario } from '../models/Usuario';
 
 @Injectable({
 	providedIn: 'root',
@@ -37,8 +38,13 @@ export class CursosService {
 
 	updateCurso(curso: Curso | null): Observable<boolean> {
 		if (curso) {
+			console.log('UPDATESERVICE: ' + curso.id_curso);
+			console.log('UPDATESERVICE: ' + typeof curso.id_curso);
+
 			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 			if (curso.id_curso == 0) {
+				console.log('id = 0: ' + curso.id_curso);
+
 				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { headers, observe: 'response' }).pipe(
 					map((response: HttpResponse<number>) => {
 						if (response.status === 200 && response.body) {
@@ -134,5 +140,30 @@ export class CursosService {
 				return of(null);
 			}),
 		);
+	}
+
+	addImagenCurso(target: FormData): Observable<string | null> {
+		return this.http.post<string[]>(this.backURL + '/usuario/subeFotos', target).pipe(
+			map((response) => {
+				return response[0];
+			}),
+			catchError((e: Error) => {
+				console.error('Error en subir la imagen: ' + e.message);
+				return of(null);
+			}),
+		);
+	}
+
+	getCursosProfe(profe: Usuario) {
+		console.log('GETCURSOSERVICE');
+		const cursosProfe: Curso[] = [];
+		this.cursos.forEach((curso) => {
+			curso.profesores_curso.forEach((profe2) => {
+				if (profe2.id_usuario === profe.id_usuario) {
+					cursosProfe.push(curso);
+				}
+			});
+		});
+		return cursosProfe;
 	}
 }

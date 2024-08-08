@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
+import com.sovereingschool.back_base.Interfaces.IUsuarioService;
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
@@ -46,6 +47,9 @@ public class CursoController {
 
 	@Autowired
 	private ICursoService service;
+
+	@Autowired
+	private IUsuarioService usuarioService;
 
 	@Autowired
 	private WebClient.Builder webClientBuilder;
@@ -148,7 +152,8 @@ public class CursoController {
 	@PostMapping("/new")
 	public ResponseEntity<?> createCurso(@RequestBody Curso curso) {
 		try {
-			return new ResponseEntity<Long>(this.service.createCurso(curso), HttpStatus.OK);
+			curso.setId_curso(this.service.createCurso(curso));
+			return new ResponseEntity<Long>(curso.getId_curso(), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

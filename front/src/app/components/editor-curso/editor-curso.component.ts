@@ -246,24 +246,34 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 							edit.curso_clase = this.curso?.id_curso;
 							edit.direccion_clase = result;
 							this.editar = JSON.parse(JSON.stringify(edit));
-
-							/* if (edit.id_clase === 0) {
-								this.cursoService.createClass(edit).subscribe((resp: boolean) => {
-									if (resp) {
-										console.log('Todo bien');
-										this.editar = JSON.parse(JSON.stringify(edit));
-									}
-								});
-							} else {
-								this.cursoService.editClass(edit).subscribe((resp: boolean) => {
-									if (resp) {
-										console.log('Todo bien');
-										this.editar = JSON.parse(JSON.stringify(edit));
-									}
-								});
-							} */
 						}
 					});
+			}
+		};
+		reader.readAsDataURL(input.files[0]);
+	}
+
+	cargaImagenCurso(event: Event) {
+		const input = event.target as HTMLInputElement;
+		if (!input.files) {
+			return;
+		}
+		const reader = new FileReader();
+		reader.onload = (e: ProgressEvent<FileReader>) => {
+			if (e.target && input.files && this.curso) {
+				const formData = new FormData();
+				formData.append('files', input.files[0], input.files[0].name);
+
+				this.cursoService.addImagenCurso(formData).subscribe({
+					next: (response) => {
+						if (this.curso && response) this.curso.imagen_curso = response;
+						this.cursoService.updateCurso(this.curso);
+						this.editado = true;
+					},
+					error: (e: Error) => {
+						console.error('Error en añadir la imagen al curso: ' + e.message);
+					},
+				});
 			}
 		};
 		reader.readAsDataURL(input.files[0]);

@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { CursosService } from '../../services/cursos.service';
 import { LoginService } from '../../services/login.service';
 
 @Component({
@@ -12,6 +13,7 @@ import { LoginService } from '../../services/login.service';
 export class CursosUsuarioComponent implements OnInit {
 	constructor(
 		public loginService: LoginService,
+		public cursoService: CursosService,
 		private cdr: ChangeDetectorRef,
 		public router: Router,
 	) {}

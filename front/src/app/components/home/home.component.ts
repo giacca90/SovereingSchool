@@ -81,9 +81,9 @@ export class HomeComponent {
 			} else if (this.anchoVista >= 1024 && this.anchoVista < 1280) {
 				numeroVistas = 4;
 			} else if (this.anchoVista >= 1280 && this.anchoVista < 1536) {
-				numeroVistas = 5;
+				numeroVistas = 4;
 			} else {
-				numeroVistas = 6;
+				numeroVistas = 5;
 			}
 
 			let numeroRealVistas = numeroVistas;
