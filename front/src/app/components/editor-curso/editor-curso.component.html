@@ -1,4 +1,7 @@
-<div class="m-2 flex flex-grow flex-col items-center rounded-lg border border-black p-2">
+<div class="relative m-2 flex flex-grow flex-col items-center rounded-lg border border-black p-2">
+	@if (this.curso?.imagen_curso) {
+		<img class="absolute -z-10 h-full content-center opacity-20" [src]="this.curso?.imagen_curso" alt="" />
+	}
 	@if (this.curso) {
 		<div class="flex">
 			<h2 class="font-bold text-blue-500">Editor del curso:</h2>

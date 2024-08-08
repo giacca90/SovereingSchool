@@ -18,6 +18,12 @@ export class InitService {
 		private cursoService: CursosService,
 		private usuarioService: UsuariosService,
 	) {
+		this.carga();
+	}
+
+	carga() {
+		this.usuarioService.profes = [];
+		this.cursoService.cursos = [];
 		this.http.get<Init>(this.apiUrl).subscribe({
 			next: (response: Init) => {
 				response.profesInit.forEach((profe) => {

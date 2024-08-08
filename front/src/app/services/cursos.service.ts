@@ -38,13 +38,8 @@ export class CursosService {
 
 	updateCurso(curso: Curso | null): Observable<boolean> {
 		if (curso) {
-			console.log('UPDATESERVICE: ' + curso.id_curso);
-			console.log('UPDATESERVICE: ' + typeof curso.id_curso);
-
 			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 			if (curso.id_curso == 0) {
-				console.log('id = 0: ' + curso.id_curso);
-
 				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { headers, observe: 'response' }).pipe(
 					map((response: HttpResponse<number>) => {
 						if (response.status === 200 && response.body) {
@@ -155,7 +150,6 @@ export class CursosService {
 	}
 
 	getCursosProfe(profe: Usuario) {
-		console.log('GETCURSOSERVICE');
 		const cursosProfe: Curso[] = [];
 		this.cursos.forEach((curso) => {
 			curso.profesores_curso.forEach((profe2) => {

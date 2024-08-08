@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
+import { InitService } from '../../services/init.service';
 import { LoginService } from '../../services/login.service';
 
 @Component({
@@ -27,6 +28,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		private router: Router,
 		public cursoService: CursosService,
 		public loginService: LoginService,
+		private initService: InitService,
 	) {
 		this.subscription.add(
 			this.route.params.subscribe((params) => {
@@ -49,7 +51,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 			this.router.events.subscribe((event) => {
 				if (event instanceof NavigationStart && this.editado) {
 					this.cursoService.getCurso(this.id_curso).then((curso) => (this.curso = curso));
-
 					const userConfirmed = window.confirm('Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?');
 					if (!userConfirmed) {
 						this.router.navigateByUrl(this.router.url); // Mantén al usuario en la misma página
@@ -148,6 +149,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 			this.cursoService.updateCurso(this.curso).subscribe({
 				next: (success: boolean) => {
 					if (success) {
+						this.initService.carga();
 						this.editado = false;
 					} else {
 						console.error('Falló la actualización del curso');
@@ -175,6 +177,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 								this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
 									if (response) {
 										this.curso = response;
+										this.initService.carga();
 										this.editar = null;
 									}
 								});
@@ -215,6 +218,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 						if (resp && this.curso) {
 							this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
 								if (response) {
+									this.initService.carga();
 									this.curso = response;
 								}
 							});
@@ -287,7 +291,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				this.cursoService.deleteCurso(this.curso).subscribe({
 					next: (result: boolean) => {
 						if (result) {
-							console.log('Curso Borrado');
+							this.initService.carga();
 							this.router.navigate(['cursosUsuario']);
 						}
 					},
