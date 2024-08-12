@@ -154,6 +154,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 					if (success) {
 						this.initService.carga();
 						this.editado = false;
+						this.router.navigate(['cursosUsuario']);
 					} else {
 						console.error('Falló la actualización del curso');
 					}
@@ -166,51 +167,18 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	nuevaClase() {
-		if (this.curso) this.editar = new Clase(0, '', '', '', 0, '', 0, this.curso.id_curso);
+		if (this.curso && this.curso.clases_curso) this.editar = new Clase(0, '', '', '', 0, '', this.curso.clases_curso?.length + 1, this.curso.id_curso);
 	}
 
-	guardarCambios() {
+	guardarCambiosClase() {
 		if (this.editar && this.curso) {
 			this.editar.curso_clase = this.curso?.id_curso;
-			if (this.editar?.id_clase === 0) {
-				this.subscription.add(
-					this.cursoService.createClass(this.editar).subscribe({
-						next: (resp: boolean) => {
-							if (resp && this.curso) {
-								this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
-									if (response) {
-										this.curso = response;
-										//this.initService.carga();
-										this.editar = null;
-										this.compruebaCambios();
-									}
-								});
-							} else {
-								console.error('Error en actualizar!!!');
-							}
-						},
-						error: (e: Error) => {
-							console.error('Error en crear la clase: ' + e.message);
-						},
-					}),
-				);
-			} else {
-				this.subscription.add(
-					this.cursoService.editClass(this.editar).subscribe({
-						next: (resp: boolean) => {
-							if (resp) {
-								this.editar = null;
-								this.compruebaCambios();
-							} else {
-								console.error('Error en actualizar!!!');
-							}
-						},
-						error: (e: Error) => {
-							console.error('Error en editar la clase: ' + e.message);
-						},
-					}),
-				);
+			if (this.curso.id_curso === 0) {
+				this.curso.clases_curso?.push(this.editar);
+				this.editar = null;
+				return;
 			}
+			this.cursoService.guardarCambiosClase(this.editar);
 		}
 	}
 

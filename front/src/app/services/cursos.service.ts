@@ -40,11 +40,19 @@ export class CursosService {
 		if (curso) {
 			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 			if (curso.id_curso == 0) {
+				const clases: Clase[] | undefined = curso.clases_curso;
+				curso.clases_curso = [];
 				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { headers, observe: 'response' }).pipe(
 					map((response: HttpResponse<number>) => {
 						if (response.status === 200 && response.body) {
 							curso.id_curso = response.body;
-							this.cursos.push(curso);
+							if (clases) {
+								clases.forEach((clase) => {
+									clase.curso_clase = curso.id_curso;
+									this.guardarCambiosClase(clase);
+								});
+							}
+							//this.cursos.push(curso);
 							return true;
 						}
 						return false;
@@ -175,5 +183,45 @@ export class CursosService {
 				return of(false);
 			}),
 		);
+	}
+
+	guardarCambiosClase(editar: Clase) {
+		if (editar.id_clase === 0) {
+			this.createClass(editar).subscribe({
+				next: (resp: boolean) => {
+					if (resp && editar.curso_clase) {
+						this.getCurso(editar.curso_clase).then((response) => {
+							if (response) {
+								return true;
+							}
+							return false;
+						});
+						return false;
+					} else {
+						console.error('Error en actualizar!!!');
+						return false;
+					}
+				},
+				error: (e: Error) => {
+					console.error('Error en crear la clase: ' + e.message);
+					return false;
+				},
+			});
+		} else {
+			this.editClass(editar).subscribe({
+				next: (resp: boolean) => {
+					if (resp) {
+						return true;
+					} else {
+						console.error('Error en actualizar!!!');
+						return false;
+					}
+				},
+				error: (e: Error) => {
+					console.error('Error en editar la clase: ' + e.message);
+					return false;
+				},
+			});
+		}
 	}
 }
