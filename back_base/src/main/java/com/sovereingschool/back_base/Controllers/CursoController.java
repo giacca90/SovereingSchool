@@ -30,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
-import com.sovereingschool.back_base.Interfaces.IUsuarioService;
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
@@ -41,13 +40,10 @@ import com.sovereingschool.back_base.Models.Usuario;
 @CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
 public class CursoController {
 
-	private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Videos";
+	private String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos";
 
 	@Autowired
 	private ICursoService service;
-
-	@Autowired
-	private IUsuarioService usuarioService;
 
 	@Autowired
 	private WebClient.Builder webClientBuilder;

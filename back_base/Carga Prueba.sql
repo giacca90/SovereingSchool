@@ -55,7 +55,7 @@ INSERT INTO clase (
 		id_curso
 	)
 VALUES (
-		'/home/giacca90/Escritorio/Proyectos/SovereingSchool/Videos/01.mp4',
+		'/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos/01.mp4',
 		'Clase 1 - Presentación',
 		'Una breve presentación del profesor',
 		1,
@@ -63,7 +63,7 @@ VALUES (
 		1
 	),
 	(
-		'/home/giacca90/Escritorio/Proyectos/SovereingSchool/Videos/02.mp4',
+		'/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos/02.mp4',
 		'Clase 2 - Introducción',
 		'Introducción al curso',
 		2,

@@ -1,3 +1,5 @@
+<!-- eslint-disable @angular-eslint/template/click-events-have-key-events -->
+<!-- eslint-disable @angular-eslint/template/interactive-supports-focus -->
 <div class="relative m-4 p-2">
 	@if (this.loading) {
 		<div class="absolute inset-0 z-10 flex items-center justify-center">
@@ -5,4 +7,23 @@
 		</div>
 	}
 	<video id="video" controls class="z-0 w-full"></video>
+</div>
+<div class="relative m-2 flex rounded-lg border border-black p-2">
+	<div class="w-3/4">
+		@if (this.clase) {
+			<h3>{{ this.clase.nombre_clase }}</h3>
+			<p>{{ this.clase.contenido_clase }}</p>
+		} @else {
+			<h3>NO HAY CLASE CARGADA</h3>
+		}
+	</div>
+	<div class="m-2 flex w-1/4 flex-col rounded-lg border border-black p-2">
+		@if (this.curso && this.curso.clases_curso) {
+			@for (class of this.curso.clases_curso; track class) {
+				<div class="mb-2 cursor-pointer" (click)="this.navega(class)">
+					{{ class.nombre_clase }}
+				</div>
+			}
+		}
+	</div>
 </div>

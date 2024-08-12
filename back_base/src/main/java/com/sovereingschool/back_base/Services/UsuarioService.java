@@ -43,7 +43,7 @@ public class UsuarioService implements IUsuarioService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Fotos";
+    private String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Fotos";
 
     @Override
     public String createUsuario(NewUsuario new_usuario) {

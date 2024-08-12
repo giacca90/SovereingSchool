@@ -52,7 +52,7 @@ public class UsuarioController {
 	@Autowired
 	private IUsuarioService service;
 
-	private String uploadDir = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Fotos";
+	private String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Fotos";
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
@@ -80,7 +80,7 @@ public class UsuarioController {
 
 	@GetMapping("/fotos/{nombreFoto}")
 	public ResponseEntity<?> getFotos(@PathVariable String nombreFoto) {
-		final String photosDirectory = "/home/giacca90/Escritorio/Proyectos/SovereingSchool/Fotos";
+		final String photosDirectory = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Fotos";
 
 		// Construir la ruta del archivo y resolver posibles vulnerabilidades de
 		// directorio transversal

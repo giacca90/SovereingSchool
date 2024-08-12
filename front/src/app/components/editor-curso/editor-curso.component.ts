@@ -140,11 +140,14 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 
 	compruebaCambios() {
 		this.cursoService.getCurso(this.id_curso).then((curso) => {
+			console.log('NUEVO: ' + JSON.stringify(this.curso));
+			console.log('VIEJO: ' + JSON.stringify(curso));
 			this.editado = JSON.stringify(this.curso) !== JSON.stringify(curso);
 		});
 	}
 
 	updateCurso() {
+		console.log('Se envia: ' + JSON.stringify(this.curso));
 		this.subscription.add(
 			this.cursoService.updateCurso(this.curso).subscribe({
 				next: (success: boolean) => {
@@ -177,8 +180,9 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 								this.cursoService.getCurso(this.curso?.id_curso).then((response) => {
 									if (response) {
 										this.curso = response;
-										this.initService.carga();
+										//this.initService.carga();
 										this.editar = null;
+										this.compruebaCambios();
 									}
 								});
 							} else {
@@ -196,6 +200,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 						next: (resp: boolean) => {
 							if (resp) {
 								this.editar = null;
+								this.compruebaCambios();
 							} else {
 								console.error('Error en actualizar!!!');
 							}
@@ -271,8 +276,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				this.cursoService.addImagenCurso(formData).subscribe({
 					next: (response) => {
 						if (this.curso && response) this.curso.imagen_curso = response;
-						this.cursoService.updateCurso(this.curso);
-						this.editado = true;
+						//						this.cursoService.updateCurso(this.curso);
+						this.compruebaCambios();
 					},
 					error: (e: Error) => {
 						console.error('Error en añadir la imagen al curso: ' + e.message);

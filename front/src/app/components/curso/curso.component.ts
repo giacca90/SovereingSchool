@@ -1,5 +1,5 @@
 /* eslint-disable no-unsafe-optional-chaining */
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Curso } from '../../models/Curso';
@@ -25,7 +25,6 @@ export class CursoComponent implements OnDestroy {
 		private route: ActivatedRoute,
 		private cursoService: CursosService,
 		private usuarioService: UsuariosService,
-		private cdr: ChangeDetectorRef,
 		public loginService: LoginService,
 		public router: Router,
 	) {
