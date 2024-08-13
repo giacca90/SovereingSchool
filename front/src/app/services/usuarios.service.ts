@@ -11,11 +11,13 @@ export class UsuariosService {
 	constructor(private http: HttpClient) {}
 
 	getUsuario(id_usuario: number) {
-		this.http.get<Usuario>(this.apiUrl + id_usuario).subscribe({
+		const sub = this.http.get<Usuario>(this.apiUrl + id_usuario).subscribe({
 			next: (response: Usuario) => {
+				sub.unsubscribe();
 				return response;
 			},
 			error: (e: Error) => {
+				sub.unsubscribe();
 				console.error(e.message);
 				return null;
 			},

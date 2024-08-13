@@ -185,43 +185,41 @@ export class CursosService {
 		);
 	}
 
-	guardarCambiosClase(editar: Clase) {
+	guardarCambiosClase(editar: Clase): Observable<boolean> {
 		if (editar.id_clase === 0) {
-			this.createClass(editar).subscribe({
-				next: (resp: boolean) => {
+			return this.createClass(editar).pipe(
+				map((resp: boolean) => {
 					if (resp && editar.curso_clase) {
 						this.getCurso(editar.curso_clase).then((response) => {
-							if (response) {
-								return true;
-							}
-							return false;
+							return of(response);
 						});
 						return false;
 					} else {
 						console.error('Error en actualizar!!!');
 						return false;
 					}
-				},
-				error: (e: Error) => {
+				}),
+				catchError((e: Error) => {
 					console.error('Error en crear la clase: ' + e.message);
-					return false;
-				},
-			});
+					return of(false);
+				}),
+			);
 		} else {
-			this.editClass(editar).subscribe({
-				next: (resp: boolean) => {
+			return this.editClass(editar).pipe(
+				map((resp: boolean) => {
 					if (resp) {
+						console.log('EDITCLASE');
 						return true;
 					} else {
 						console.error('Error en actualizar!!!');
 						return false;
 					}
-				},
-				error: (e: Error) => {
+				}),
+				catchError((e: Error) => {
 					console.error('Error en editar la clase: ' + e.message);
-					return false;
-				},
-			});
+					return of(false);
+				}),
+			);
 		}
 	}
 }

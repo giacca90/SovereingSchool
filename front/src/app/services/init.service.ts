@@ -24,7 +24,7 @@ export class InitService {
 	carga() {
 		this.usuarioService.profes = [];
 		this.cursoService.cursos = [];
-		this.http.get<Init>(this.apiUrl).subscribe({
+		const sub = this.http.get<Init>(this.apiUrl).subscribe({
 			next: (response: Init) => {
 				response.profesInit.forEach((profe) => {
 					this.usuarioService.profes.push(new Usuario(profe.id_usuario, profe.nombre_usuario, profe.foto_usuario, profe.presentacion));
@@ -40,9 +40,11 @@ export class InitService {
 					this.cursoService.cursos.push(new Curso(curso.id_curso, curso.nombre_curso, profes, curso.descriccion_corta, curso.imagen_curso));
 				});
 				this.estadistica = response.estadistica;
+				sub.unsubscribe();
 			},
 			error(e: Error) {
 				console.error('Error en init: ' + e.message);
+				sub.unsubscribe();
 			},
 		});
 	}

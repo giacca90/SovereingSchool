@@ -171,14 +171,37 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	guardarCambiosClase() {
+		console.log('GUARDAR CAMBIOS');
 		if (this.editar && this.curso) {
 			this.editar.curso_clase = this.curso?.id_curso;
 			if (this.curso.id_curso === 0) {
 				this.curso.clases_curso?.push(this.editar);
 				this.editar = null;
-				return;
+			} else {
+				if (this.editado) {
+					if (this.editar.id_clase === 0) {
+						this.curso.clases_curso?.push(this.editar);
+						this.editar = null;
+					} else {
+						if (this.editar && this.curso.clases_curso) this.curso.clases_curso[this.curso.clases_curso.findIndex((clase) => clase.id_clase === this.editar?.id_clase)] = this.editar;
+						this.editar = null;
+					}
+				} else {
+					this.cursoService.guardarCambiosClase(this.editar).subscribe({
+						next: (response: boolean) => {
+							if (response) {
+								this.initService.carga();
+								this.editar = null;
+							} else {
+								console.error('Error en actualizar la clase');
+							}
+						},
+						error: (e: Error) => {
+							console.error('Error en actualizar el curso: ' + e.message);
+						},
+					});
+				}
 			}
-			this.cursoService.guardarCambiosClase(this.editar);
 		}
 	}
 

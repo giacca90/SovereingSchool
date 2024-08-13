@@ -20,20 +20,23 @@ export class LoginService {
 
 	async compruebaCorreo(correo: string): Promise<boolean> {
 		return new Promise(async (resolve, reject) => {
-			this.http.get<number>(`${this.apiUrl}${correo}`).subscribe({
+			const sub = this.http.get<number>(`${this.apiUrl}${correo}`).subscribe({
 				next: (response) => {
 					if (response == 0) {
 						resolve(false);
+						sub.unsubscribe();
 					}
 
 					if (response > 0) {
 						this.id_usuario = response;
 						resolve(true);
+						sub.unsubscribe();
 					}
 				},
 				error: (error: HttpErrorResponse) => {
 					console.error('HTTP request failed:', error);
 					reject(false);
+					sub.unsubscribe();
 				},
 			});
 		});
@@ -41,20 +44,23 @@ export class LoginService {
 
 	async compruebaPassword(password: string): Promise<boolean> {
 		return new Promise(async (resolve) => {
-			this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password).subscribe({
+			const sub = this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password).subscribe({
 				next: (response) => {
 					if (response.id_usuario === null) {
 						resolve(false);
+						sub.unsubscribe();
 						return;
 					}
 					this.usuario = response;
 					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
 					resolve(true);
+					sub.unsubscribe();
 					return;
 				},
 				error: (error: HttpErrorResponse) => {
 					console.error('HTTP request failed:', error);
 					resolve(false);
+					sub.unsubscribe();
 				},
 			});
 		});

@@ -12,13 +12,15 @@ export class RegisterService {
 
 	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario) {
 		return new Promise(async (resolve, reject) => {
-			this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { responseType: 'text' as 'json' }).subscribe({
+			const sub = this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { responseType: 'text' as 'json' }).subscribe({
 				next: () => {
 					resolve(true);
+					sub.unsubscribe();
 				},
 				error: (error: HttpErrorResponse) => {
 					console.error('HTTP request failed:', error);
 					reject(false);
+					sub.unsubscribe();
 				},
 			});
 		});
