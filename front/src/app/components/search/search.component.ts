@@ -64,12 +64,22 @@ export class SearchComponent {
 						porNombre.forEach((curso) => {
 							const row: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 							row.classList.add('hover:bg-white', 'whitespace-nowrap', 'rounded-lg', 'pr-2', 'pl-2');
+							row.tabIndex = 0;
 							row.addEventListener('click', () => {
 								this.result = false;
 								this.cdr.detectChanges();
 								this.ngZone.run(() => {
 									this.router.navigate(['/curso/' + curso.id_curso]);
 								});
+							});
+							row.addEventListener('keydown', (event) => {
+								if (event.key === 'Enter') {
+									this.result = false;
+									this.cdr.detectChanges();
+									this.ngZone.run(() => {
+										this.router.navigate(['/curso/' + curso.id_curso]);
+									});
+								}
 							});
 							row.innerHTML =
 								curso.nombre_curso.substring(
@@ -139,12 +149,22 @@ export class SearchComponent {
 						porDescriccion.forEach((curso) => {
 							const row: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
 							row.classList.add('hover:bg-white', 'whitespace-nowrap', 'rounded-lg', 'pr-2', 'pl-2');
+							row.tabIndex = 0;
 							row.addEventListener('click', () => {
 								this.result = false;
 								this.cdr.detectChanges();
 								this.ngZone.run(() => {
 									this.router.navigate(['/curso/' + curso.id_curso]);
 								});
+							});
+							row.addEventListener('keydown', (event) => {
+								if (event.key === 'Enter') {
+									this.result = false;
+									this.cdr.detectChanges();
+									this.ngZone.run(() => {
+										this.router.navigate(['/curso/' + curso.id_curso]);
+									});
+								}
 							});
 							row.innerHTML =
 								curso.nombre_curso +

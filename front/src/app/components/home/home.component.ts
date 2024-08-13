@@ -27,7 +27,7 @@ export class HomeComponent {
 		this.cursoService.cursos.forEach((curso: Curso) => {
 			const div: HTMLDivElement = document.createElement('div');
 			div.classList.add('relative', 'm-2', 'border', 'border-black', 'cursor-pointer');
-
+			div.tabIndex = 0;
 			const fondo: HTMLDivElement = document.createElement('div');
 			fondo.classList.add('absolute', 'inset-0', 'bg-cover', 'bg-center', 'opacity-20', 'transition-opacity', 'duration-300', 'hover:opacity-30');
 			fondo.style.backgroundImage = `url('${curso.imagen_curso}')`;
@@ -63,6 +63,11 @@ export class HomeComponent {
 
 			div.addEventListener('click', () => {
 				this.router.navigate(['/curso/' + curso.id_curso]);
+			});
+			div.addEventListener('keydown', (event) => {
+				if (event.key === 'Enter') {
+					this.router.navigate(['/curso/' + curso.id_curso]);
+				}
 			});
 
 			this.vistaCursos.push(div);
@@ -107,6 +112,7 @@ export class HomeComponent {
 			const img: HTMLImageElement = document.createElement('img') as HTMLImageElement;
 			img.classList.add('h-full', 'w-auto', 'object-contain', 'mr-4');
 			img.src = profe.foto_usuario[0];
+			img.alt = 'profe';
 			div.appendChild(img);
 
 			const desc: HTMLDivElement = document.createElement('div') as HTMLDivElement;

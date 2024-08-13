@@ -298,4 +298,11 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 			}
 		}
 	}
+
+	keyEvent(event: KeyboardEvent) {
+		console.log('LOG');
+		if (event.key === 'Enter') {
+			document.getElementById('video-upload')?.click();
+		}
+	}
 }

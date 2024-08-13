@@ -1,12 +1,10 @@
-<!-- eslint-disable @angular-eslint/template/interactive-supports-focus -->
-<!-- eslint-disable @angular-eslint/template/click-events-have-key-events -->
 <div [class.dimmed]="isModalVisible" class="flex h-full min-h-dvh w-full flex-col">
 	<header class="relative w-full rounded-b-lg bg-cyan-500">
 		<div class="text-center text-3xl font-bold text-yellow-500">
-			<h1 class="cursor-pointer" (click)="this.router.navigate(['']); this.vistaMenu = false">SOVEREIGN SCHOOL</h1>
+			<h1 class="cursor-pointer" (click)="this.router.navigate(['']); this.vistaMenu = false" tabindex="0" (keydown.enter)="this.router.navigate(['']); this.vistaMenu = false">SOVEREIGN SCHOOL</h1>
 		</div>
 		@if (this.loginService.usuario === null) {
-			<button type="button" class="absolute right-2 top-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.png" alt="login" (click)="openModal()" /></button>
+			<button type="button" class="absolute right-2 top-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.png" alt="login" (click)="openModal()" tabindex="0" (keydown.enter)="openModal()" /></button>
 		} @else {
 			<button class="absolute right-1 top-2 mr-1 justify-end rounded-lg border border-black pl-1 pr-1" (click)="this.vistaMenu = !this.vistaMenu">Bienvenido {{ this.loginService.usuario.nombre_usuario }}</button>
 			@if (this.vistaMenu === true) {

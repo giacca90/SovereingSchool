@@ -1,6 +1,6 @@
 <div class="relative m-2 flex flex-grow flex-col items-center rounded-lg border border-black p-2">
 	@if (this.curso?.imagen_curso) {
-		<img class="absolute -z-10 h-full content-center opacity-20" [src]="this.curso?.imagen_curso" alt="" />
+		<img class="absolute -z-10 h-full content-center opacity-20" [src]="this.curso?.imagen_curso" alt="curso" />
 	}
 	@if (this.curso) {
 		<div class="flex">
@@ -54,7 +54,7 @@
 				<div class="m-2 flex w-2/5 flex-col">
 					<video id="video" controls [src]="'http://localhost:8090/' + this.loginService.usuario?.id_usuario + '/' + this.curso?.id_curso + '/' + this.editar.id_clase"></video>
 					<div class="flex">
-						<label for="video-upload" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center"> Sube un Video </label>
+						<label for="video-upload" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
 						<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
 					</div>
 				</div>
