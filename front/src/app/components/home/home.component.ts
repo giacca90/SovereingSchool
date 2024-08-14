@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { Usuario } from '../../models/Usuario';
 import { CursosService } from '../../services/cursos.service';
@@ -22,7 +22,9 @@ export class HomeComponent {
 		public initService: InitService,
 		private cdr: ChangeDetectorRef,
 		public router: Router,
-	) {}
+	) {
+		afterNextRender(() => this.carouselProfes());
+	}
 
 	async carouselProfes() {
 		const carouselProfes: HTMLDivElement[] = [];

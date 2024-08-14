@@ -40,7 +40,6 @@ export class InitService {
 					this.cursoService.cursos.push(new Curso(curso.id_curso, curso.nombre_curso, profes, curso.descriccion_corta, curso.imagen_curso));
 				});
 				this.estadistica = response.estadistica;
-				sub.unsubscribe();
 			},
 			error(e: Error) {
 				console.error('Error en init: ' + e.message);
