@@ -207,4 +207,27 @@ public class UsuarioCursosService implements IUsuarioCursosService {
             return false;
         }
     }
+
+    public Long getStatus(Long id_usuario, Long id_curso) {
+        UsuarioCursos uc = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
+        if (uc != null) {
+            if (uc.getRol_usuario() < 2) {
+                return this.cursoRepository.findById(id_curso).get().getClases_curso().get(0).getId_clase();
+            } else {
+                List<StatusCurso> lst = uc.getCursos();
+                for (StatusCurso sc : lst) {
+                    if (sc.getId_curso().equals(id_curso)) {
+                        List<StatusClase> lscl = sc.getClases();
+                        for (StatusClase scl : lscl) {
+                            if (!scl.isCompleted()) {
+                                return scl.getId_clase();
+                            }
+                        }
+                        return lscl.get(0).getId_clase();
+                    }
+                }
+            }
+        }
+        return 0L;
+    }
 }

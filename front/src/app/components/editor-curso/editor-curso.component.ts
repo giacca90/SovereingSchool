@@ -140,14 +140,11 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 
 	compruebaCambios() {
 		this.cursoService.getCurso(this.id_curso).then((curso) => {
-			console.log('NUEVO: ' + JSON.stringify(this.curso));
-			console.log('VIEJO: ' + JSON.stringify(curso));
 			this.editado = JSON.stringify(this.curso) !== JSON.stringify(curso);
 		});
 	}
 
 	updateCurso() {
-		console.log('Se envia: ' + JSON.stringify(this.curso));
 		this.subscription.add(
 			this.cursoService.updateCurso(this.curso).subscribe({
 				next: (success: boolean) => {
@@ -171,7 +168,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	guardarCambiosClase() {
-		console.log('GUARDAR CAMBIOS');
 		if (this.editar && this.curso) {
 			this.editar.curso_clase = this.curso?.id_curso;
 			if (this.curso.id_curso === 0) {
@@ -240,7 +236,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				vid.src = e.target.result as string;
 				if (input.files)
 					this.cursoService.subeVideo(input.files[0]).subscribe((result) => {
-						console.log('Video subido: ' + result);
 						if (result) {
 							const edit: Clase = JSON.parse(JSON.stringify(this.editar));
 							edit.curso_clase = this.curso?.id_curso;
@@ -300,7 +295,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	keyEvent(event: KeyboardEvent) {
-		console.log('LOG');
 		if (event.key === 'Enter') {
 			document.getElementById('video-upload')?.click();
 		}

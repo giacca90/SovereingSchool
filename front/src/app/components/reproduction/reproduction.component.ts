@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Clase } from '../../models/Clase';
@@ -27,7 +27,6 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 		@Inject(PLATFORM_ID) private platformId: object,
 		public cursoService: CursosService,
 		public router: Router,
-		private cdr: ChangeDetectorRef,
 	) {
 		this.isBrowser = isPlatformBrowser(platformId);
 	}
@@ -38,7 +37,19 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.id_usuario = params['id_usuario'];
 				this.id_curso = params['id_curso'];
 				this.id_clase = params['id_clase'];
-				this.loadData();
+				if (this.id_clase == 0) {
+					this.cursoService.getStatusCurso(this.id_usuario, this.id_curso).subscribe({
+						next: (resp: number) => {
+							if (resp === 0) {
+								this.router.navigate(['/']);
+							} else {
+								this.router.navigate(['repro/' + this.id_usuario + '/' + this.id_curso + '/' + resp]);
+							}
+						},
+					});
+				} else {
+					this.loadData();
+				}
 			}),
 		);
 	}

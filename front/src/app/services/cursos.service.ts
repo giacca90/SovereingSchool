@@ -10,6 +10,7 @@ import { Usuario } from '../models/Usuario';
 })
 export class CursosService {
 	backURL: string = 'http://localhost:8080';
+	backURLStreaming: string = 'http://localhost:8090';
 	public cursos: Curso[] = [];
 
 	constructor(private http: HttpClient) {}
@@ -208,7 +209,6 @@ export class CursosService {
 			return this.editClass(editar).pipe(
 				map((resp: boolean) => {
 					if (resp) {
-						console.log('EDITCLASE');
 						return true;
 					} else {
 						console.error('Error en actualizar!!!');
@@ -221,5 +221,13 @@ export class CursosService {
 				}),
 			);
 		}
+	}
+
+	getStatusCurso(id_usuario: number, id_curso: number): Observable<number> {
+		return this.http.get<number>(this.backURLStreaming + '/status/' + id_usuario + '/' + id_curso).pipe(
+			map((response: number) => {
+				return response;
+			}),
+		);
 	}
 }

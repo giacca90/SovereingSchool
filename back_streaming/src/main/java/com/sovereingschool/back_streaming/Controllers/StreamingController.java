@@ -64,9 +64,7 @@ public class StreamingController {
             System.err.println("El video no tiene ruta");
             return ResponseEntity.notFound().build();
         }
-        System.out.println("RUTA RECIBIDA: " + direccion_video);
         Path videoPath = Paths.get(direccion_video);
-        System.out.println("RUTA RECIBIDA2: " + videoPath.toString());
 
         if (!Files.exists(videoPath)) {
             return ResponseEntity.notFound().build();
@@ -120,6 +118,15 @@ public class StreamingController {
             return new ResponseEntity<String>("Iniciado mongo con exito!!!", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/status/{id_usuario}/{id_curso}")
+    public ResponseEntity<?> getStatus(@PathVariable Long id_usuario, @PathVariable Long id_curso) {
+        try {
+            return new ResponseEntity<Long>(this.usuarioCursosService.getStatus(id_usuario, id_curso), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en obtener la clase: " + e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
