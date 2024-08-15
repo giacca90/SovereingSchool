@@ -7,9 +7,9 @@
 	<video id="video" controls class="z-0 w-full"></video>
 </div>
 <div class="relative m-2 flex rounded-lg border border-black p-2">
-	<div class="w-3/4">
+	<div class="flex w-3/4 flex-col">
 		@if (this.clase) {
-			<h3>{{ this.clase.nombre_clase }}</h3>
+			<h3 class="text-center font-bold text-green-700">{{ this.clase.nombre_clase }}</h3>
 			<p>{{ this.clase.contenido_clase }}</p>
 		} @else {
 			<h3>NO HAY CLASE CARGADA</h3>

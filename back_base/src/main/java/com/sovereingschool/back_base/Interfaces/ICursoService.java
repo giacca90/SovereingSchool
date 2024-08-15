@@ -34,4 +34,5 @@ public interface ICursoService {
 
     public void deleteClase(Clase clase);
 
+    public void convertVideo(String inputFilePath, String outputFilePath);
 }

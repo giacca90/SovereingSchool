@@ -40,7 +40,8 @@ import com.sovereingschool.back_base.Models.Usuario;
 @CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
 public class CursoController {
 
-	private String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos";
+	private final String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos";
+	private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
 
 	@Autowired
 	private ICursoService service;
@@ -304,21 +305,35 @@ public class CursoController {
 
 	@PostMapping("/subeVideo")
 	public ResponseEntity<?> create(@RequestParam("video") MultipartFile file) {
+		System.out.println("SE SUBE UN VIDEO");
 		try {
 			if (file.isEmpty()) {
 				return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
 			}
-			// Obtiene el nombre del archivo
-			String fileName = UUID.randomUUID().toString() + "_"
-					+ StringUtils.cleanPath(file.getOriginalFilename()).replaceAll(" ", "_");
-			// Define el path para guardar el archivo
-			Path path = Paths.get(uploadDir, fileName);
+
+			// Genera un nombre único para el archivo
+			String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
+			String uniqueFileName = UUID.randomUUID().toString() + "_"
+					+ originalFileName.replaceAll("!", "").replaceAll(" ", "_");
+
+			// Crea una carpeta para el video basado en el nombre del archivo original
+			Path videoDir = baseUploadDir.resolve(uniqueFileName.substring(0, uniqueFileName.lastIndexOf('.')));
+			Files.createDirectories(videoDir);
+
+			// Define el path para guardar el archivo subido
+			Path filePath = videoDir.resolve(originalFileName.replaceAll("!", "").replaceAll(" ", "_"));
 
 			// Guarda el archivo en el servidor
-			Files.write(path, file.getBytes());
-			return new ResponseEntity<String>(path.toString(), HttpStatus.OK);
+			Files.write(filePath, file.getBytes());
+
+			// Convierte el video usando FFmpeg
+			this.service.convertVideo(filePath.toString(), videoDir.toString());
+
+			return new ResponseEntity<String>(videoDir.toString() + "/master.m3u8",
+					HttpStatus.OK);
 		} catch (IOException e) {
-			return new ResponseEntity<>("Error en subir el video: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("Error en subir o convertir el video: " + e.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

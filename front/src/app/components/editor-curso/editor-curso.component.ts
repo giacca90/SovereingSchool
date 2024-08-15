@@ -236,11 +236,14 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				vid.src = e.target.result as string;
 				if (input.files)
 					this.cursoService.subeVideo(input.files[0]).subscribe((result) => {
-						if (result) {
+						if (result && this.curso?.clases_curso) {
+							console.log('LOG: ' + result);
 							const edit: Clase = JSON.parse(JSON.stringify(this.editar));
 							edit.curso_clase = this.curso?.id_curso;
 							edit.direccion_clase = result;
 							this.editar = JSON.parse(JSON.stringify(edit));
+							if (this.editar) this.curso.clases_curso[this.curso?.clases_curso?.findIndex((clase) => clase.id_clase === this.editar?.id_clase)] = this.editar;
+							this.cursoService.updateCurso(this.curso);
 						}
 					});
 			}
