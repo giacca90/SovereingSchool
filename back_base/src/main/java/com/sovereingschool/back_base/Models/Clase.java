@@ -1,6 +1,7 @@
 package com.sovereingschool.back_base.Models;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -52,4 +53,18 @@ public class Clase implements Serializable {
     @JoinColumn(name = "id_curso", nullable = false)
     @JsonBackReference
     private Curso curso_clase;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id_clase, direccion_clase, contenido_clase, posicion_clase, nombre_clase);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        Clase clase = (Clase) o;
+        return this.id_clase == clase.id_clase && this.nombre_clase == clase.nombre_clase
+                && this.descriccion_clase == clase.descriccion_clase && this.contenido_clase == clase.contenido_clase
+                && this.direccion_clase == clase.direccion_clase;
+    }
+
 }

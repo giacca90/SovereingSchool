@@ -192,7 +192,7 @@ export class CursosService {
 				map((resp: boolean) => {
 					if (resp && editar.curso_clase) {
 						this.getCurso(editar.curso_clase).then((response) => {
-							return of(response);
+							return response;
 						});
 						return false;
 					} else {

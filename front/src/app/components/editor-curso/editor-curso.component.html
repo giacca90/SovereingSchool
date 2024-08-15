@@ -52,7 +52,10 @@
 			<input class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" type="text" placeholder="Pon un nombre a tu Clase" [(ngModel)]="editar.nombre_clase" />
 			<div class="flex">
 				<div class="m-2 flex w-2/5 flex-col">
-					<video id="video" controls [src]="'http://localhost:8090/' + this.loginService.usuario?.id_usuario + '/' + this.curso?.id_curso + '/' + this.editar.id_clase"></video>
+					<video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="640" height="360">
+						<source src="http://localhost:8090/{{ this.loginService.usuario?.id_usuario }}/{{ this.curso?.id_curso }}/{{ this.editar.id_clase }}" type="application/x-mpegURL" />
+						Your browser does not support the video tag.
+					</video>
 					<div class="flex">
 						<label for="video-upload" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
 						<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />

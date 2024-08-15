@@ -94,7 +94,11 @@ public class CursoService implements ICursoService {
         if (!respuesta.isPresent())
             return null;
         Curso oldCurso = respuesta.get();
+        for (Clase clase : oldCurso.getClases_curso()) {
+            System.out.println("OLD: " + clase.getDireccion_clase());
+        }
         for (Clase clase : curso.getClases_curso()) {
+            System.out.println(clase.getDireccion_clase());
             if (!oldCurso.getClases_curso().contains(clase)) {
                 if (clase.getId_clase() == 0) {
                     clase = this.claseRepo.save(clase);

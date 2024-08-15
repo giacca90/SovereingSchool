@@ -207,15 +207,17 @@ public class CursoController {
 	@PutMapping("/{idCurso}/editClase")
 	public ResponseEntity<?> update(@PathVariable Long idCurso, @RequestBody Clase clase) {
 		try {
+			System.out.println("LOG: " + clase.getDireccion_clase());
 			Curso curso = this.service.getCurso(idCurso);
 			if (curso == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
 			List<Clase> clases = curso.getClases_curso();
-			for (Clase claseVieja : clases) {
-				if (claseVieja.getId_clase().equals(clase.getId_clase())) {
+			for (int i = 0; i < clases.size(); i++) {
+				if (clases.get(i).getId_clase().equals(clase.getId_clase())) {
 					clase.setCurso_clase(curso);
-					claseVieja = clase;
+					clases.set(i, clase);
 					curso.setClases_curso(clases);
+					System.out.println("LOG: " + curso.getClases_curso().get(0).getDireccion_clase());
 					this.service.updateCurso(curso);
 					clase.getCurso_clase().setClases_curso(null);
 					clase.getCurso_clase().setProfesores_curso(null);
