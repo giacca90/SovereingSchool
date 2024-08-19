@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import videojs from 'video.js';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
@@ -75,24 +76,20 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	private async getVideo() {
 		try {
 			const video: HTMLVideoElement = document.getElementById('video') as HTMLVideoElement;
-			const xhr = new XMLHttpRequest();
-			xhr.open('GET', `http://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}`);
-			xhr.responseType = 'blob';
-			xhr.onload = () => {
-				if (xhr.status === 200) {
-					const videoBlob = xhr.response;
-					const videoUrl = URL.createObjectURL(videoBlob);
-					video.src = videoUrl;
-					this.loading = false;
-					video.play();
-				} else {
-					console.error('Failed to load video:', xhr.status, xhr.statusText);
-				}
-			};
-			xhr.onerror = () => {
-				console.error('Network error while loading video.');
-			};
-			xhr.send();
+
+			if (video) {
+				const player = videojs(video, {
+					controls: true,
+					autoplay: true,
+					preload: 'auto',
+				});
+				player.src({
+					src: `http://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
+					type: 'application/x-mpegURL',
+				});
+
+				this.loading = false;
+			}
 		} catch (error) {
 			console.error('Error loading video:', error);
 		}

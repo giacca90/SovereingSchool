@@ -55,23 +55,81 @@ public class StreamingController {
     @Autowired
     private UsuarioCursosService usuarioCursosService;
 
-    @GetMapping("/{id_usuario}/{id_curso}/{id_clase}")
-    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable Long id_usuario, @PathVariable Long id_curso,
+    @GetMapping("/{id_usuario}/{id_curso}/{id_clase}/{lista}")
+    public ResponseEntity<InputStreamResource> getListas(@PathVariable Long id_usuario, @PathVariable Long id_curso,
             @PathVariable Long id_clase,
+            @PathVariable String lista,
             @RequestHeader HttpHeaders headers) throws IOException {
-        String direccion_video = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
-        if (direccion_video == null) {
+        System.out.println("LOG");
+
+        String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
+        System.out.println("LOG2: " + direccion_carpeta);
+        if (direccion_carpeta == null) {
             System.err.println("El video no tiene ruta");
             return ResponseEntity.notFound().build();
         }
-        Path videoPath = Paths.get(direccion_video);
 
+        Path carpetaPath = Paths.get(direccion_carpeta);
+
+        Path videoPath = carpetaPath.resolve(lista);
+
+        System.out.println("LOG 3" + videoPath.toString());
         if (!Files.exists(videoPath)) {
+            System.err.println("No existe el archivo: " + videoPath);
             return ResponseEntity.notFound().build();
         }
 
         // Obtener el tipo MIME del video
         String contentType = Files.probeContentType(videoPath);
+        System.out.println("LOG4: " + contentType);
+
+        // Configurar las cabeceras de la respuesta
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.parseMediaType(contentType));
+        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline");
+        responseHeaders.add(HttpHeaders.CACHE_CONTROL, "no-store");
+        responseHeaders.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+        long fileLength = Files.size(videoPath);
+        System.out.println("Log5: " + videoPath.toString().substring(videoPath.toString().lastIndexOf(".")));
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(fileLength)
+                .headers(responseHeaders)
+                .body(new InputStreamResource(Files.newInputStream(videoPath)));
+
+    }
+
+    @GetMapping("/{id_usuario}/{id_curso}/{id_clase}/{lista}/{video}")
+    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable Long id_usuario, @PathVariable Long id_curso,
+            @PathVariable Long id_clase,
+            @PathVariable String lista,
+            @PathVariable String video,
+            @RequestHeader HttpHeaders headers) throws IOException {
+        System.out.println("LOG");
+
+        String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
+        System.out.println("LOG2: " + direccion_carpeta);
+        if (direccion_carpeta == null) {
+            System.err.println("El video no tiene ruta");
+            return ResponseEntity.notFound().build();
+        }
+
+        Path carpetaPath = Paths.get(direccion_carpeta);
+
+        Path videoPath = carpetaPath.resolve(lista);
+
+        videoPath = videoPath.resolve(video);
+
+        System.out.println("LOG 3" + videoPath.toString());
+        if (!Files.exists(videoPath)) {
+            System.err.println("No existe el archivo: " + videoPath);
+            return ResponseEntity.notFound().build();
+        }
+
+        // Obtener el tipo MIME del video
+        String contentType = Files.probeContentType(videoPath);
+        System.out.println("LOG4: " + contentType);
 
         // Configurar las cabeceras de la respuesta
         HttpHeaders responseHeaders = new HttpHeaders();
@@ -83,6 +141,7 @@ public class StreamingController {
         long fileLength = Files.size(videoPath);
         List<HttpRange> ranges = headers.getRange();
         if (ranges.isEmpty()) {
+            System.out.println("Log5: " + videoPath.toString().substring(videoPath.toString().lastIndexOf(".")));
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .contentLength(fileLength)

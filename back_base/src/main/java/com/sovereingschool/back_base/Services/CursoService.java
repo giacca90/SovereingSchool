@@ -2,9 +2,12 @@ package com.sovereingschool.back_base.Services;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -94,11 +97,7 @@ public class CursoService implements ICursoService {
         if (!respuesta.isPresent())
             return null;
         Curso oldCurso = respuesta.get();
-        for (Clase clase : oldCurso.getClases_curso()) {
-            System.out.println("OLD: " + clase.getDireccion_clase());
-        }
         for (Clase clase : curso.getClases_curso()) {
-            System.out.println(clase.getDireccion_clase());
             if (!oldCurso.getClases_curso().contains(clase)) {
                 if (clase.getId_clase() == 0) {
                     clase = this.claseRepo.save(clase);
@@ -166,7 +165,7 @@ public class CursoService implements ICursoService {
     }
 
     @Override
-    public void convertVideo(String inputFilePath, String outputDir) {
+    public void convertVideo(String inputFilePath) {
         // Construye el comando FFmpeg
         // Extrae el directorio y el nombre del archivo de entrada
         Path inputPath = Paths.get(inputFilePath);
@@ -177,31 +176,27 @@ public class CursoService implements ICursoService {
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "ffmpeg",
                 "-i", inputFileName,
+                "-filter_complex",
+                "[0:v]split=3[v1][v2][v3]; [v1]copy[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]",
+                "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0", "5M",
+                "-bufsize:v:0", "10M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-minrate:v:1", "3M",
+                "-bufsize:v:1", "3M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2", "1M",
+                "-bufsize:v:2", "1M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ac", "2",
+                "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
+                "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
+                "-f", "hls",
+                "-hls_time", "5",
+                "-hls_playlist_type", "vod",
+                "-hls_flags", "independent_segments",
+                "-hls_segment_type", "mpegts",
+                "-hls_segment_filename", "stream_%v/data%02d.ts",
+                "-hls_base_url", "stream_%v/",
                 "-master_pl_name", "master.m3u8",
-                "-f", "hls",
-                "-hls_time", "10",
-                "-hls_list_size", "0",
-                "-hls_segment_filename", "360p_%03d.ts",
-                "-vf", "scale=w=640:h=360:force_original_aspect_ratio=decrease",
-                "-c:v", "libx264", "-b:v", "800k", "-preset", "fast", "-profile:v", "baseline",
-                "-g", "48", "-keyint_min", "48", "-sc_threshold", "0", "-b:a", "96k", "-ac", "1", "-ar", "44100",
-                "360p.m3u8",
-                "-f", "hls",
-                "-hls_time", "10",
-                "-hls_list_size", "0",
-                "-hls_segment_filename", "480p_%03d.ts",
-                "-vf", "scale=w=842:h=480:force_original_aspect_ratio=decrease",
-                "-c:v", "libx264", "-b:v", "1200k", "-preset", "fast", "-profile:v", "baseline",
-                "-g", "48", "-keyint_min", "48", "-sc_threshold", "0", "-b:a", "128k", "-ac", "1", "-ar", "44100",
-                "480p.m3u8",
-                "-f", "hls",
-                "-hls_time", "10",
-                "-hls_list_size", "0",
-                "-hls_segment_filename", "720p_%03d.ts",
-                "-vf", "scale=w=1280:h=720:force_original_aspect_ratio=decrease",
-                "-c:v", "libx264", "-b:v", "2500k", "-preset", "fast", "-profile:v", "baseline",
-                "-g", "48", "-keyint_min", "48", "-sc_threshold", "0", "-b:a", "192k", "-ac", "1", "-ar", "44100",
-                "720p.m3u8");
+                "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2",
+                "stream_%v.m3u8");
 
         // Establece el directorio de trabajo al directorio que contiene el archivo de
         // entrada
@@ -224,6 +219,29 @@ public class CursoService implements ICursoService {
             int exitCode = process.waitFor();
             if (exitCode != 0) {
                 throw new IOException("FFmpeg process failed with exit code " + exitCode);
+            } else {
+                List<Path> m3u8Files = new ArrayList<>();
+                DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(inputDir), "*.m3u8");
+                for (Path entry : stream) {
+                    if (!entry.endsWith("master.m3u8"))
+                        m3u8Files.add(entry);
+                }
+                for (Path m3u8File : m3u8Files) {
+                    String fileName = m3u8File.toString().substring(m3u8File.toString().lastIndexOf("/") + 1,
+                            m3u8File.toString().lastIndexOf("."));
+                    List<String> lines = Files.readAllLines(m3u8File, StandardCharsets.UTF_8);
+                    List<String> modifiedLines = new ArrayList<>();
+
+                    for (String line : lines) {
+                        // Modifica la línea según tus necesidades
+                        if (line.startsWith("stream_%v/")) {
+                            line = line.replace("stream_%v/", fileName + "/");
+                        }
+                        modifiedLines.add(line);
+                    }
+
+                    Files.write(m3u8File, modifiedLines, StandardCharsets.UTF_8);
+                }
             }
         } catch (Exception e) {
             System.err.println("Error en convertir el video: " + e.getCause());

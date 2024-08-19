@@ -1,7 +1,8 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import videojs from 'video.js';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
@@ -15,13 +16,14 @@ import { LoginService } from '../../services/login.service';
 	templateUrl: './editor-curso.component.html',
 	styleUrl: './editor-curso.component.css',
 })
-export class EditorCursoComponent implements OnInit, OnDestroy {
+export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked {
 	private subscription: Subscription = new Subscription();
 	id_curso: number = 0;
 	curso: Curso | null = null;
 	draggedElementId: number | null = null;
 	editado: boolean = false;
 	editar: Clase | null = null;
+	videoPlayer: HTMLVideoElement | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -59,6 +61,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 			}),
 		);
 	}
+
 	ngOnDestroy(): void {
 		this.subscription.unsubscribe();
 	}
@@ -243,7 +246,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		const reader = new FileReader();
 		reader.onload = (e: ProgressEvent<FileReader>) => {
 			if (e.target) {
-				const vid: HTMLVideoElement = document.getElementById('video') as HTMLVideoElement;
+				const vid: HTMLVideoElement = document.getElementById('videoPlayer') as HTMLVideoElement;
 				vid.src = e.target.result as string;
 				if (input.files)
 					this.cursoService.subeVideo(input.files[0]).subscribe((result) => {
@@ -308,6 +311,24 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	keyEvent(event: KeyboardEvent) {
 		if (event.key === 'Enter') {
 			document.getElementById('video-upload')?.click();
+		}
+	}
+
+	ngAfterViewChecked(): void {
+		if (this.editar && !this.videoPlayer) {
+			console.log('NGAFTER...');
+			this.videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
+			if (this.videoPlayer) {
+				const player = videojs(this.videoPlayer, {
+					controls: true,
+					autoplay: false,
+					preload: 'auto',
+				});
+				player.src({
+					src: `http://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
+					type: 'application/x-mpegURL',
+				});
+			}
 		}
 	}
 }

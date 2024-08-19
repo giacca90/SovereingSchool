@@ -329,9 +329,9 @@ public class CursoController {
 			Files.write(filePath, file.getBytes());
 
 			// Convierte el video usando FFmpeg
-			this.service.convertVideo(filePath.toString(), videoDir.toString());
+			this.service.convertVideo(filePath.toString());
 
-			return new ResponseEntity<String>(videoDir.toString() + "/master.m3u8",
+			return new ResponseEntity<String>(videoDir.toString(),
 					HttpStatus.OK);
 		} catch (IOException e) {
 			return new ResponseEntity<>("Error en subir o convertir el video: " + e.getMessage(),
