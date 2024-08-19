@@ -7,3 +7,5 @@
 > Con Server Side Rendering.
 
 > Utiliza TailwindCSS 3.
+
+> Reproducción de videos adaptativo con Video.js.

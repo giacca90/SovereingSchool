@@ -201,6 +201,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 						next: (response: boolean) => {
 							if (response) {
 								this.initService.carga();
+								this.editado = false;
 								this.editar = null;
 							} else {
 								console.error('Error en actualizar la clase');
@@ -239,6 +240,13 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	cargaVideo(event: Event) {
+		const button = document.getElementById('video-upload-button') as HTMLSpanElement;
+		button.classList.remove('border-black');
+		button.classList.add('border-gray-500', 'text-gray-500');
+		const button_guardar_clase = document.getElementById('button-guardar-clase') as HTMLButtonElement;
+		button_guardar_clase.classList.remove('border-black');
+		button_guardar_clase.classList.add('border-gray-500', 'text-gray-500');
+		button_guardar_clase.disabled = true;
 		const input = event.target as HTMLInputElement;
 		if (!input.files) {
 			return;
@@ -254,6 +262,11 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 							console.log('LOG: ' + result);
 							this.editar.direccion_clase = result;
 							this.editar.curso_clase = this.curso.id_curso;
+							button.classList.remove('border-gray-500', 'text-gray-500');
+							button.classList.add('border-black');
+							button_guardar_clase.classList.remove('border-gray-500', 'text-gray-500');
+							button_guardar_clase.classList.add('border-black');
+							button_guardar_clase.disabled = false;
 							this.editado = true;
 						}
 					});
@@ -316,7 +329,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 	ngAfterViewChecked(): void {
 		if (this.editar && !this.videoPlayer) {
-			console.log('NGAFTER...');
 			this.videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
 			if (this.videoPlayer) {
 				const player = videojs(this.videoPlayer, {

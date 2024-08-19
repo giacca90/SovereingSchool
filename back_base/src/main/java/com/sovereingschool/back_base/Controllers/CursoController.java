@@ -207,7 +207,6 @@ public class CursoController {
 	@PutMapping("/{idCurso}/editClase")
 	public ResponseEntity<?> update(@PathVariable Long idCurso, @RequestBody Clase clase) {
 		try {
-			System.out.println("LOG: " + clase.getDireccion_clase());
 			Curso curso = this.service.getCurso(idCurso);
 			if (curso == null)
 				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
@@ -307,7 +306,6 @@ public class CursoController {
 
 	@PostMapping("/subeVideo")
 	public ResponseEntity<?> create(@RequestParam("video") MultipartFile file) {
-		System.out.println("SE SUBE UN VIDEO");
 		try {
 			if (file.isEmpty()) {
 				return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);

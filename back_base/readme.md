@@ -9,3 +9,5 @@
 > Utiliza base de datos PostgreSQL.
 
 > Utiliza Hibernate con JPA y consultas JPQL.
+
+> Conversión y servicio de videos HLS con FFMPEG.

@@ -54,7 +54,7 @@
 				<div class="m-2 flex w-2/5 flex-col">
 					<video id="videoPlayer" src="" class="video-js vjs-default-skin w-full"></video>
 					<div class="flex">
-						<label for="video-upload" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
+						<label for="video-upload" id="video-upload-button" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
 						<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
 					</div>
 				</div>
@@ -63,7 +63,7 @@
 					<textarea class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" rows="5" placeholder="Aquí es donde va todo el contenido de tu clase, todo lo que no esté en el video u en otros contenidos." [(ngModel)]="editar.contenido_clase"></textarea>
 				</div>
 			</div>
-			<button type="button" class="m-2 rounded-lg border border-black bg-transparent p-2" (click)="guardarCambiosClase()">Guardar Cambios</button>
+			<button id="button-guardar-clase" type="button" class="m-2 rounded-lg border border-black bg-transparent p-2" (click)="guardarCambiosClase()">Guardar Cambios</button>
 		</div>
 	</div>
 }

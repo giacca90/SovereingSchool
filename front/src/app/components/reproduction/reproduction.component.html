@@ -6,7 +6,8 @@
 	}
 	<video id="video" controls class="video-js vjs-default-skin z-0 w-full"></video>
 </div>
-<div class="relative m-2 flex rounded-lg border border-black p-2">
+<div class="relative m-2 flex rounded-lg border border-black">
+	<img class="absolute -z-10 h-full w-full object-cover object-center opacity-20" [src]="this.curso?.imagen_curso" alt="curso" />
 	<div class="flex w-3/4 flex-col">
 		@if (this.clase) {
 			<h3 class="text-center font-bold text-green-700">{{ this.clase.nombre_clase }}</h3>
