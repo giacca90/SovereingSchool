@@ -2,20 +2,13 @@ package com.sovereingschool.back_base.Controllers;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,9 +32,6 @@ import com.sovereingschool.back_base.Models.Usuario;
 @RequestMapping("/cursos")
 @CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
 public class CursoController {
-
-	private final String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos";
-	private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
 
 	@Autowired
 	private ICursoService service;
@@ -156,20 +146,16 @@ public class CursoController {
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<Map<String, Object>> updateCurso(@RequestBody Curso curso) {
-		Map<String, Object> response = new HashMap<>();
+	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
 		try {
 			Curso result = this.service.updateCurso(curso);
 			if (result == null) {
-				response.put("message", "Curso no encontrado");
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>("Curso no encontrado", HttpStatus.NOT_FOUND);
 			}
-
-			response.put("message", "Curso actualizado con éxito!!!");
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>("Curso actualizado con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
-			response.put("message", "Error interno del servidor");
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("Error en actualizar el curso: " + e.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -276,25 +262,6 @@ public class CursoController {
 				curso.setClases_curso(clases);
 				this.service.updateCurso(curso);
 				this.service.deleteClase(eliminada);
-
-				WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
-				webClient.delete()
-						.uri("/deleteClase/" + curso.getId_curso() + "/" + idClase)
-						.retrieve()
-						.bodyToMono(Boolean.class)
-						.doOnError(e -> {
-							// Manejo de errores
-							System.err.println("ERROR: " + e.getMessage());
-							e.printStackTrace();
-						}).subscribe(res -> {
-							// Maneja el resultado cuando esté disponible
-							if (res != null && res) {
-								System.out.println("Actualización exitosa");
-							} else {
-								System.err.println("Error en actualizar el curso en el servicio de reproducción");
-							}
-						});
-
 				return new ResponseEntity<String>("Clase eliminada con exito!!!", HttpStatus.OK);
 			}
 			return new ResponseEntity<>("Clase no encontrada", HttpStatus.NOT_FOUND);
@@ -305,35 +272,15 @@ public class CursoController {
 	}
 
 	@PostMapping("/subeVideo")
-	public ResponseEntity<?> create(@RequestParam("video") MultipartFile file) {
-		try {
-			if (file.isEmpty()) {
-				return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
-			}
-
-			// Genera un nombre único para el archivo
-			String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-			String uniqueFileName = UUID.randomUUID().toString() + "_"
-					+ originalFileName.replaceAll("!", "").replaceAll(" ", "_");
-
-			// Crea una carpeta para el video basado en el nombre del archivo original
-			Path videoDir = baseUploadDir.resolve(uniqueFileName.substring(0, uniqueFileName.lastIndexOf('.')));
-			Files.createDirectories(videoDir);
-
-			// Define el path para guardar el archivo subido
-			Path filePath = videoDir.resolve(originalFileName.replaceAll("!", "").replaceAll(" ", "_"));
-
-			// Guarda el archivo en el servidor
-			Files.write(filePath, file.getBytes());
-
-			// Convierte el video usando FFmpeg
-			this.service.convertVideo(filePath.toString());
-
-			return new ResponseEntity<String>(videoDir.toString(),
-					HttpStatus.OK);
-		} catch (IOException e) {
-			return new ResponseEntity<>("Error en subir o convertir el video: " + e.getMessage(),
-					HttpStatus.INTERNAL_SERVER_ERROR);
+	public ResponseEntity<?> subeVideo(@RequestParam("video") MultipartFile file) throws IOException {
+		if (file.isEmpty()) {
+			return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
 		}
+		String filePath = this.service.subeVideo(file);
+		String videoDir = filePath.substring(0, filePath.lastIndexOf("/"));
+		// Función asíncrona
+		this.service.convertVideo(filePath);
+
+		return new ResponseEntity<String>(videoDir.toString(), HttpStatus.OK);
 	}
 }

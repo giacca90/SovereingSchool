@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.sovereingschool.back_base.Models.Clase;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
@@ -35,4 +37,6 @@ public interface ICursoService {
     public void deleteClase(Clase clase);
 
     public void convertVideo(String inputFilePath);
+
+    public String subeVideo(MultipartFile file);
 }

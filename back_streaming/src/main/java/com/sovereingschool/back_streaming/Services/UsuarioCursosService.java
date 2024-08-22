@@ -230,4 +230,28 @@ public class UsuarioCursosService implements IUsuarioCursosService {
         }
         return 0L;
     }
+
+    public boolean deleteCurso(Long id) {
+        // Encuentra el documento que contiene el curso específico
+        Query query = new Query();
+        query.addCriteria(Criteria.where("cursos.id_curso").is(id));
+        List<UsuarioCursos> usuarioCursos = mongoTemplate.find(query, UsuarioCursos.class);
+
+        if (usuarioCursos == null || usuarioCursos.size() == 0) {
+            System.err.println("No se encontró el documento.");
+            return false;
+        }
+
+        for (UsuarioCursos UC : usuarioCursos) {
+            List<StatusCurso> statusCurso = UC.getCursos();
+            for (int i = 0; i < statusCurso.size(); i++) {
+                if (statusCurso.get(i).getId_curso().equals(id)) {
+                    statusCurso.remove(i);
+                    this.usuarioCursosRepository.save(UC);
+                    break;
+                }
+            }
+        }
+        return true;
+    }
 }

@@ -223,4 +223,14 @@ public class StreamingController {
             return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @DeleteMapping("/deleteCurso/{id}")
+    public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
+        try {
+            this.usuarioCursosService.deleteCurso(id);
+            return new ResponseEntity<>("Destroy Result", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

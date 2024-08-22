@@ -4,17 +4,23 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
@@ -45,6 +51,10 @@ public class CursoService implements ICursoService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    private final String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos";
+    private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
+    private final String backStreamURL = "http://localhost:8090";
 
     @Override
     public Long createCurso(Curso new_curso) {
@@ -102,7 +112,7 @@ public class CursoService implements ICursoService {
             if (!oldCurso.getClases_curso().contains(clase)) {
                 if (clase.getId_clase() == 0) {
                     clase = this.claseRepo.save(clase);
-                    WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
+                    WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
                     webClient.put()
                             .uri("/addClase/" + curso.getId_curso())
                             .body(Mono.just(clase), Clase.class)
@@ -121,6 +131,38 @@ public class CursoService implements ICursoService {
                                 }
                             });
                 } else {
+                    for (Clase oldClase : oldCurso.getClases_curso()) {
+                        if (oldClase.getId_clase().equals(clase.getId_clase())) {
+                            if (!oldClase.getDireccion_clase().equals(clase.getDireccion_clase())) {
+                                Path path = Paths.get(oldClase.getDireccion_clase());
+                                try {
+                                    if (Files.exists(path)) {
+                                        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                                            @Override
+                                            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                                                    throws IOException {
+                                                Files.delete(file);
+                                                return FileVisitResult.CONTINUE;
+                                            }
+
+                                            @Override
+                                            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                                                    throws IOException {
+                                                Files.delete(dir);
+                                                return FileVisitResult.CONTINUE;
+                                            }
+                                        });
+                                        System.out.println("Carpeta eliminada exitosamente.");
+                                    } else {
+                                        System.out.println("La carpeta no existe.");
+                                    }
+                                } catch (Exception e) {
+                                    System.err.println("Error en borrar el video: " + e.getMessage());
+                                }
+                            }
+                        }
+                    }
+                    ;
                     this.claseRepo.updateClase(clase.getId_clase(), clase.getNombre_clase(), clase.getTipo_clase(),
                             clase.getDireccion_clase(), clase.getPosicion_clase());
                 }
@@ -138,6 +180,25 @@ public class CursoService implements ICursoService {
             this.deleteClase(clase);
         });
         this.repo.deleteById(id_curso);
+
+        WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
+        webClient.delete()
+                .uri("/deleteCurso/" + id_curso)
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .doOnError(e -> {
+                    // Manejo de errores
+                    System.err.println("ERROR: " + e.getMessage());
+                    e.printStackTrace();
+                }).subscribe(res -> {
+                    // Maneja el resultado cuando esté disponible
+                    if (res != null && res) {
+                        System.out.println("Curso borrado con exito!!!");
+                    } else {
+                        System.err.println("Error en borrar el curso en el servicio de reproducción");
+                    }
+                });
+
         return "Curso eliminado con éxito!!!";
     }
 
@@ -153,13 +214,45 @@ public class CursoService implements ICursoService {
             this.claseRepo.delete(optionalClase.get());
             Path path = Paths.get(clase.getDireccion_clase());
             try {
-
                 if (Files.exists(path)) {
-                    Files.delete(path);
+                    Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        @Override
+                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                    System.out.println("Carpeta eliminada exitosamente.");
+                } else {
+                    System.out.println("La carpeta no existe.");
                 }
             } catch (Exception e) {
                 System.err.println("Error en borrar el video: " + e.getMessage());
             }
+            WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
+            webClient.delete()
+                    .uri("/deleteClase/" + optionalClase.get().getCurso_clase() + "/" + optionalClase.get())
+                    .retrieve()
+                    .bodyToMono(Boolean.class)
+                    .doOnError(e -> {
+                        // Manejo de errores
+                        System.err.println("ERROR: " + e.getMessage());
+                        e.printStackTrace();
+                    }).subscribe(res -> {
+                        // Maneja el resultado cuando esté disponible
+                        if (res != null && res) {
+                            System.out.println("Actualización exitosa");
+                        } else {
+                            System.err.println("Error en actualizar el curso en el servicio de reproducción");
+                        }
+                    });
+
         } else {
             System.err.println("Clase no encontrada con ID: " + clase.getId_clase());
         }
@@ -244,9 +337,36 @@ public class CursoService implements ICursoService {
 
                     Files.write(m3u8File, modifiedLines, StandardCharsets.UTF_8);
                 }
+                stream.close();
             }
         } catch (Exception e) {
             System.err.println("Error en convertir el video: " + e.getCause());
+        }
+    }
+
+    @Override
+    public String subeVideo(MultipartFile file) {
+        // Genera un nombre único para el archivo
+        try {
+            String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
+            String uniqueFileName = UUID.randomUUID().toString() + "_"
+                    + originalFileName.replaceAll("!", "").replaceAll(" ", "_");
+
+            // Crea una carpeta para el video basado en el nombre del archivo original
+            Path videoDir = baseUploadDir.resolve(uniqueFileName.substring(0, uniqueFileName.lastIndexOf('.')));
+            Files.createDirectories(videoDir);
+
+            // Define el path para guardar el archivo subido
+            Path filePath = videoDir
+                    .resolve(originalFileName.replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", "_"));
+
+            // Guarda el archivo en el servidor
+            Files.write(filePath, file.getBytes());
+            return filePath.toString();
+
+        } catch (Exception e) {
+            System.err.println("Error en subir el video: " + e.getMessage());
+            return null;
         }
     }
 }
