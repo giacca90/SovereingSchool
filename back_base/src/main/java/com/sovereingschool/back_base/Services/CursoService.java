@@ -1,5 +1,6 @@
 package com.sovereingschool.back_base.Services;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -11,10 +12,12 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -345,20 +348,36 @@ public class CursoService implements ICursoService {
     }
 
     @Override
-    public String subeVideo(MultipartFile file) {
-        // Genera un nombre único para el archivo
+    public String subeVideo(MultipartFile file, Long idCurso, Long idClase) {
         try {
-            String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-            String uniqueFileName = UUID.randomUUID().toString() + "_"
-                    + originalFileName.replaceAll("!", "").replaceAll(" ", "_");
+            // Busca la carpeta del curso, y si no existe la crea
+            Path carpetaCursoPath = baseUploadDir.resolve(idCurso.toString());
+            File carpetaCursoFile = new File(carpetaCursoPath.toString());
+            if (!carpetaCursoFile.exists() || !carpetaCursoFile.isDirectory()) {
+                if (idCurso == 0) {
+                    carpetaCursoPath = baseUploadDir.resolve(UUID.randomUUID().toString());
+                }
+                Files.createDirectories(carpetaCursoPath);
+            }
 
-            // Crea una carpeta para el video basado en el nombre del archivo original
-            Path videoDir = baseUploadDir.resolve(uniqueFileName.substring(0, uniqueFileName.lastIndexOf('.')));
-            Files.createDirectories(videoDir);
+            // Busca la carpeta de la clase, y si existe la vacía
+            Path carpetaClasePath = carpetaCursoPath.resolve(idClase.toString());
+            File carpetaClaseFile = new File(carpetaClasePath.toString());
+            if (carpetaClaseFile.exists() && carpetaClaseFile.isDirectory()) {
+                Stream<Path> files = Files.walk(carpetaClasePath);
+                files.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+                files.close();
+            } else {
+                if (idClase == 0) {
+                    carpetaClasePath = carpetaCursoPath.resolve(UUID.randomUUID().toString());
+                }
+                Files.createDirectories(carpetaClasePath);
+            }
 
             // Define el path para guardar el archivo subido
-            Path filePath = videoDir
-                    .resolve(originalFileName.replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", "_"));
+            String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
+            Path filePath = carpetaClasePath
+                    .resolve(originalFileName.replaceAll("[^a-zA-Z0-9\\s.]", "").replaceAll("\\s+", "_"));
 
             // Guarda el archivo en el servidor
             Files.write(filePath, file.getBytes());

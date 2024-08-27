@@ -240,6 +240,11 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	cargaVideo(event: Event) {
+		const input = event.target as HTMLInputElement;
+		if (!input.files) {
+			alert('Sube un video valido!!!');
+			return;
+		}
 		const button = document.getElementById('video-upload-button') as HTMLSpanElement;
 		button.classList.remove('border-black');
 		button.classList.add('border-gray-500', 'text-gray-500');
@@ -247,17 +252,18 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		button_guardar_clase.classList.remove('border-black');
 		button_guardar_clase.classList.add('border-gray-500', 'text-gray-500');
 		button_guardar_clase.disabled = true;
-		const input = event.target as HTMLInputElement;
-		if (!input.files) {
-			return;
-		}
+
 		const reader = new FileReader();
 		reader.onload = (e: ProgressEvent<FileReader>) => {
 			if (e.target) {
 				const vid: HTMLVideoElement = document.getElementById('videoPlayer') as HTMLVideoElement;
 				vid.src = e.target.result as string;
-				if (input.files)
-					this.cursoService.subeVideo(input.files[0]).subscribe((result) => {
+				if (this.editar && !this.editar?.id_clase) {
+					this.editar.id_clase = 0;
+				}
+				if (input.files && this.editar) {
+					console.log('LOG');
+					this.cursoService.subeVideo(input.files[0], this.id_curso, this.editar?.id_clase).subscribe((result) => {
 						if (result && this.curso?.clases_curso && this.editar) {
 							console.log('LOG: ' + result);
 							this.editar.direccion_clase = result;
@@ -270,6 +276,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 							this.editado = true;
 						}
 					});
+				}
 			}
 		};
 		reader.readAsDataURL(input.files[0]);

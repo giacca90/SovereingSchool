@@ -48,12 +48,17 @@ export class CursosService {
 						if (response.status === 200 && response.body) {
 							curso.id_curso = response.body;
 							if (clases) {
-								clases.forEach((clase) => {
+								for (const clase of clases) {
 									clase.curso_clase = curso.id_curso;
-									this.guardarCambiosClase(clase);
-								});
+									this.guardarCambiosClase(clase).pipe(
+										map((res: boolean) => {
+											if (!res) {
+												return false;
+											}
+										}),
+									);
+								}
 							}
-							//this.cursos.push(curso);
 							return true;
 						}
 						return false;
@@ -104,10 +109,18 @@ export class CursosService {
 	createClass(editar: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
-		return this.http.put<string>(this.backURL + '/cursos/' + curso_clase + '/addClase', editar, { responseType: 'text' as 'json' }).pipe(
-			map(() => {
-				this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
-				return true;
+		const ruta: string = this.backURL + '/cursos/' + curso_clase + '/addClase';
+		const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+		console.log('RUTA: ' + ruta);
+		console.log('DATA: ' + JSON.stringify(editar));
+
+		return this.http.put<string>(ruta, editar, { headers, observe: 'response' }).pipe(
+			map((response: HttpResponse<string>) => {
+				if (response.ok) {
+					this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
+					return true;
+				}
+				return false;
 			}),
 			catchError((e: Error) => {
 				console.error('Error en crear la clase: ' + e.message);
@@ -131,11 +144,11 @@ export class CursosService {
 		);
 	}
 
-	subeVideo(file: File): Observable<string | null> {
+	subeVideo(file: File, idCurso: number, idClase: number): Observable<string | null> {
 		const formData = new FormData();
 		formData.append('video', file, file.name);
 
-		return this.http.post<string>(this.backURL + '/cursos/subeVideo', formData, { responseType: 'text' as 'json' }).pipe(
+		return this.http.post<string>(this.backURL + '/cursos/subeVideo/' + idCurso + '/' + idClase, formData, { responseType: 'text' as 'json' }).pipe(
 			map((response) => {
 				return response;
 			}),
@@ -192,7 +205,8 @@ export class CursosService {
 				map((resp: boolean) => {
 					if (resp && editar.curso_clase) {
 						this.getCurso(editar.curso_clase).then((response) => {
-							return response;
+							console.log(response);
+							return true;
 						});
 						return false;
 					} else {

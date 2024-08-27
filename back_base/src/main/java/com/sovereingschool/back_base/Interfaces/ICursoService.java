@@ -38,5 +38,5 @@ public interface ICursoService {
 
     public void convertVideo(String inputFilePath);
 
-    public String subeVideo(MultipartFile file);
+    public String subeVideo(MultipartFile file, Long idCurso, Long idClase);
 }

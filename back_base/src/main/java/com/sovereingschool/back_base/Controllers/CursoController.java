@@ -2,6 +2,10 @@ package com.sovereingschool.back_base.Controllers;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -217,6 +221,7 @@ public class CursoController {
 
 	@PutMapping("/{idCurso}/addClase")
 	public ResponseEntity<?> addClase(@PathVariable Long idCurso, @RequestBody Clase clase) {
+		System.out.println("ADDCLASEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
 		try {
 			Curso curso = this.service.getCurso(idCurso);
 			if (curso == null)
@@ -230,12 +235,23 @@ public class CursoController {
 						clase.setPosicion_clase((clases.size()) + 1);
 				});
 			clase.setCurso_clase(curso);
-			clases.add(clase);
+			String direccion_clase = clase.getDireccion_clase();
+			Path clasePath = Paths.get(direccion_clase);
+			Path cursoPath = clasePath.getParent();
+			Path padre = cursoPath.getParent();
+			if (!cursoPath.toString().equals(padre.resolve(idCurso.toString()))) {
+				Path nuevoCurso = padre.resolve(idCurso.toString());
+				Files.move(cursoPath, nuevoCurso, StandardCopyOption.REPLACE_EXISTING);
+				cursoPath = nuevoCurso;
+			}
+			Path nuevaClase = cursoPath.resolve(clase.getId_clase().toString());
+			Files.move(clasePath, nuevaClase, StandardCopyOption.REPLACE_EXISTING);
+			clase.setDescriccion_clase(nuevaClase.toString());
 			curso.setClases_curso(clases);
 			this.service.updateCurso(curso);
 			return new ResponseEntity<>("Clase añadida con éxito!!!", HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("Error en crear la clase: " + e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -271,16 +287,18 @@ public class CursoController {
 		}
 	}
 
-	@PostMapping("/subeVideo")
-	public ResponseEntity<?> subeVideo(@RequestParam("video") MultipartFile file) throws IOException {
+	@PostMapping("/subeVideo/{idCurso}/{idClase}")
+	public ResponseEntity<?> subeVideo(@PathVariable Long idCurso, @PathVariable Long idClase,
+			@RequestParam("video") MultipartFile file)
+			throws IOException {
 		if (file.isEmpty()) {
 			return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
 		}
-		String filePath = this.service.subeVideo(file);
-		String videoDir = filePath.substring(0, filePath.lastIndexOf("/"));
+		String filePath = this.service.subeVideo(file, idCurso, idClase);
+
 		// Función asíncrona
 		this.service.convertVideo(filePath);
 
-		return new ResponseEntity<String>(videoDir.toString(), HttpStatus.OK);
+		return new ResponseEntity<String>(filePath, HttpStatus.OK);
 	}
 }
