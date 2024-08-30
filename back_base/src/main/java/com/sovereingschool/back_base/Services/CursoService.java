@@ -179,9 +179,9 @@ public class CursoService implements ICursoService {
         if (!this.repo.findById(id_curso).isPresent()) {
             return null;
         }
-        this.getCurso(id_curso).getClases_curso().forEach((clase) -> {
+        for (Clase clase : this.getCurso(id_curso).getClases_curso()) {
             this.deleteClase(clase);
-        });
+        }
         this.repo.deleteById(id_curso);
 
         WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
@@ -214,48 +214,55 @@ public class CursoService implements ICursoService {
     public void deleteClase(Clase clase) {
         Optional<Clase> optionalClase = this.claseRepo.findById(clase.getId_clase());
         if (optionalClase.isPresent()) {
-            this.claseRepo.delete(optionalClase.get());
-            Path path = Paths.get(clase.getDireccion_clase());
-            try {
-                if (Files.exists(path)) {
-                    Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-                        @Override
-                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                            Files.delete(file);
-                            return FileVisitResult.CONTINUE;
-                        }
+            this.claseRepo.delete(clase);
+            if (clase.getDireccion_clase().length() > 0) {
+                try {
+                    Path path = Paths.get(clase.getDireccion_clase());
+                    if (Files.exists(path)) {
+                        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                            @Override
+                            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                                Files.delete(file);
+                                return FileVisitResult.CONTINUE;
+                            }
 
-                        @Override
-                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                            Files.delete(dir);
-                            return FileVisitResult.CONTINUE;
-                        }
-                    });
-                    System.out.println("Carpeta eliminada exitosamente.");
-                } else {
-                    System.out.println("La carpeta no existe.");
+                            @Override
+                            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                                Files.delete(dir);
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                        System.out.println("Carpeta eliminada exitosamente.");
+                    } else {
+                        System.out.println("La carpeta no existe.");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error en borrar el video: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.err.println("Error en borrar el video: " + e.getMessage());
             }
-            WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
-            webClient.delete()
-                    .uri("/deleteClase/" + optionalClase.get().getCurso_clase() + "/" + optionalClase.get())
-                    .retrieve()
-                    .bodyToMono(Boolean.class)
-                    .doOnError(e -> {
-                        // Manejo de errores
-                        System.err.println("ERROR: " + e.getMessage());
-                        e.printStackTrace();
-                    }).subscribe(res -> {
-                        // Maneja el resultado cuando esté disponible
-                        if (res != null && res) {
-                            System.out.println("Actualización exitosa");
-                        } else {
-                            System.err.println("Error en actualizar el curso en el servicio de reproducción");
-                        }
-                    });
 
+            try {
+                WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
+                webClient.delete()
+                        .uri("/deleteClase/" + clase.getCurso_clase().getId_curso().toString() + "/"
+                                + clase.getId_clase().toString())
+                        .retrieve()
+                        .bodyToMono(Boolean.class)
+                        .doOnError(e -> {
+                            // Manejo de errores
+                            System.err.println("ERROR: " + e.getMessage());
+                            e.printStackTrace();
+                        }).subscribe(res -> {
+                            // Maneja el resultado cuando esté disponible
+                            if (res != null && res) {
+                                System.out.println("Actualización exitosa");
+                            } else {
+                                System.err.println("Error en actualizar el curso en el servicio de reproducción");
+                            }
+                        });
+            } catch (Exception e) {
+                System.err.println("error en borrar la clase en el streaming: " + e.getMessage());
+            }
         } else {
             System.err.println("Clase no encontrada con ID: " + clase.getId_clase());
         }

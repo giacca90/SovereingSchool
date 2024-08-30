@@ -7,7 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
 import com.sovereingschool.back_base.Models.Clase;
@@ -40,138 +41,189 @@ public class CursoController {
 	@Autowired
 	private ICursoService service;
 
-	@Autowired
-	private WebClient.Builder webClientBuilder;
-
 	/* Parte de gestión de cursos */
 	@GetMapping("/getAll")
 	public ResponseEntity<?> getAll() {
+		Map<String, Object> response = new HashMap<>();
 		try {
-			return new ResponseEntity<List<Curso>>(this.service.getAll(), HttpStatus.OK);
+			response.put("response", this.service.getAll());
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener los cursos: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/getCurso/{id}")
 	public ResponseEntity<?> getCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Curso curso = this.service.getCurso(id);
-			if (curso == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<Curso>(curso, HttpStatus.OK);
+			if (curso == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response.put("response", curso);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener el curso: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/getNombreCurso/{id}")
 	public ResponseEntity<?> getNombreCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			String nombre_curso = this.service.getNombreCurso(id);
-			if (nombre_curso == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>(nombre_curso, HttpStatus.OK);
+			if (nombre_curso == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response.put("response", nombre_curso);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener el nombre del curso: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/getNombresProfesoresCurso/{id}")
 	public ResponseEntity<?> getNombresProfesoresCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			List<Usuario> profesores = this.service.getProfesoresCurso(id);
 			List<String> nombres_profesores = profesores.stream().map(Usuario::getNombre_usuario)
 					.collect(Collectors.toList());
-			if (nombres_profesores.isEmpty())
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<List<String>>(nombres_profesores, HttpStatus.OK);
+			if (nombres_profesores.isEmpty()) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response.put("response", nombres_profesores);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener los nombres de los profesores: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/getFechaCreacionCurso/{id}")
 	public ResponseEntity<?> getFechaCreacionCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Date fecha = this.service.getFechaCreacionCurso(id);
-			if (fecha == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<Date>(fecha, HttpStatus.OK);
+			if (fecha == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response.put("response", fecha);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener la fecha del curso: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/getClasesDelCurso/{id}")
 	public ResponseEntity<?> getClasesDelCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			List<Clase> clases = this.service.getClasesDelCurso(id);
-			if (clases.isEmpty())
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<List<Clase>>(clases, HttpStatus.OK);
+			if (clases.isEmpty()) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+
+			response.put("response", clases);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener las clases del curso: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/getPlanesDelCurso/{id}")
 	public ResponseEntity<?> getPlanesDelCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			List<Plan> planes = this.service.getPlanesDelCurso(id);
-			if (planes.isEmpty())
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<List<Plan>>(planes, HttpStatus.OK);
+			if (planes.isEmpty()) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response.put("response", planes);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener los planes del curso: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/getPrecioCurso/{id}")
 	public ResponseEntity<?> getPrecioCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			BigDecimal precio = this.service.getPrecioCurso(id);
-			if (precio == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<BigDecimal>(precio, HttpStatus.OK);
+			if (precio == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+
+			response.put("response", precio);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener el precio del curso: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PostMapping("/new")
 	public ResponseEntity<?> createCurso(@RequestBody Curso curso) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			curso.setId_curso(this.service.createCurso(curso));
-			return new ResponseEntity<Long>(curso.getId_curso(), HttpStatus.OK);
+			response.put("response", curso.getId_curso());
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en crear el curso: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/update")
 	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Curso result = this.service.updateCurso(curso);
 			if (result == null) {
-				return new ResponseEntity<>("Curso no encontrado", HttpStatus.NOT_FOUND);
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-			return new ResponseEntity<>("Curso actualizado con éxito!!!", HttpStatus.OK);
+			response.put("message", "Curso actualizado con éxito!!!");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>("Error en actualizar el curso: " + e.getMessage(),
+			response.put("message", "Error en actualizar el curso: " + e.getMessage());
+			return new ResponseEntity<>(response,
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			String result = this.service.deleteCurso(id);
-			if (result == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Curso eliminado con éxito!!!", HttpStatus.OK);
+			if (result == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response.put("message", "Curso eliminado con éxito!!!");
+
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en eliminar el curso: " + e.getMessage());
+
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -179,27 +231,39 @@ public class CursoController {
 
 	@GetMapping("/{idCurso}/getClaseForId/{idClase}")
 	public ResponseEntity<?> getClaseForId(@PathVariable Long idCurso, @PathVariable Long idClase) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			if (curso == null) {
+				response.put("message", "Curso eliminado con éxito!!!");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
 			List<Clase> clases = curso.getClases_curso();
 			for (Clase clase : clases) {
 				if (clase.getId_clase().equals(idClase))
-					return new ResponseEntity<Clase>(clase, HttpStatus.OK);
+					response.put("response", clase);
+
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
-			return new ResponseEntity<String>("Clase no encontrada", HttpStatus.NOT_FOUND);
+			response.put("response", "Clase no encontrada");
+
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en encontrar la clase: " + e.getMessage());
+
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/{idCurso}/editClase")
 	public ResponseEntity<?> update(@PathVariable Long idCurso, @RequestBody Clase clase) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			if (curso == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
 			List<Clase> clases = curso.getClases_curso();
 			for (int i = 0; i < clases.size(); i++) {
 				if (clases.get(i).getId_clase().equals(clase.getId_clase())) {
@@ -210,22 +274,27 @@ public class CursoController {
 					this.service.updateCurso(curso);
 					clase.getCurso_clase().setClases_curso(null);
 					clase.getCurso_clase().setProfesores_curso(null);
-					return new ResponseEntity<String>("Clase editada con éxito!!!", HttpStatus.OK);
+					response.put("message", "Clase editada con éxito!!!");
+					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
 			}
-			return new ResponseEntity<String>("Clase no encontrada", HttpStatus.NOT_FOUND);
+			response.put("message", "Clase no encontrada");
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity<>("Error en editar la clase: " + e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en editar la clase: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/{idCurso}/addClase")
 	public ResponseEntity<?> addClase(@PathVariable Long idCurso, @RequestBody Clase clase) {
-		System.out.println("ADDCLASEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			if (curso == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
 			List<Clase> clases = curso.getClases_curso();
 			if (clase.getPosicion_clase() == null || clase.getPosicion_clase() == 0)
 				clase.setPosicion_clase((clases.size()) + 1);
@@ -236,31 +305,41 @@ public class CursoController {
 				});
 			clase.setCurso_clase(curso);
 			String direccion_clase = clase.getDireccion_clase();
-			Path clasePath = Paths.get(direccion_clase);
-			Path cursoPath = clasePath.getParent();
-			Path padre = cursoPath.getParent();
-			if (!cursoPath.toString().equals(padre.resolve(idCurso.toString()))) {
-				Path nuevoCurso = padre.resolve(idCurso.toString());
-				Files.move(cursoPath, nuevoCurso, StandardCopyOption.REPLACE_EXISTING);
-				cursoPath = nuevoCurso;
+			if (direccion_clase.length() > 0) {
+
+				Path clasePath = Paths.get(direccion_clase);
+				Path cursoPath = clasePath.getParent();
+				Path padre = cursoPath.getParent();
+				if (!cursoPath.toString().equals(padre.resolve(idCurso.toString()))) {
+					Path nuevoCurso = padre.resolve(idCurso.toString());
+					Files.move(cursoPath, nuevoCurso, StandardCopyOption.REPLACE_EXISTING);
+					cursoPath = nuevoCurso;
+				}
+				Path nuevaClase = cursoPath.resolve(clase.getId_clase().toString());
+				Files.move(clasePath, nuevaClase, StandardCopyOption.REPLACE_EXISTING);
+				clase.setDescriccion_clase(nuevaClase.toString());
 			}
-			Path nuevaClase = cursoPath.resolve(clase.getId_clase().toString());
-			Files.move(clasePath, nuevaClase, StandardCopyOption.REPLACE_EXISTING);
-			clase.setDescriccion_clase(nuevaClase.toString());
+			clases.add(clase);
 			curso.setClases_curso(clases);
 			this.service.updateCurso(curso);
-			return new ResponseEntity<>("Clase añadida con éxito!!!", HttpStatus.OK);
+			response.put("message", "Clase añadida con éxito!!!");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>("Error en crear la clase: " + e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en crear la clase: " + e.getCause());
+			return new ResponseEntity<>(response,
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@DeleteMapping("/{idCurso}/deleteClase/{idClase}")
 	public ResponseEntity<?> deleteClase(@PathVariable Long idCurso, @PathVariable Long idClase) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null)
-				return new ResponseEntity<String>("Curso no encontrado", HttpStatus.NOT_FOUND);
+			if (curso == null) {
+				response.put("message", "Curso no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
 			List<Clase> clases = curso.getClases_curso();
 			Clase eliminada = null;
 			for (int i = 0; i < clases.size(); i++) {
@@ -278,12 +357,15 @@ public class CursoController {
 				curso.setClases_curso(clases);
 				this.service.updateCurso(curso);
 				this.service.deleteClase(eliminada);
-				return new ResponseEntity<String>("Clase eliminada con exito!!!", HttpStatus.OK);
+				response.put("message", "Clase eliminada con exito!!!");
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
-			return new ResponseEntity<>("Clase no encontrada", HttpStatus.NOT_FOUND);
+			response.put("message", "Clase no encontrada");
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en borrar la clase: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -291,14 +373,16 @@ public class CursoController {
 	public ResponseEntity<?> subeVideo(@PathVariable Long idCurso, @PathVariable Long idClase,
 			@RequestParam("video") MultipartFile file)
 			throws IOException {
+		Map<String, Object> response = new HashMap<>();
 		if (file.isEmpty()) {
-			return new ResponseEntity<>("Archivo vacío", HttpStatus.BAD_REQUEST);
+			response.put("message", "Archivo vacío");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 		String filePath = this.service.subeVideo(file, idCurso, idClase);
 
 		// Función asíncrona
 		this.service.convertVideo(filePath);
-
-		return new ResponseEntity<String>(filePath, HttpStatus.OK);
+		response.put("message", filePath);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

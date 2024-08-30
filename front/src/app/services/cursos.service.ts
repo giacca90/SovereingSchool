@@ -1,6 +1,6 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, firstValueFrom, map, Observable, of, throwError } from 'rxjs';
+import { catchError, concatMap, firstValueFrom, from, map, Observable, of, reduce, switchMap, throwError } from 'rxjs';
 import { Clase } from '../models/Clase';
 import { Curso } from '../models/Curso';
 import { Usuario } from '../models/Usuario';
@@ -39,37 +39,33 @@ export class CursosService {
 
 	updateCurso(curso: Curso | null): Observable<boolean> {
 		if (curso) {
-			const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-			if (curso.id_curso == 0) {
-				const clases: Clase[] | undefined = curso.clases_curso;
+			if (curso && curso.id_curso === 0 && curso.clases_curso) {
+				const clases = curso.clases_curso;
 				curso.clases_curso = [];
-				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { headers, observe: 'response' }).pipe(
-					map((response: HttpResponse<number>) => {
+
+				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { observe: 'response' }).pipe(
+					switchMap((response: HttpResponse<number>) => {
 						if (response.status === 200 && response.body) {
 							curso.id_curso = response.body;
-							if (clases) {
-								for (const clase of clases) {
+
+							return from(clases).pipe(
+								concatMap((clase) => {
 									clase.curso_clase = curso.id_curso;
-									this.guardarCambiosClase(clase).pipe(
-										map((res: boolean) => {
-											if (!res) {
-												return false;
-											}
-										}),
-									);
-								}
-							}
-							return true;
+									return this.guardarCambiosClase(clase);
+								}),
+								reduce((acc, value) => acc && value, true), // Acumula un booleano para indicar si todas las clases se crearon correctamente
+							);
+						} else {
+							return throwError(() => new Error('Error al crear el curso'));
 						}
-						return false;
 					}),
-					catchError((e: HttpErrorResponse) => {
-						console.error('Error en añadir el nuevo curso: ' + e.message);
+					catchError((error) => {
+						console.error('Error al actualizar el curso:', error);
 						return throwError(() => new Error('Error al actualizar'));
 					}),
 				);
 			} else {
-				return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { headers, observe: 'response' }).pipe(
+				return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { observe: 'response' }).pipe(
 					map((response: HttpResponse<string>) => {
 						if (response.status === 200) {
 							const index = this.cursos.findIndex((cur) => cur.id_curso === curso.id_curso);
@@ -95,9 +91,12 @@ export class CursosService {
 	editClass(editar: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
-		return this.http.put<string>(`${this.backURL}/cursos/${curso_clase}/editClase`, editar, { responseType: 'text' as 'json' }).pipe(
-			map(() => {
-				return true;
+		return this.http.put<string>(`${this.backURL}/cursos/${curso_clase}/editClase`, editar, { observe: 'response' }).pipe(
+			map((response: HttpResponse<string>) => {
+				if (response.ok) {
+					return true;
+				}
+				return false;
 			}),
 			catchError((error: Error) => {
 				console.error('Error en editar la clase: ' + error.message);
@@ -110,11 +109,11 @@ export class CursosService {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
 		const ruta: string = this.backURL + '/cursos/' + curso_clase + '/addClase';
-		const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+		//const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 		console.log('RUTA: ' + ruta);
 		console.log('DATA: ' + JSON.stringify(editar));
 
-		return this.http.put<string>(ruta, editar, { headers, observe: 'response' }).pipe(
+		return this.http.put<string>(ruta, editar, { observe: 'response' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
 					this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
@@ -132,10 +131,13 @@ export class CursosService {
 	deleteClass(clase: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = clase.curso_clase;
 		clase.curso_clase = undefined;
-		return this.http.delete<string>(this.backURL + '/cursos/' + curso_clase + '/deleteClase/' + clase.id_clase, { responseType: 'text' as 'json' }).pipe(
-			map(() => {
-				this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
-				return true;
+		return this.http.delete<string>(this.backURL + '/cursos/' + curso_clase + '/deleteClase/' + clase.id_clase, { observe: 'response' }).pipe(
+			map((response: HttpResponse<string>) => {
+				if (response.ok) {
+					this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
+					return true;
+				}
+				return false;
 			}),
 			catchError((e: Error) => {
 				console.error('Error en crear la clase: ' + e.message);
@@ -148,9 +150,12 @@ export class CursosService {
 		const formData = new FormData();
 		formData.append('video', file, file.name);
 
-		return this.http.post<string>(this.backURL + '/cursos/subeVideo/' + idCurso + '/' + idClase, formData, { responseType: 'text' as 'json' }).pipe(
-			map((response) => {
-				return response;
+		return this.http.post<string>(this.backURL + '/cursos/subeVideo/' + idCurso + '/' + idClase, formData, { observe: 'response' }).pipe(
+			map((response: HttpResponse<string>) => {
+				if (response.ok) {
+					return response.body;
+				}
+				return null;
 			}),
 			catchError((e: Error) => {
 				console.error('Errorn en subur el video: ' + e.message);
@@ -160,9 +165,12 @@ export class CursosService {
 	}
 
 	addImagenCurso(target: FormData): Observable<string | null> {
-		return this.http.post<string[]>(this.backURL + '/usuario/subeFotos', target).pipe(
-			map((response) => {
-				return response[0];
+		return this.http.post<string[]>(this.backURL + '/usuario/subeFotos', target, { observe: 'response' }).pipe(
+			map((response: HttpResponse<string[]>) => {
+				if (response.ok && response.body) {
+					return response.body[0];
+				}
+				return null;
 			}),
 			catchError((e: Error) => {
 				console.error('Error en subir la imagen: ' + e.message);
@@ -184,13 +192,16 @@ export class CursosService {
 	}
 
 	deleteCurso(curso: Curso): Observable<boolean> {
-		return this.http.delete<string>(this.backURL + '/cursos/delete/' + curso.id_curso, { responseType: 'text' as 'json' }).pipe(
-			map(() => {
-				this.cursos = this.cursos.slice(
-					this.cursos.findIndex((curso2) => curso2.id_curso === curso.id_curso),
-					1,
-				);
-				return true;
+		return this.http.delete<string>(this.backURL + '/cursos/delete/' + curso.id_curso, { observe: 'response' }).pipe(
+			map((response: HttpResponse<string>) => {
+				if (response.ok) {
+					this.cursos = this.cursos.slice(
+						this.cursos.findIndex((curso2) => curso2.id_curso === curso.id_curso),
+						1,
+					);
+					return true;
+				}
+				return false;
 			}),
 			catchError((e: Error) => {
 				console.error('Error en eliminar el curso: ' + e.message);
@@ -237,10 +248,13 @@ export class CursosService {
 		}
 	}
 
-	getStatusCurso(id_usuario: number, id_curso: number): Observable<number> {
-		return this.http.get<number>(this.backURLStreaming + '/status/' + id_usuario + '/' + id_curso).pipe(
-			map((response: number) => {
-				return response;
+	getStatusCurso(id_usuario: number, id_curso: number): Observable<number | boolean> {
+		return this.http.get<number>(this.backURLStreaming + '/status/' + id_usuario + '/' + id_curso, { observe: 'response' }).pipe(
+			map((response: HttpResponse<number>) => {
+				if (response.ok && response.body) {
+					return response.body;
+				}
+				return false;
 			}),
 		);
 	}

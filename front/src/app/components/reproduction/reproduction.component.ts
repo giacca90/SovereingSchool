@@ -40,7 +40,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.id_clase = params['id_clase'];
 				if (this.id_clase == 0) {
 					this.cursoService.getStatusCurso(this.id_usuario, this.id_curso).subscribe({
-						next: (resp: number) => {
+						next: (resp) => {
 							if (resp === 0) {
 								this.router.navigate(['/']);
 							} else {
