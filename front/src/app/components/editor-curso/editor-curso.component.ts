@@ -262,10 +262,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 					this.editar.id_clase = 0;
 				}
 				if (input.files && this.editar) {
-					console.log('LOG');
 					this.cursoService.subeVideo(input.files[0], this.id_curso, this.editar?.id_clase).subscribe((result) => {
 						if (result && this.curso?.clases_curso && this.editar) {
-							console.log('LOG: ' + result);
 							this.editar.direccion_clase = result;
 							this.editar.curso_clase = this.curso.id_curso;
 							button.classList.remove('border-gray-500', 'text-gray-500');

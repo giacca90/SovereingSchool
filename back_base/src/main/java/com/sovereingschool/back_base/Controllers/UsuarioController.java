@@ -8,7 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +24,7 @@ import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -56,31 +59,42 @@ public class UsuarioController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
+		Object response = new Object();
 		try {
 			Usuario usuario = this.service.getUsuario(id);
-			if (usuario == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<Usuario>(usuario, HttpStatus.OK);
+			if (usuario == null) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = usuario;
+			return new ResponseEntity<>(usuario, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en buscar el usuario: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/nombre/{id}")
 	public ResponseEntity<?> getNombreUsuario(@PathVariable Long id) {
+		Object response = new Object();
 		try {
 			String nombre = this.service.getNombreUsuario(id);
-			if (nombre == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>(nombre, HttpStatus.OK);
+			if (nombre == null) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = nombre;
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en encontrar el nombre del usuario: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/fotos/{nombreFoto}")
 	public ResponseEntity<?> getFotos(@PathVariable String nombreFoto) {
 		final String photosDirectory = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Fotos";
+		Object response = new Object();
 
 		// Construir la ruta del archivo y resolver posibles vulnerabilidades de
 		// directorio transversal
@@ -88,7 +102,8 @@ public class UsuarioController {
 		File photoFile = photoPath.toFile();
 
 		if (!photoFile.exists() || !photoFile.isFile()) {
-			return new ResponseEntity<String>("Foto no encontrada.", HttpStatus.NOT_FOUND);
+			response = "Foto no encontrada.";
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 		}
 
 		// Construir el recurso a partir del archivo
@@ -99,128 +114,170 @@ public class UsuarioController {
 		try {
 			contentType = Files.probeContentType(photoPath);
 		} catch (IOException e) {
-			return new ResponseEntity<String>("Error determinando el tipo de contenido.",
-					HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error determinando el tipo de contenido." + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		// Configurar cache control
 		CacheControl cacheControl = CacheControl.maxAge(30, TimeUnit.DAYS); // 30 días de caché
 
-		return ResponseEntity.ok()
-				.cacheControl(cacheControl)
-				.contentType(contentType != null ? MediaType.parseMediaType(contentType)
-						: MediaType.APPLICATION_OCTET_STREAM)
-				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-				.body(resource);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setCacheControl(cacheControl.toString());
+		headers.setContentType(
+				contentType != null ? MediaType.parseMediaType(contentType) : MediaType.APPLICATION_OCTET_STREAM);
+		headers.setContentDisposition(ContentDisposition.inline().filename(resource.getFilename()).build());
+		response = resource;
+		return new ResponseEntity<>(response, headers, HttpStatus.OK);
 	}
 
 	@GetMapping("/roll/{id}")
 	public ResponseEntity<?> getRollUsuario(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
 		try {
 			Integer roll = this.service.getRollUsuario(id);
-			if (roll == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<Integer>(roll, HttpStatus.OK);
+			if (roll == null) {
+				response.put("message", "Usuario no encontrado");
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response.put("response", roll);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("message", "Error en obtener el roll del usuario: " + e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/plan/{id}")
 	public ResponseEntity<?> getPlanUsuario(@PathVariable Long id) {
+		Object response = new Object();
 		try {
 			Plan plan = this.service.getPlanUsuario(id);
-			if (plan == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<Plan>(plan, HttpStatus.OK);
+			if (plan == null) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = plan;
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en obtener el plan del usuario: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/cursos/{id}")
 	public ResponseEntity<?> getCursosUsuario(@PathVariable Long id) {
+		Object response = new Object();
 		try {
 			List<Curso> cursos = this.service.getCursosUsuario(id);
-			if (cursos == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<List<Curso>>(cursos, HttpStatus.OK);
+			if (cursos == null) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = cursos;
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en obtener los cursos del usuario: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PostMapping("/nuevo")
 	public ResponseEntity<?> createUsuario(@RequestBody NewUsuario newUsuario) {
+		Object response = new Object();
 		try {
-			return new ResponseEntity<String>(this.service.createUsuario(newUsuario), HttpStatus.OK);
+			response = this.service.createUsuario(newUsuario);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
+			response = "Error en crear el nuevo usuario: " + e.getMessage();
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/edit")
 	public ResponseEntity<?> editUsuario(@RequestBody Usuario usuario) {
-		System.out.println("SE ACTUALIZA USUARIO");
+		Object response = new Object();
 		try {
 			Long resultado = this.service.updateUsuario(usuario).getId_usuario();
-			if (resultado == 0)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Usuario editado con éxito!!!", HttpStatus.OK);
+			if (resultado == 0) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = "Usuario editado con éxito!!!";
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en editar el usuario: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/plan")
 	public ResponseEntity<?> changePlanUsuario(@RequestBody Usuario usuario) {
+		Object response = new Object();
 		try {
 			Integer resultado = this.service.changePlanUsuario(usuario);
-			if (resultado == 0)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Plan cambiado con éxito!!!", HttpStatus.OK);
+			if (resultado == 0) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = "Plan cambiado con éxito!!!";
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
+			response = "Error en cambiar el plan del usuario: " + e.getMessage();
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/cursos")
 	public ResponseEntity<?> changeCursosUsuario(@RequestBody Usuario usuario) {
+		Object response = new Object();
 		try {
 			Integer resultado = this.service.changeCursosUsuario(usuario);
-			if (resultado == 0)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>("Cursos actualizados con éxito!!!", HttpStatus.OK);
+			if (resultado == 0) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = "Cursos actualizados con éxito!!!";
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en actualizar los cursos del usuario: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
+		Object response = new Object();
 		try {
 			String result = this.service.deleteUsuario(id);
-			if (result == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>(result, HttpStatus.OK);
+			if (result == null) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = result;
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en eliminar el usuario: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/profes")
 	public ResponseEntity<?> getProfes() {
+		Object response = new Object();
 		try {
-			return new ResponseEntity<List<Usuario>>(this.service.getProfes(), HttpStatus.OK);
+			response = this.service.getProfes();
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en obtener los profesores: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PostMapping("/subeFotos")
-	public ResponseEntity<List<String>> uploadImages(@RequestBody MultipartFile[] files) {
+	public ResponseEntity<?> uploadImages(@RequestBody MultipartFile[] files) {
 		System.out.println("Se suben fotos");
 		List<String> fileNames = new ArrayList<>();
+		Object response = new Object();
 
 		for (MultipartFile file : files) {
 			// Genera un nombre único para cada archivo para evitar colisiones
@@ -249,20 +306,20 @@ public class UsuarioController {
 					// StandardCopyOption.REPLACE_EXISTING);
 					fileNames.add("http://localhost:8080/usuario/fotos/" + webpFileName);
 				} catch (IOException e) {
-					e.printStackTrace();
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+					response = "Error en convertir la imagen: " + e.getMessage();
+					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			} else {
 				try {
 					Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 					fileNames.add("http://localhost:8080/usuario/fotos/" + fileName);
 				} catch (IOException e) {
-					e.printStackTrace();
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+					response = "Error en guardar la imagen: " + e.getMessage();
+					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}
 		}
-
-		return ResponseEntity.ok(fileNames);
+		response = fileNames;
+		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }

@@ -33,9 +33,12 @@ public class LoginController {
 	// Utilizado
 	@GetMapping("/{correo}")
 	public ResponseEntity<?> conpruebaCorreo(@PathVariable String correo) {
+		Object response = new Object();
 		try {
-			return new ResponseEntity<Long>(this.service.compruebaCorreo(correo), HttpStatus.OK);
+			response = this.service.compruebaCorreo(correo);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
+			response = "Error en obtener el correo del usuario: " + e.getMessage();
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -44,86 +47,119 @@ public class LoginController {
 
 	@GetMapping("/{id}/{password}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id, @PathVariable String password) {
+		Object response = new Object();
 		try {
 			Login login = this.service.getLogin(id);
 			if (login.getPassword().equals(password)) {
 				Usuario usuario = this.usuarioService.getUsuario(id);
-				return new ResponseEntity<Usuario>(usuario, HttpStatus.OK);
+				response = usuario;
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			} else {
-				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+				response = "Contraseña incorrecta";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-
 		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en obtener la contraseña: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/correo/{id}")
 	public ResponseEntity<?> getCorreoLogin(@PathVariable Long id) {
+		Object response = new Object();
 		try {
 			String correo = this.service.getCorreoLogin(id);
-			if (correo == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>(correo, HttpStatus.OK);
+			if (correo == null) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = correo;
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en obtener el correo: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping("/password/{id}")
 	public ResponseEntity<?> getPasswordLogin(@PathVariable Long id) {
+		Object response = new Object();
 		try {
 			String password = this.service.getPasswordLogin(id);
-			if (password == null)
-				return new ResponseEntity<String>("Usuario no encontrado", HttpStatus.NOT_FOUND);
-			return new ResponseEntity<String>(password, HttpStatus.OK);
+			if (password == null) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			response = password;
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en obtener la contraseña: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PostMapping("/new")
 	public ResponseEntity<?> createNuevoLogin(@RequestBody Login login) {
+		Object response = new Object();
 		try {
-			return new ResponseEntity<String>(this.service.createNuevoLogin(login), HttpStatus.OK);
+			response = this.service.createNuevoLogin(login);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en crear el nuevo login " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/cambiaCorreo")
 	public ResponseEntity<?> changeCorreoLogin(@RequestBody Login login) {
+		Object response = new Object();
 		try {
-			if (login.getCorreo_electronico() == null)
-				return new ResponseEntity<>("El correo electrónico no puede ser vació", HttpStatus.NOT_FOUND);
-			if (login.getCorreo_electronico().length() < 1)
-				return new ResponseEntity<>("El correo electrónico no puede ser vació", HttpStatus.FAILED_DEPENDENCY);
-			return new ResponseEntity<>(this.service.changeCorreoLogin(login), HttpStatus.OK);
+			if (login.getCorreo_electronico() == null) {
+				response = "El correo electrónico no puede ser vació";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			if (login.getCorreo_electronico().length() < 1) {
+				response = "El correo electrónico no puede ser vació";
+				return new ResponseEntity<>(response, HttpStatus.FAILED_DEPENDENCY);
+			}
+			response = this.service.changeCorreoLogin(login);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
+			response = "Error en cambiar de correo: " + e.getMessage();
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/cambiaPassword")
 	public ResponseEntity<?> changePasswordLogin(@RequestBody ChangePassword changepassword) {
+		Object response = new Object();
 		try {
 			Integer respuesta = this.service.changePasswordLogin(changepassword);
-			if (respuesta == null)
-				return new ResponseEntity<String>("La contraseña no puede estar vacía", HttpStatus.FAILED_DEPENDENCY);
-			if (respuesta == 0)
-				return new ResponseEntity<>("Las contraseñas no coinciden", HttpStatus.FAILED_DEPENDENCY);
-			return new ResponseEntity<>("Contraseña cambiada con éxito!!!", HttpStatus.OK);
+			if (respuesta == null) {
+				response = "La contraseña no puede estar vacía";
+				return new ResponseEntity<>(response, HttpStatus.FAILED_DEPENDENCY);
+			}
+			if (respuesta == 0) {
+				response = "Las contraseñas no coinciden";
+				return new ResponseEntity<>(response, HttpStatus.FAILED_DEPENDENCY);
+			}
+			response = "Contraseña cambiada con éxito!!!";
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en cambiar la contraseña: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteLogin(@PathVariable Long id) {
+		Object response = new Object();
 		try {
-			return new ResponseEntity<String>(this.service.deleteLogin(id), HttpStatus.OK);
+			response = this.service.deleteLogin(id);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			response = "Error en cambiar la contraseña: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

@@ -45,7 +45,7 @@ export class CursosService {
 
 				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { observe: 'response' }).pipe(
 					switchMap((response: HttpResponse<number>) => {
-						if (response.status === 200 && response.body) {
+						if (response.ok && response.body) {
 							curso.id_curso = response.body;
 
 							return from(clases).pipe(
@@ -67,7 +67,7 @@ export class CursosService {
 			} else {
 				return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { observe: 'response' }).pipe(
 					map((response: HttpResponse<string>) => {
-						if (response.status === 200) {
+						if (response.ok) {
 							const index = this.cursos.findIndex((cur) => cur.id_curso === curso.id_curso);
 							if (index !== -1) {
 								this.cursos[index] = JSON.parse(JSON.stringify(curso));
@@ -109,10 +109,6 @@ export class CursosService {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
 		const ruta: string = this.backURL + '/cursos/' + curso_clase + '/addClase';
-		//const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-		console.log('RUTA: ' + ruta);
-		console.log('DATA: ' + JSON.stringify(editar));
-
 		return this.http.put<string>(ruta, editar, { observe: 'response' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
@@ -153,12 +149,13 @@ export class CursosService {
 		return this.http.post<string>(this.backURL + '/cursos/subeVideo/' + idCurso + '/' + idClase, formData, { observe: 'response' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
+					console.log('LOG: ' + response.body);
 					return response.body;
 				}
 				return null;
 			}),
 			catchError((e: Error) => {
-				console.error('Errorn en subur el video: ' + e.message);
+				console.error('Errorn en subir el video: ' + e.message);
 				return of(null);
 			}),
 		);

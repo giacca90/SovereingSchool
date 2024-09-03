@@ -55,7 +55,7 @@ export class PerfilUsuarioComponent implements OnDestroy {
 				this.subscription.add(
 					this.usuarioService.save(formData).subscribe({
 						next: (response) => {
-							if (this.usuario?.foto_usuario) {
+							if (this.usuario?.foto_usuario && response) {
 								const temp: string[] = [];
 								for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
 									if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {

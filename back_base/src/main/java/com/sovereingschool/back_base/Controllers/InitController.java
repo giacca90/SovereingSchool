@@ -20,9 +20,12 @@ public class InitController {
 
     @GetMapping()
     public ResponseEntity<?> get() {
+        Object response = new Object();
         try {
-            return new ResponseEntity<>(this.service.getInit(), HttpStatus.OK);
+            response = this.service.getInit();
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
+            response = "Error en la carga inicial: " + e.getMessage();
             return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

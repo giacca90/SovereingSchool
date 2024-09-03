@@ -1,5 +1,5 @@
 /* eslint-disable no-async-promise-executor */
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { afterNextRender, Injectable } from '@angular/core';
 import { Usuario } from '../models/Usuario';
 
@@ -20,17 +20,22 @@ export class LoginService {
 
 	async compruebaCorreo(correo: string): Promise<boolean> {
 		return new Promise(async (resolve, reject) => {
-			const sub = this.http.get<number>(`${this.apiUrl}${correo}`).subscribe({
-				next: (response) => {
-					if (response == 0) {
-						resolve(false);
-						sub.unsubscribe();
-					}
+			const sub = this.http.get<number>(`${this.apiUrl}${correo}`, { observe: 'response' }).subscribe({
+				next: (response: HttpResponse<number>) => {
+					if (response.ok  && response.body) {
+						if (response.body == 0) {
+							resolve(false);
+							sub.unsubscribe();
+						}
 
-					if (response > 0) {
-						this.id_usuario = response;
-						resolve(true);
-						sub.unsubscribe();
+						if (response.body > 0) {
+							this.id_usuario = response.body;
+							resolve(true);
+							sub.unsubscribe();
+						}
+					} else {
+						console.error('Error en comprobar el correo: '+response.status)
+						reject(false);
 					}
 				},
 				error: (error: HttpErrorResponse) => {
@@ -44,18 +49,24 @@ export class LoginService {
 
 	async compruebaPassword(password: string): Promise<boolean> {
 		return new Promise(async (resolve) => {
-			const sub = this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password).subscribe({
-				next: (response) => {
-					if (response.id_usuario === null) {
-						resolve(false);
+			const sub = this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password, { observe: 'response' }).subscribe({
+				next: (response: HttpResponse<Usuario>) => {
+					if (response.ok && response.body) {
+						if (response.body.id_usuario === null) {
+							
+							resolve(false);
+							sub.unsubscribe();
+							return;
+						}
+						this.usuario = response.body;
+						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
+						resolve(true);
 						sub.unsubscribe();
 						return;
+					} else {
+						console.error('Error en comprobar las password: '+response.status);
+						return;
 					}
-					this.usuario = response;
-					localStorage.setItem('Usuario', JSON.stringify(this.usuario));
-					resolve(true);
-					sub.unsubscribe();
-					return;
 				},
 				error: (error: HttpErrorResponse) => {
 					console.error('HTTP request failed:', error);
