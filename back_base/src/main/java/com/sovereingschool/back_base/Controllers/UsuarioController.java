@@ -8,9 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -132,17 +130,17 @@ public class UsuarioController {
 
 	@GetMapping("/roll/{id}")
 	public ResponseEntity<?> getRollUsuario(@PathVariable Long id) {
-		Map<String, Object> response = new HashMap<>();
+		Object response = new Object();
 		try {
 			Integer roll = this.service.getRollUsuario(id);
 			if (roll == null) {
-				response.put("message", "Usuario no encontrado");
+				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-			response.put("response", roll);
+			response = roll;
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			response.put("message", "Error en obtener el roll del usuario: " + e.getMessage());
+			response = "Error en obtener el roll del usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

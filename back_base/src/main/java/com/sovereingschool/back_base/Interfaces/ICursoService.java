@@ -32,7 +32,7 @@ public interface ICursoService {
 
     public Curso updateCurso(Curso curso);
 
-    public String deleteCurso(Long id_curso);
+    public Boolean deleteCurso(Long id_curso);
 
     public void deleteClase(Clase clase);
 

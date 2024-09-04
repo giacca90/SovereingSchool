@@ -335,7 +335,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	ngAfterViewChecked(): void {
 		if (this.editar && !this.videoPlayer) {
 			this.videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
-			if (this.videoPlayer) {
+			if (this.videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0) {
 				const player = videojs(this.videoPlayer, {
 					controls: true,
 					autoplay: false,

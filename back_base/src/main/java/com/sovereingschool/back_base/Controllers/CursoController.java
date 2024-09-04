@@ -7,9 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,13 +176,13 @@ public class CursoController {
 
 	@PostMapping("/new")
 	public ResponseEntity<?> createCurso(@RequestBody Curso curso) {
-		Map<String, Object> response = new HashMap<>();
+		Object response = new Object();
 		try {
 			curso.setId_curso(this.service.createCurso(curso));
-			response.put("response", curso.getId_curso());
+			response = curso.getId_curso();
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			response.put("message", "Error en crear el curso: " + e.getMessage());
+			response = "Error en crear el curso: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -211,8 +209,8 @@ public class CursoController {
 	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			String result = this.service.deleteCurso(id);
-			if (result == null) {
+			Boolean result = this.service.deleteCurso(id);
+			if (result == false) {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
@@ -375,7 +373,7 @@ public class CursoController {
 		// Función asíncrona
 		this.service.convertVideo(filePath);
 		Path carpetaClase = Path.of(filePath).getParent();
-		response = carpetaClase.toString();
+		response = carpetaClase.normalize().toString();
 		System.out.println("RESPONSE: " + response);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

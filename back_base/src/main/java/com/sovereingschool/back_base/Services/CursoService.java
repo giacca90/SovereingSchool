@@ -175,9 +175,9 @@ public class CursoService implements ICursoService {
     }
 
     @Override
-    public String deleteCurso(Long id_curso) {
+    public Boolean deleteCurso(Long id_curso) {
         if (!this.repo.findById(id_curso).isPresent()) {
-            return null;
+            return false;
         }
         for (Clase clase : this.getCurso(id_curso).getClases_curso()) {
             this.deleteClase(clase);
@@ -202,7 +202,7 @@ public class CursoService implements ICursoService {
                     }
                 });
 
-        return "Curso eliminado con éxito!!!";
+        return true;
     }
 
     @Override
@@ -388,7 +388,7 @@ public class CursoService implements ICursoService {
 
             // Guarda el archivo en el servidor
             Files.write(filePath, file.getBytes());
-            return filePath.toString();
+            return filePath.normalize().toString();
 
         } catch (Exception e) {
             System.err.println("Error en subir el video: " + e.getMessage());

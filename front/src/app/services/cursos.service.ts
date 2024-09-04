@@ -39,15 +39,14 @@ export class CursosService {
 
 	updateCurso(curso: Curso | null): Observable<boolean> {
 		if (curso) {
-			if (curso && curso.id_curso === 0 && curso.clases_curso) {
-				const clases = curso.clases_curso;
+			if (curso.id_curso === 0 && curso.clases_curso) {
+				const clases: Clase[] = curso.clases_curso;
 				curso.clases_curso = [];
 
 				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { observe: 'response' }).pipe(
 					switchMap((response: HttpResponse<number>) => {
 						if (response.ok && response.body) {
 							curso.id_curso = response.body;
-
 							return from(clases).pipe(
 								concatMap((clase) => {
 									clase.curso_clase = curso.id_curso;
@@ -65,7 +64,7 @@ export class CursosService {
 					}),
 				);
 			} else {
-				return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { observe: 'response' }).pipe(
+				return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 					map((response: HttpResponse<string>) => {
 						if (response.ok) {
 							const index = this.cursos.findIndex((cur) => cur.id_curso === curso.id_curso);
@@ -91,7 +90,7 @@ export class CursosService {
 	editClass(editar: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
-		return this.http.put<string>(`${this.backURL}/cursos/${curso_clase}/editClase`, editar, { observe: 'response' }).pipe(
+		return this.http.put<string>(`${this.backURL}/cursos/${curso_clase}/editClase`, editar, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
 					return true;
@@ -109,10 +108,10 @@ export class CursosService {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
 		const ruta: string = this.backURL + '/cursos/' + curso_clase + '/addClase';
-		return this.http.put<string>(ruta, editar, { observe: 'response' }).pipe(
+		return this.http.put<string>(ruta, editar, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
-					this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
+					//this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = [];
 					return true;
 				}
 				return false;
@@ -127,7 +126,7 @@ export class CursosService {
 	deleteClass(clase: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = clase.curso_clase;
 		clase.curso_clase = undefined;
-		return this.http.delete<string>(this.backURL + '/cursos/' + curso_clase + '/deleteClase/' + clase.id_clase, { observe: 'response' }).pipe(
+		return this.http.delete<string>(this.backURL + '/cursos/' + curso_clase + '/deleteClase/' + clase.id_clase, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
 					this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = undefined;
@@ -146,16 +145,15 @@ export class CursosService {
 		const formData = new FormData();
 		formData.append('video', file, file.name);
 
-		return this.http.post<string>(this.backURL + '/cursos/subeVideo/' + idCurso + '/' + idClase, formData, { observe: 'response' }).pipe(
+		return this.http.post<string>(this.backURL + '/cursos/subeVideo/' + idCurso + '/' + idClase, formData, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
-					console.log('LOG: ' + response.body);
 					return response.body;
 				}
 				return null;
 			}),
 			catchError((e: Error) => {
-				console.error('Errorn en subir el video: ' + e.message);
+				console.error('Error en subir el video: ' + e.message);
 				return of(null);
 			}),
 		);
@@ -189,7 +187,7 @@ export class CursosService {
 	}
 
 	deleteCurso(curso: Curso): Observable<boolean> {
-		return this.http.delete<string>(this.backURL + '/cursos/delete/' + curso.id_curso, { observe: 'response' }).pipe(
+		return this.http.delete<string>(this.backURL + '/cursos/delete/' + curso.id_curso, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
 					this.cursos = this.cursos.slice(

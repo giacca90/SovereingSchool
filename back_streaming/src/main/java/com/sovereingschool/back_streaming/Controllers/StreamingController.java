@@ -227,8 +227,8 @@ public class StreamingController {
     @DeleteMapping("/deleteCurso/{id}")
     public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
         try {
-            this.usuarioCursosService.deleteCurso(id);
-            return new ResponseEntity<>("Destroy Result", HttpStatus.OK);
+
+            return new ResponseEntity<>(this.usuarioCursosService.deleteCurso(id), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
