@@ -19,6 +19,16 @@
 			"projectName": "back_base",
 			"args": "",
 			"envFile": "${workspaceFolder}/.env"
+		},
+		{
+			"type": "java",
+			"name": "Spring Boot-BackChatApplication<back_chat>",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"mainClass": "com.sovereingschool.back_chat.BackChatApplication",
+			"projectName": "back_chat",
+			"args": "",
+			"envFile": "${workspaceFolder}/.env"
 		}
 	]
 }
