@@ -36,7 +36,7 @@ public interface ICursoService {
 
     public void deleteClase(Clase clase);
 
-    public void convertVideo(String inputFilePath);
+    public void convertVideos(Curso curso);
 
-    public String subeVideo(MultipartFile file, Long idCurso, Long idClase);
+    public String subeVideo(MultipartFile file);
 }

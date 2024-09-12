@@ -171,6 +171,13 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	guardarCambiosClase() {
+		if (this.curso && this.editar) {
+			this.curso.clases_curso?.push(this.editar);
+			this.editar = null;
+		}
+	}
+
+	/* 	guardarCambiosClase() {
 		if (this.editar && this.curso) {
 			this.editar.curso_clase = this.curso?.id_curso;
 			if (this.curso.id_curso === 0) {
@@ -215,7 +222,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 			}
 		}
 	}
-
+ */
 	eliminaClase(clase: Clase) {
 		if (confirm('Esto eliminará definitivamente la clase. Estás seguro??')) {
 			clase.curso_clase = this.curso?.id_curso;

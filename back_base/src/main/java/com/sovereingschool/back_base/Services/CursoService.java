@@ -12,12 +12,10 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -37,7 +35,6 @@ import com.sovereingschool.back_base.Repositories.CursoRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import reactor.core.publisher.Mono;
 
 @Service
 @Transactional
@@ -107,71 +104,54 @@ public class CursoService implements ICursoService {
 
     @Override
     public Curso updateCurso(Curso curso) {
-        Optional<Curso> respuesta = this.repo.findById(curso.getId_curso());
-        if (!respuesta.isPresent())
-            return null;
-        Curso oldCurso = respuesta.get();
-        for (Clase clase : curso.getClases_curso()) {
-            if (!oldCurso.getClases_curso().contains(clase)) {
-                if (clase.getId_clase() == 0) {
-                    clase = this.claseRepo.save(clase);
-                    WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
-                    webClient.put()
-                            .uri("/addClase/" + curso.getId_curso())
-                            .body(Mono.just(clase), Clase.class)
-                            .retrieve()
-                            .bodyToMono(Boolean.class)
-                            .doOnError(e -> {
-                                // Manejo de errores
-                                System.err.println("ERROR: " + e.getMessage());
-                                e.printStackTrace();
-                            }).subscribe(res -> {
-                                // Maneja el resultado cuando esté disponible
-                                if (res != null && res) {
-                                    System.out.println("Actualización exitosa");
-                                } else {
-                                    System.err.println("Error en actualizar el curso en el servicio de reproducción");
-                                }
-                            });
-                } else {
-                    for (Clase oldClase : oldCurso.getClases_curso()) {
-                        if (oldClase.getId_clase().equals(clase.getId_clase())) {
-                            if (!oldClase.getDireccion_clase().equals(clase.getDireccion_clase())) {
-                                Path path = Paths.get(oldClase.getDireccion_clase());
-                                try {
-                                    if (Files.exists(path)) {
-                                        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-                                            @Override
-                                            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                                                    throws IOException {
-                                                Files.delete(file);
-                                                return FileVisitResult.CONTINUE;
-                                            }
-
-                                            @Override
-                                            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                                                    throws IOException {
-                                                Files.delete(dir);
-                                                return FileVisitResult.CONTINUE;
-                                            }
-                                        });
-                                        System.out.println("Carpeta eliminada exitosamente.");
-                                    } else {
-                                        System.out.println("La carpeta no existe.");
-                                    }
-                                } catch (Exception e) {
-                                    System.err.println("Error en borrar el video: " + e.getMessage());
-                                }
-                            }
-                        }
-                    }
-                    ;
-                    this.claseRepo.updateClase(clase.getId_clase(), clase.getNombre_clase(), clase.getTipo_clase(),
-                            clase.getDireccion_clase(), clase.getPosicion_clase());
-                }
+        List<Clase> clases = curso.getClases_curso();
+        curso.setClases_curso(null);
+        if (curso.getId_curso().equals(0L)) {
+            curso.setId_curso(null);
+            try {
+                curso = this.repo.save(curso);
+            } catch (Exception e) {
+                System.err.println("Error en crear el curso: " + e.getMessage());
+                return null;
             }
         }
-        return this.repo.save(curso);
+        Path cursoPath = baseUploadDir.resolve(curso.getId_curso().toString());
+        File cursoFile = new File(cursoPath.toString());
+        if (!cursoFile.exists() || !cursoFile.isDirectory()) {
+            if (!cursoFile.mkdir()) {
+                System.err.println("Error en crear la carpeta del curso.");
+                return null;
+            }
+        }
+        if (clases.size() > 0) {
+            for (Clase clase : clases) {
+                clase.setCurso_clase(curso);
+                if (clase.getId_clase().equals(0L)) {
+                    clase.setId_clase(null);
+                }
+                try {
+                    clase = this.claseRepo.save(clase);
+                } catch (Exception e) {
+                    System.err.println("Error en guardar la clase: " + e.getMessage());
+                    return null;
+                }
+                Path clasePath = cursoPath.resolve(clase.getId_clase().toString());
+                File claseFile = new File(clasePath.toString());
+                if (!claseFile.exists() || !claseFile.isDirectory()) {
+                    if (!claseFile.mkdir()) {
+                        return null;
+                    }
+                }
+            }
+            curso.setClases_curso(clases);
+            try {
+                curso = this.repo.save(curso);
+            } catch (Exception e) {
+                System.err.println("Error en actualizar el curso: " + e.getMessage());
+                return null;
+            }
+        }
+        return curso;
     }
 
     @Override
@@ -184,23 +164,46 @@ public class CursoService implements ICursoService {
         }
         this.repo.deleteById(id_curso);
 
-        WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
-        webClient.delete()
-                .uri("/deleteCurso/" + id_curso)
-                .retrieve()
-                .bodyToMono(Boolean.class)
-                .doOnError(e -> {
-                    // Manejo de errores
-                    System.err.println("ERROR: " + e.getMessage());
-                    e.printStackTrace();
-                }).subscribe(res -> {
-                    // Maneja el resultado cuando esté disponible
-                    if (res != null && res) {
-                        System.out.println("Curso borrado con exito!!!");
-                    } else {
-                        System.err.println("Error en borrar el curso en el servicio de reproducción");
+        Path cursoPath = Paths.get(this.baseUploadDir.toString(), id_curso.toString());
+        File cursoFile = new File(cursoPath.toString());
+        if (cursoFile.exists()) {
+            try {
+
+                Files.walkFileTree(cursoPath, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
                     }
                 });
+                System.out.println("Carpeta eliminada exitosamente.");
+            } catch (Exception e) {
+                System.err.println("Error en borrar la carpeta del curso: " + e.getMessage());
+            }
+        } else {
+            System.out.println("La carpeta no existe.");
+        }
+
+        WebClient webClient = webClientBuilder.baseUrl(backStreamURL)
+                .build();
+        webClient.delete().uri("/deleteCurso/" + id_curso).retrieve().bodyToMono(Boolean.class).doOnError(e -> {
+            // Manejo de errores
+            System.err.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
+        }).subscribe(res -> {
+            // Maneja el resultado cuando esté disponible
+            if (res != null && res) {
+                System.out.println("Curso borrado con éxito!!!");
+            } else {
+                System.err.println("Error en borrar el curso en el servicio de reproducción");
+            }
+        });
 
         return true;
     }
@@ -217,7 +220,7 @@ public class CursoService implements ICursoService {
             this.claseRepo.delete(clase);
             if (clase.getDireccion_clase().length() > 0) {
                 try {
-                    Path path = Paths.get(clase.getDireccion_clase());
+                    Path path = Paths.get(clase.getDireccion_clase()).getParent();
                     if (Files.exists(path)) {
                         Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                             @Override
@@ -270,122 +273,118 @@ public class CursoService implements ICursoService {
 
     @Override
     @Async
-    public void convertVideo(String inputFilePath) {
-        // Construye el comando FFmpeg
-        // Extrae el directorio y el nombre del archivo de entrada
-        Path inputPath = Paths.get(inputFilePath);
-        String inputFileName = inputPath.getFileName().toString();
-        String inputDir = inputPath.getParent().toString();
+    public void convertVideos(Curso curso) {
+        for (Clase clase : curso.getClases_curso()) {
+            Path base = Paths.get(baseUploadDir.toString(), curso.getId_curso().toString(),
+                    clase.getId_clase().toString());
+            if (clase.getDireccion_clase().length() > 0 && !clase.getDireccion_clase().equals(base)) {
 
-        // Construye el comando FFmpeg
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffmpeg",
-                "-i", inputFileName,
-                "-filter_complex",
-                "[0:v]split=3[v1][v2][v3]; [v1]copy[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]",
-                "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0", "5M",
-                "-bufsize:v:0", "10M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-minrate:v:1", "3M",
-                "-bufsize:v:1", "3M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2", "1M",
-                "-bufsize:v:2", "1M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ac", "2",
-                "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
-                "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
-                "-f", "hls",
-                "-hls_time", "5",
-                "-hls_playlist_type", "vod",
-                "-hls_flags", "independent_segments",
-                "-hls_segment_type", "mpegts",
-                "-hls_segment_filename", "stream_%v/data%02d.ts",
-                "-hls_base_url", "stream_%v/",
-                "-master_pl_name", "master.m3u8",
-                "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2",
-                "stream_%v.m3u8");
-
-        // Establece el directorio de trabajo al directorio que contiene el archivo de
-        // entrada
-        processBuilder.directory(new java.io.File(inputDir));
-        processBuilder.redirectErrorStream(true);
-
-        // Inicia el proceso
-        try {
-            Process process = processBuilder.start();
-
-            // Lee la salida del proceso para depuración
-            try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
+                // Extrae el directorio y el nombre del archivo de entrada
+                Path inputPath = Paths.get(clase.getDireccion_clase());
+                System.out.println("INPUT: " + inputPath.toString());
+                File baseFile = new File(base.toString());
+                File inputFile = new File(inputPath.toString());
+                File destino = new File(baseFile, inputPath.getFileName().toString());
+                System.out.println("DESTINO: " + destino.toString());
+                if (!inputFile.renameTo(destino)) {
+                    System.err.println("Error en mover el video a la carpeta de destino");
+                    break;
                 }
-            }
+                String inputFileName = destino.getName().toString();
 
-            // Espera a que el proceso termine
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new IOException("FFmpeg process failed with exit code " + exitCode);
-            } else {
-                List<Path> m3u8Files = new ArrayList<>();
-                DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(inputDir), "*.m3u8");
-                for (Path entry : stream) {
-                    if (!entry.endsWith("master.m3u8"))
-                        m3u8Files.add(entry);
-                }
-                for (Path m3u8File : m3u8Files) {
-                    String fileName = m3u8File.toString().substring(m3u8File.toString().lastIndexOf("/") + 1,
-                            m3u8File.toString().lastIndexOf("."));
-                    List<String> lines = Files.readAllLines(m3u8File, StandardCharsets.UTF_8);
-                    List<String> modifiedLines = new ArrayList<>();
+                // Construye el comando FFmpeg
+                ProcessBuilder processBuilder = new ProcessBuilder(
+                        "ffmpeg",
+                        "-i", inputFileName,
+                        "-filter_complex",
+                        "[0:v]split=3[v1][v2][v3]; [v1]copy[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]",
+                        "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0",
+                        "5M",
+                        "-bufsize:v:0", "10M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                        "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-minrate:v:1",
+                        "3M",
+                        "-bufsize:v:1", "3M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                        "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2",
+                        "1M",
+                        "-bufsize:v:2", "1M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                        "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ac", "2",
+                        "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
+                        "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
+                        "-f", "hls",
+                        "-hls_time", "5",
+                        "-hls_playlist_type", "vod",
+                        "-hls_flags", "independent_segments",
+                        "-hls_segment_type", "mpegts",
+                        "-hls_segment_filename", "stream_%v/data%02d.ts",
+                        "-hls_base_url", "stream_%v/",
+                        "-master_pl_name", "master.m3u8",
+                        "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2",
+                        "stream_%v.m3u8");
 
-                    for (String line : lines) {
-                        // Modifica la línea según tus necesidades
-                        if (line.startsWith("stream_%v/")) {
-                            line = line.replace("stream_%v/", fileName + "/");
+                // Establece el directorio de trabajo al directorio que contiene el archivo de
+                // entrada
+                processBuilder.directory(new java.io.File(base.toString()));
+                processBuilder.redirectErrorStream(true);
+
+                // Inicia el proceso
+                try {
+                    Process process = processBuilder.start();
+
+                    // Lee la salida del proceso para depuración
+                    try (var reader = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(process.getInputStream()))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            System.out.println(line);
                         }
-                        modifiedLines.add(line);
                     }
 
-                    Files.write(m3u8File, modifiedLines, StandardCharsets.UTF_8);
+                    // Espera a que el proceso termine
+                    int exitCode = process.waitFor();
+                    if (exitCode != 0) {
+                        throw new IOException("FFmpeg process failed with exit code " + exitCode);
+                    } else {
+                        List<Path> m3u8Files = new ArrayList<>();
+                        DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(base.toString()), "*.m3u8");
+                        for (Path entry : stream) {
+                            if (!entry.endsWith("master.m3u8"))
+                                m3u8Files.add(entry);
+                        }
+                        for (Path m3u8File : m3u8Files) {
+                            String fileName = m3u8File.toString().substring(m3u8File.toString().lastIndexOf("/") + 1,
+                                    m3u8File.toString().lastIndexOf("."));
+                            List<String> lines = Files.readAllLines(m3u8File, StandardCharsets.UTF_8);
+                            List<String> modifiedLines = new ArrayList<>();
+
+                            for (String line : lines) {
+                                // Modifica la línea según tus necesidades
+                                if (line.startsWith("stream_%v/")) {
+                                    line = line.replace("stream_%v/", fileName + "/");
+                                }
+                                modifiedLines.add(line);
+                            }
+
+                            Files.write(m3u8File, modifiedLines, StandardCharsets.UTF_8);
+                        }
+                        stream.close();
+                        clase.setDireccion_clase(base.toString() + "/master.m3u8");
+                        this.claseRepo.save(clase);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error en convertir el video: " + e.getCause());
                 }
-                stream.close();
             }
-        } catch (Exception e) {
-            System.err.println("Error en convertir el video: " + e.getCause());
         }
     }
 
     @Override
-    public String subeVideo(MultipartFile file, Long idCurso, Long idClase) {
+    public String subeVideo(MultipartFile file) {
         try {
-            // Busca la carpeta del curso, y si no existe la crea
-            Path carpetaCursoPath = baseUploadDir.resolve(idCurso.toString());
-            File carpetaCursoFile = new File(carpetaCursoPath.toString());
-            if (!carpetaCursoFile.exists() || !carpetaCursoFile.isDirectory()) {
-                if (idCurso == 0) {
-                    carpetaCursoPath = baseUploadDir.resolve(UUID.randomUUID().toString());
-                }
-                Files.createDirectories(carpetaCursoPath);
-            }
-
-            // Busca la carpeta de la clase, y si existe la vacía
-            Path carpetaClasePath = carpetaCursoPath.resolve(idClase.toString());
-            File carpetaClaseFile = new File(carpetaClasePath.toString());
-            if (carpetaClaseFile.exists() && carpetaClaseFile.isDirectory()) {
-                Stream<Path> files = Files.walk(carpetaClasePath);
-                files.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-                files.close();
-            } else {
-                if (idClase == 0) {
-                    carpetaClasePath = carpetaCursoPath.resolve(UUID.randomUUID().toString());
-                }
-                Files.createDirectories(carpetaClasePath);
-            }
-
             // Define el path para guardar el archivo subido
             String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-            Path filePath = carpetaClasePath
-                    .resolve(originalFileName.replaceAll("[^a-zA-Z0-9\\s.]", "").replaceAll("\\s+", "_"));
-
+            Path filePath = baseUploadDir
+                    .resolve(UUID.randomUUID().toString() + "_"
+                            + originalFileName.replaceAll("[^a-zA-Z0-9\\s.]", "").replaceAll("\\s+", "_"));
             // Guarda el archivo en el servidor
             Files.write(filePath, file.getBytes());
             return filePath.normalize().toString();

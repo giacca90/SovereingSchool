@@ -1,6 +1,6 @@
-import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, concatMap, firstValueFrom, from, map, Observable, of, reduce, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
 import { Clase } from '../models/Clase';
 import { Curso } from '../models/Curso';
 import { Usuario } from '../models/Usuario';
@@ -38,6 +38,27 @@ export class CursosService {
 	}
 
 	updateCurso(curso: Curso | null): Observable<boolean> {
+		if (curso === null) {
+			console.error('El curso no existe!!!');
+			return of(false);
+		}
+		return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { observe: 'response', responseType: 'text' as 'json' }).pipe(
+			map((response) => {
+				if (response.ok) {
+					return true;
+				} else {
+					console.error('Respuesta del back: ' + response.body);
+					return false;
+				}
+			}),
+			catchError((e: Error) => {
+				console.error('Error en actualizar el curso: ' + e.message);
+				return of(false);
+			}),
+		);
+	}
+
+	/* updateCurso(curso: Curso | null): Observable<boolean> {
 		if (curso) {
 			if (curso.id_curso === 0 && curso.clases_curso) {
 				const clases: Clase[] = curso.clases_curso;
@@ -85,9 +106,9 @@ export class CursosService {
 		} else {
 			return throwError(() => new Error('El curso es nulo'));
 		}
-	}
+	} */
 
-	editClass(editar: Clase): Observable<boolean> {
+	/* 	editClass(editar: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
 		return this.http.put<string>(`${this.backURL}/cursos/${curso_clase}/editClase`, editar, { observe: 'response', responseType: 'text' as 'json' }).pipe(
@@ -102,16 +123,15 @@ export class CursosService {
 				return of(false);
 			}),
 		);
-	}
+	} */
 
-	createClass(editar: Clase): Observable<boolean> {
+	/* 	createClass(editar: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = editar.curso_clase;
 		editar.curso_clase = undefined;
-		const ruta: string = this.backURL + '/cursos/' + curso_clase + '/addClase';
-		return this.http.put<string>(ruta, editar, { observe: 'response', responseType: 'text' as 'json' }).pipe(
+		return this.http.put<string>(this.backURL + '/cursos/' + curso_clase + '/addClase', editar, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.ok) {
-					//this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = [];
+					this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = [];
 					return true;
 				}
 				return false;
@@ -121,7 +141,7 @@ export class CursosService {
 				return of(false);
 			}),
 		);
-	}
+	} */
 
 	deleteClass(clase: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = clase.curso_clase;
@@ -205,16 +225,14 @@ export class CursosService {
 		);
 	}
 
-	guardarCambiosClase(editar: Clase): Observable<boolean> {
+	/* 	guardarCambiosClase(editar: Clase): Observable<boolean> {
 		if (editar.id_clase === 0) {
 			return this.createClass(editar).pipe(
 				map((resp: boolean) => {
-					if (resp && editar.curso_clase) {
+					if (resp) {
 						this.getCurso(editar.curso_clase).then((response) => {
 							console.log(response);
-							return true;
-						});
-						return false;
+						return true;
 					} else {
 						console.error('Error en actualizar!!!');
 						return false;
@@ -242,7 +260,7 @@ export class CursosService {
 			);
 		}
 	}
-
+ */
 	getStatusCurso(id_usuario: number, id_curso: number): Observable<number | boolean> {
 		return this.http.get<number>(this.backURLStreaming + '/status/' + id_usuario + '/' + id_curso, { observe: 'response' }).pipe(
 			map((response: HttpResponse<number>) => {

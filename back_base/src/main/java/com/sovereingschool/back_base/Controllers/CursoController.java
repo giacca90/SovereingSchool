@@ -2,10 +2,6 @@ package com.sovereingschool.back_base.Controllers;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -174,19 +170,6 @@ public class CursoController {
 		}
 	}
 
-	@PostMapping("/new")
-	public ResponseEntity<?> createCurso(@RequestBody Curso curso) {
-		Object response = new Object();
-		try {
-			curso.setId_curso(this.service.createCurso(curso));
-			response = curso.getId_curso();
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch (Exception e) {
-			response = "Error en crear el curso: " + e.getMessage();
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
 	@PutMapping("/update")
 	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
 		Object response = new Object();
@@ -196,6 +179,8 @@ public class CursoController {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
+			// función asíncrona
+			this.service.convertVideos(result);
 			response = "Curso actualizado con éxito!!!";
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
@@ -247,81 +232,6 @@ public class CursoController {
 		}
 	}
 
-	@PutMapping("/{idCurso}/editClase")
-	public ResponseEntity<?> update(@PathVariable Long idCurso, @RequestBody Clase clase) {
-		Object response = new Object();
-		try {
-			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
-			List<Clase> clases = curso.getClases_curso();
-			for (int i = 0; i < clases.size(); i++) {
-				if (clases.get(i).getId_clase().equals(clase.getId_clase())) {
-					clase.setCurso_clase(curso);
-					clases.set(i, clase);
-					curso.setClases_curso(clases);
-					System.out.println("LOG: " + curso.getClases_curso().get(0).getDireccion_clase());
-					this.service.updateCurso(curso);
-					clase.getCurso_clase().setClases_curso(null);
-					clase.getCurso_clase().setProfesores_curso(null);
-					response = "Clase editada con éxito!!!";
-					return new ResponseEntity<>(response, HttpStatus.OK);
-				}
-			}
-			response = "Clase no encontrada";
-			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-		} catch (Exception e) {
-			response = "Error en editar la clase: " + e.getMessage();
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@PutMapping("/{idCurso}/addClase")
-	public ResponseEntity<?> addClase(@PathVariable Long idCurso, @RequestBody Clase clase) {
-		Object response = new Object();
-		try {
-			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
-			List<Clase> clases = curso.getClases_curso();
-			if (clase.getPosicion_clase() == null || clase.getPosicion_clase() == 0)
-				clase.setPosicion_clase((clases.size()) + 1);
-			else
-				clases.forEach((Clase fclase) -> {
-					if (fclase.getPosicion_clase() == clase.getPosicion_clase())
-						clase.setPosicion_clase((clases.size()) + 1);
-				});
-			clase.setCurso_clase(curso);
-			String direccion_clase = clase.getDireccion_clase();
-			if (direccion_clase.length() > 0) {
-				Path clasePath = Paths.get(direccion_clase);
-				Path cursoPath = clasePath.getParent();
-				Path padre = cursoPath.getParent();
-				if (!cursoPath.toString().equals(padre.resolve(idCurso.toString()))) {
-					Path nuevoCurso = padre.resolve(idCurso.toString());
-					Files.move(cursoPath, nuevoCurso, StandardCopyOption.REPLACE_EXISTING);
-					cursoPath = nuevoCurso;
-				}
-				Path nuevaClase = cursoPath.resolve(clase.getId_clase().toString());
-				Files.move(clasePath, nuevaClase, StandardCopyOption.REPLACE_EXISTING);
-				clase.setDescriccion_clase(nuevaClase.toString());
-			}
-			clases.add(clase);
-			curso.setClases_curso(clases);
-			this.service.updateCurso(curso);
-			response = "Clase añadida con éxito!!!";
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch (Exception e) {
-			response = "Error en crear la clase: " + e.getCause();
-			return new ResponseEntity<>(response,
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
 	@DeleteMapping("/{idCurso}/deleteClase/{idClase}")
 	public ResponseEntity<?> deleteClase(@PathVariable Long idCurso, @PathVariable Long idClase) {
 		Object response = new Object();
@@ -368,12 +278,8 @@ public class CursoController {
 			response = "Archivo vacío";
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
-		String filePath = this.service.subeVideo(file, idCurso, idClase);
-
-		// Función asíncrona
-		this.service.convertVideo(filePath);
-		Path carpetaClase = Path.of(filePath).getParent();
-		response = carpetaClase.normalize().toString();
+		String filePath = this.service.subeVideo(file);
+		response = filePath.toString();
 		System.out.println("RESPONSE: " + response);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

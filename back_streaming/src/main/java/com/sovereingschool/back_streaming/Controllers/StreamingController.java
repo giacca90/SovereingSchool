@@ -63,6 +63,7 @@ public class StreamingController {
         System.out.println("LOG");
 
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
+        direccion_carpeta = direccion_carpeta.substring(0, direccion_carpeta.lastIndexOf("/"));
         System.out.println("LOG2: " + direccion_carpeta);
         if (direccion_carpeta == null) {
             System.err.println("El video no tiene ruta");
@@ -109,6 +110,7 @@ public class StreamingController {
         System.out.println("LOG");
 
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
+        direccion_carpeta = direccion_carpeta.substring(0, direccion_carpeta.lastIndexOf("/"));
         System.out.println("LOG2: " + direccion_carpeta);
         if (direccion_carpeta == null) {
             System.err.println("El video no tiene ruta");
