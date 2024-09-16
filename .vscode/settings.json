@@ -13,5 +13,6 @@
 			"password": "giacca90"
 		}
 	],
-	"cSpell.enableFiletypes": ["sql"]
+	"cSpell.enableFiletypes": ["sql"],
+	"java.checkstyle.version": "10.18.1"
 }

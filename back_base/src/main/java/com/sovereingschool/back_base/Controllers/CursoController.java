@@ -31,7 +31,6 @@ import com.sovereingschool.back_base.Models.Usuario;
 @RequestMapping("/cursos")
 @CrossOrigin(origins = "http://localhost:4200, https://giacca90.github.io")
 public class CursoController {
-
 	@Autowired
 	private ICursoService service;
 
@@ -220,8 +219,9 @@ public class CursoController {
 			}
 			List<Clase> clases = curso.getClases_curso();
 			for (Clase clase : clases) {
-				if (clase.getId_clase().equals(idClase))
+				if (clase.getId_clase().equals(idClase)) {
 					response = clase;
+				}
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response = "Clase no encontrada";

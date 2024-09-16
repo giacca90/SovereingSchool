@@ -1,9 +1,7 @@
 package com.sovereingschool.back_chat.Models;
 
-import java.io.Serializable;
 import java.util.List;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,8 +14,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Entity
-public class ClaseChat implements Serializable {
+public class ClaseChat {
     @Id
     private Long idClase;
 

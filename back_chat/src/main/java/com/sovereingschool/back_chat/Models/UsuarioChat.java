@@ -3,7 +3,8 @@ package com.sovereingschool.back_chat.Models;
 import java.io.Serializable;
 import java.util.List;
 
-import jakarta.persistence.Entity;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,9 +17,11 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Entity
+@Document(collection = "user_chat")
 public class UsuarioChat implements Serializable {
     @Id
+    private String id;
+
     private Long idUsuario;
 
     private List<CursoChat> cursos;

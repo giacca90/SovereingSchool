@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.sovereingschool.back_chat.Models.CursoChat;
 
 @Repository
-public interface CursoChatRepository extends MongoRepository<CursoChat, Long> {
+public interface CursoChatRepository extends MongoRepository<CursoChat, String> {
 
 }

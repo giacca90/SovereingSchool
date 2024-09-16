@@ -347,8 +347,9 @@ public class CursoService implements ICursoService {
                         List<Path> m3u8Files = new ArrayList<>();
                         DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(base.toString()), "*.m3u8");
                         for (Path entry : stream) {
-                            if (!entry.endsWith("master.m3u8"))
+                            if (!entry.endsWith("master.m3u8")) {
                                 m3u8Files.add(entry);
+                            }
                         }
                         for (Path m3u8File : m3u8Files) {
                             String fileName = m3u8File.toString().substring(m3u8File.toString().lastIndexOf("/") + 1,
@@ -384,7 +385,8 @@ public class CursoService implements ICursoService {
             String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
             Path filePath = baseUploadDir
                     .resolve(UUID.randomUUID().toString() + "_"
-                            + originalFileName.replaceAll("[^a-zA-Z0-9\\s.]", "").replaceAll("\\s+", "_"));
+                            + originalFileName.replaceAll("[^a-zA-Z0-9\\s.]", "")
+                                    .replaceAll("\\s+", "_"));
             // Guarda el archivo en el servidor
             Files.write(filePath, file.getBytes());
             return filePath.normalize().toString();

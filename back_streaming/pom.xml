@@ -13,7 +13,7 @@
 	<artifactId>back_streaming</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>back_streaming</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Streaming</description>
 	<url />
 	<licenses>
 		<license />
