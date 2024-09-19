@@ -1,37 +1,60 @@
 import { Injectable } from '@angular/core';
+import { Client } from '@stomp/stompjs';
+import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
+import { InitChatUsuario } from '../models/InitChatUsuario';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class ChatService {
-	private url: string = 'ws://localhost:8080/chat-socket';
-	private socket: WebSocket = new WebSocket(this.url);
+	private url: string = 'ws://localhost:8070/chat-socket';
+	private subject = new BehaviorSubject<InitChatUsuario | null>(null); // Utiliza BehaviorSubject para emitir el último valor a nuevos suscriptores
+	private unsubscribe$ = new Subject<void>();
+	private client: Client;
 
-	initUsuario(idUsuario: number): Observable<InitChatUsuario> {
-		this.socket.onopen = () => {
-			console.log('Conexión establecida');
-			// Puedes enviar un mensaje inicial aquí
-			const message = {
-				type: 'init_chat',
-				user_id: idUsuario,
-			};
-			this.socket.send(JSON.stringify(message));
+	constructor() {
+		this.client = new Client({
+			brokerURL: this.url,
+		});
+
+		this.client.onWebSocketError = (error) => {
+			console.error('Error con WebSocket', error);
 		};
 
-		this.socket.onmessage = (event: MessageEvent) => {
-			const message = JSON.parse(event.data);
-			console.log('Mensaje recibido:', message);
-			// Aquí puedes actualizar tu componente con los datos recibidos
-			return message;
+		this.client.onStompError = (frame) => {
+			console.error('Broker reported error: ' + frame.headers['message']);
+			console.error('Additional details: ' + frame.body);
+		};
+	}
+
+	initUsuario(idUsuario: number): Observable<InitChatUsuario | null> {
+		console.log('INITUSUARIO');
+
+		this.client.onConnect = (frame) => {
+			console.log('Connected: ' + frame);
+
+			// Suscríbete a las respuestas del backend
+			this.client.subscribe('/init_chat/result', (response) => {
+				const init: InitChatUsuario = JSON.parse(response.body) as InitChatUsuario;
+				console.log('SE RECIBE RESPUESTA DEL BACK!!!', init);
+
+				// Emitir el valor recibido a través del subject
+				this.subject.next(init);
+			});
+
+			// Publicar el mensaje al backend
+			this.client.publish({
+				destination: '/app/init',
+				body: idUsuario.toString(),
+			});
 		};
 
-		this.socket.onerror = (error) => {
-			console.error('Error en la conexión:', error);
-		};
+		// Activa el WebSocket
+		this.client.activate();
 
-		this.socket.onclose = (event) => {
-			console.log('Conexión cerrada:', event);
-			// Puedes intentar reconectar aquí
-		};
+		// Devolver el observable que los componentes pueden suscribirse
+		return this.subject.asObservable().pipe(
+			takeUntil(this.unsubscribe$), // Desuscribirse cuando sea necesario
+		);
 	}
 }

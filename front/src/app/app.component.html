@@ -10,7 +10,7 @@
 			@if (this.vistaMenu === true) {
 				<div class="absolute right-2 z-10 mt-2 flex flex-col items-start rounded-lg bg-gray-200 p-4 shadow-lg">
 					<button class="mb-1 hover:text-blue-500" (click)="this.router.navigate(['cursosUsuario']); this.vistaMenu = false">Tus Cursos</button>
-					<button class="mb-1 hover:text-blue-500" (click)="this.vistaMenu = false">Tus Chats</button>
+					<button class="mb-1 hover:text-blue-500" (click)="this.router.navigate(['chat']); this.vistaMenu = false">Tus Chats</button>
 					<button class="mb-1 hover:text-blue-500" (click)="this.router.navigate(['perfil']); this.vistaMenu = false">Tu perfil</button>
 					<button class="hover:text-blue-500" (click)="this.salir()">Salir</button>
 				</div>

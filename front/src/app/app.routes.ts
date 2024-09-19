@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { ChatComponent } from './components/chat/chat.component';
 import { CursoComponent } from './components/curso/curso.component';
 import { CursosUsuarioComponent } from './components/cursos-usuario/cursos-usuario.component';
 import { EditorCursoComponent } from './components/editor-curso/editor-curso.component';
@@ -10,6 +11,7 @@ export const routes: Routes = [
 	{ path: '', component: HomeComponent },
 	{ path: 'cursosUsuario', component: CursosUsuarioComponent },
 	{ path: 'curso/:id_curso', component: CursoComponent },
+	{ path: 'chat', component: ChatComponent },
 	{ path: 'repro/:id_usuario/:id_curso/:id_clase', component: ReproductionComponent },
 	{ path: 'editorCurso/:id_curso', component: EditorCursoComponent },
 	{ path: 'perfil', component: PerfilUsuarioComponent },

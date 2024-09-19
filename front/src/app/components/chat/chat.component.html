@@ -1,1 +1,18 @@
-<p>chat works!</p>
+@if (this.cargando) {
+	<p>CARGANDO!!!!</p>
+} @else {
+	@if (this.chats.length === 0) {
+		<p>NO TIENES MENSAJES PENDIENTES.</p>
+	} @else {
+		@for (mensaje of this.chats; track $index) {
+			{{ mensaje.mensaje }}
+		}
+	}
+	@if (this.cursos.length === 0) {
+		<p>NO TIENES CHATS ACTIVOS</p>
+	} @else {
+		@for (ultimo of this.cursos; track $index) {
+			{{ ultimo.mensajes }}
+		}
+	}
+}
