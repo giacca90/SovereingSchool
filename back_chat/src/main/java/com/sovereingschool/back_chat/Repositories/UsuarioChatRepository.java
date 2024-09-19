@@ -8,6 +8,6 @@ import com.sovereingschool.back_chat.Models.UsuarioChat;
 
 @Repository
 public interface UsuarioChatRepository extends MongoRepository<UsuarioChat, String> {
-    @Query(value = "{ 'id_usuario' : ?0 }")
-    UsuarioChat findByIdUsuario(Long id_usuario);
+    @Query(value = "{ 'idUsuario' : ?0 }")
+    UsuarioChat findByIdUsuario(Long idUsuario);
 }

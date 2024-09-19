@@ -26,9 +26,9 @@ export class ChatComponent {
 			if (this.loginService.usuario) {
 				this.chatService.initUsuario(this.loginService.usuario.id_usuario).subscribe({
 					next: (init: InitChatUsuario | null) => {
-						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ' + init?.idUsuario);
-						if (init && init.idUsuario === this.loginService.usuario?.id_usuario) {
-							this.chats = init.chats;
+						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', init);
+						if (init && init.mensajes && init.cursos && init.idUsuario === this.loginService.usuario?.id_usuario) {
+							this.chats = init.mensajes;
 							this.cursos = init.cursos;
 							this.cargando = false;
 							this.cdr.detectChanges();

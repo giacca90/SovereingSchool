@@ -35,8 +35,10 @@ export class ChatService {
 
 			// Suscríbete a las respuestas del backend
 			this.client.subscribe('/init_chat/result', (response) => {
+				console.log('RESPONSE: ', response.body);
 				const init: InitChatUsuario = JSON.parse(response.body) as InitChatUsuario;
 				console.log('SE RECIBE RESPUESTA DEL BACK!!!', init);
+				console.log('INIT.MENSAJES', init.mensajes);
 
 				// Emitir el valor recibido a través del subject
 				this.subject.next(init);

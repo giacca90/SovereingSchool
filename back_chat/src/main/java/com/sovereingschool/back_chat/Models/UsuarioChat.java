@@ -17,7 +17,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Document(collection = "user_chat")
+@Document(collection = "users_chat")
 public class UsuarioChat implements Serializable {
     @Id
     private String id;

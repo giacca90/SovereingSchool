@@ -20,7 +20,7 @@ import lombok.ToString;
 public class InitChatDTO implements Serializable {
     private Long idUsuario;
 
-    private List<CursoChat> cursos;
-
     private List<MensajeChat> mensajes;
+
+    private List<CursoChat> cursos;
 }
