@@ -1,6 +1,5 @@
 package com.sovereingschool.back_chat.DTOs;
 
-import java.io.Serializable;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -14,10 +13,13 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class InitChatDTO implements Serializable {
-    private Long idUsuario;
+public class ClaseChatDTO {
+
+    private Long id_clase;
+
+    private Long id_curso;
+
+    private String nombre_clase;
 
     private List<MensajeChatDTO> mensajes;
-
-    private List<CursoChatDTO> cursos;
 }

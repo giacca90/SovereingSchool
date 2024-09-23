@@ -1,18 +1,29 @@
-@if (this.cargando) {
-	<p>CARGANDO!!!!</p>
-} @else {
-	@if (this.chats.length === 0) {
-		<p>NO TIENES MENSAJES PENDIENTES.</p>
+<div class="w-full items-center justify-center">
+	@if (this.cargando) {
+		<p>CARGANDO!!!!</p>
 	} @else {
-		@for (mensaje of this.chats; track $index) {
-			{{ mensaje.mensaje }}
+		@if (this.chats.length === 0) {
+			<p>NO TIENES MENSAJES PENDIENTES.</p>
+		} @else {
+			@for (mensaje of this.chats; track $index) {
+				<div class="m-2 flex flex-grow flex-col rounded-lg border border-black p-2">
+					<p>{{ mensaje.nombre_usuario }}</p>
+					<p>{{ mensaje.nombre_curso }}</p>
+					@if (mensaje.nombre_clase) {
+						<p>{{ mensaje.nombre_clase }}</p>
+					}
+					<p>{{ mensaje.mensaje }}</p>
+				</div>
+			}
+		}
+		@if (this.cursos.length === 0) {
+			<p>NO TIENES CHATS ACTIVOS</p>
+		} @else {
+			@for (ultimo of this.cursos; track $index) {
+				<div class="m-2 flex-grow rounded-lg border border-black p-2">
+					<p>{{ ultimo.nombre_curso }}</p>
+				</div>
+			}
 		}
 	}
-	@if (this.cursos.length === 0) {
-		<p>NO TIENES CHATS ACTIVOS</p>
-	} @else {
-		@for (ultimo of this.cursos; track $index) {
-			{{ ultimo.mensajes }}
-		}
-	}
-}
+</div>
