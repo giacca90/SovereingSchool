@@ -20,8 +20,13 @@
 			<p>NO TIENES CHATS ACTIVOS</p>
 		} @else {
 			@for (ultimo of this.cursos; track $index) {
-				<div class="m-2 flex-grow rounded-lg border border-black p-2">
+				<div class="m-2 flex flex-grow flex-col rounded-lg border border-black p-2">
 					<p>{{ ultimo.nombre_curso }}</p>
+					@if (ultimo.mensajes[0].id_clase) {
+						<p>{{ ultimo.mensajes[0].nombre_clase }}</p>
+					}
+					<p>{{ ultimo.mensajes[0].nombre_usuario }}</p>
+					<p>{{ ultimo.mensajes[0].mensaje }}</p>
 				</div>
 			}
 		}

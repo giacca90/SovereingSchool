@@ -17,6 +17,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.changestream.ChangeStreamDocument;
+import com.sovereingschool.back_chat.DTOs.ClaseChatDTO;
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
 import com.sovereingschool.back_chat.DTOs.InitChatDTO;
 import com.sovereingschool.back_chat.DTOs.MensajeChatDTO;
@@ -104,7 +105,29 @@ public class InitChatService {
                     cursoDTO.setId_curso(curso.getIdCurso());
                     cursoDTO.setNombre_curso(cursoRepo.findNombreCursoById(curso.getIdCurso()));
                     cursoDTO.setFoto_curso(cursoRepo.findImagenCursoById(curso.getIdCurso()));
-                    cursosDTO.add(cursoDTO);
+                    List<ClaseChatDTO> clasesDTO = new ArrayList<>();
+                    curso.getClases().forEach(clase -> {
+                        List<MensajeChatDTO> mensaje = new ArrayList<>();
+                        mensaje.add(new MensajeChatDTO(
+                                clase.getMensajes().getFirst().getIdMensaje(),
+                                clase.getMensajes().getFirst().getIdCurso(),
+                                clase.getMensajes().getFirst().getIdClase(),
+                                clase.getMensajes().getFirst().getIdUsuario(),
+                                this.cursoRepo.findNombreCursoById(clase.getMensajes().getFirst().getIdCurso()),
+                                this.claseRepo.findNombreClaseById(clase.getMensajes().getFirst().getIdClase()),
+                                this.usuarioRepo.findNombreUsuarioForId(clase.getMensajes().getFirst().getIdUsuario()),
+                                this.cursoRepo.findImagenCursoById(clase.getMensajes().getFirst().getIdCurso()),
+                                this.usuarioRepo.findFotosUsuarioForId(clase.getMensajes().getFirst().getIdUsuario())
+                                        .get(0),
+                                clase.getMensajes().getFirst().getMensaje()));
+
+                        clasesDTO.add(new ClaseChatDTO(
+                                clase.getIdClase(),
+                                clase.getIdCurso(),
+                                this.claseRepo.findById(clase.getIdClase()).get().getNombre_clase(), mensaje));
+                        cursosDTO.add(cursoDTO);
+                    });
+
                 }
             }
 
