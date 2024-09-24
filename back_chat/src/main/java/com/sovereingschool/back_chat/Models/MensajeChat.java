@@ -1,5 +1,7 @@
 package com.sovereingschool.back_chat.Models;
 
+import java.util.Date;
+
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +24,10 @@ public class MensajeChat {
 
     private Long idUsuario;
 
+    private Long respuesta;
+
     private String mensaje;
+
+    private Date fecha;
 
 }

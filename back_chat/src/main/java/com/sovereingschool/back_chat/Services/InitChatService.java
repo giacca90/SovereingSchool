@@ -26,7 +26,9 @@ import com.sovereingschool.back_chat.Models.MensajeChat;
 import com.sovereingschool.back_chat.Models.Usuario;
 import com.sovereingschool.back_chat.Models.UsuarioChat;
 import com.sovereingschool.back_chat.Repositories.ClaseRepository;
+import com.sovereingschool.back_chat.Repositories.CursoChatRepository;
 import com.sovereingschool.back_chat.Repositories.CursoRepository;
+import com.sovereingschool.back_chat.Repositories.MensajeChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioRepository;
 
@@ -38,6 +40,12 @@ import jakarta.transaction.Transactional;
 public class InitChatService {
     @Autowired
     private UsuarioChatRepository usuarioChatRepo;
+
+    @Autowired
+    private MensajeChatRepository mensajeChatRepo;
+
+    @Autowired
+    private CursoChatRepository cursoChatRepo;
 
     @Autowired
     private UsuarioRepository usuarioRepo;
@@ -83,17 +91,38 @@ public class InitChatService {
             if (mensajes != null && mensajes.size() > 0) {
                 for (MensajeChat mensaje : mensajes) {
                     Usuario usuario = usuarioRepo.findById(mensaje.getIdUsuario()).get();
-                    MensajeChatDTO mensajeDTO = new MensajeChatDTO();
-                    mensajeDTO.setId_mensaje(mensaje.getIdMensaje());
-                    mensajeDTO.setId_curso(mensaje.getIdCurso());
-                    mensajeDTO.setId_clase(mensaje.getIdClase());
-                    mensajeDTO.setId_usuario(mensaje.getIdUsuario());
-                    mensajeDTO.setNombre_curso(cursoRepo.findNombreCursoById(mensaje.getIdCurso()));
-                    mensajeDTO.setNombre_clase(claseRepo.findNombreClaseById(mensaje.getIdClase()));
-                    mensajeDTO.setNombre_usuario(usuario.getNombre_usuario());
-                    mensajeDTO.setFoto_curso(cursoRepo.findImagenCursoById(mensaje.getIdCurso()));
-                    mensajeDTO.setFoto_usuario(usuario.getFoto_usuario().get(0));
-                    mensajeDTO.setMensaje(mensaje.getMensaje());
+                    Long respuestaId = mensaje.getRespuesta();
+                    MensajeChatDTO respuestaDTO = null;
+                    if (respuestaId != null) {
+                        MensajeChat respuesta = this.mensajeChatRepo.findById(respuestaId).get();
+                        respuestaDTO = new MensajeChatDTO(
+                                respuesta.getIdMensaje(),
+                                respuesta.getIdCurso(),
+                                respuesta.getIdClase(),
+                                respuesta.getIdUsuario(),
+                                null,
+                                null,
+                                this.usuarioRepo.findNombreUsuarioForId(respuesta.getIdUsuario()),
+                                null,
+                                this.usuarioRepo.findFotosUsuarioForId(respuesta.getIdUsuario()).get(0),
+                                null,
+                                respuesta.getMensaje(),
+                                respuesta.getFecha());
+                    }
+
+                    MensajeChatDTO mensajeDTO = new MensajeChatDTO(
+                            mensaje.getIdMensaje(),
+                            mensaje.getIdCurso(),
+                            mensaje.getIdClase(),
+                            mensaje.getIdUsuario(),
+                            cursoRepo.findNombreCursoById(mensaje.getIdCurso()),
+                            claseRepo.findNombreClaseById(mensaje.getIdClase()),
+                            usuario.getNombre_usuario(),
+                            cursoRepo.findImagenCursoById(mensaje.getIdCurso()),
+                            usuario.getFoto_usuario().get(0),
+                            respuestaDTO,
+                            mensaje.getMensaje(),
+                            mensaje.getFecha());
                     mensajesDTO.add(mensajeDTO);
                 }
             }
@@ -108,6 +137,24 @@ public class InitChatService {
                     List<ClaseChatDTO> clasesDTO = new ArrayList<>();
                     curso.getClases().forEach(clase -> {
                         List<MensajeChatDTO> mensaje = new ArrayList<>();
+                        Long respuestaId = clase.getMensajes().getFirst().getRespuesta();
+                        MensajeChatDTO respuestaDTO = null;
+                        if (respuestaId != null) {
+                            MensajeChat respuesta = this.mensajeChatRepo.findById(respuestaId).get();
+                            respuestaDTO = new MensajeChatDTO(
+                                    respuesta.getIdMensaje(),
+                                    respuesta.getIdCurso(),
+                                    respuesta.getIdClase(),
+                                    respuesta.getIdUsuario(),
+                                    null,
+                                    null,
+                                    this.usuarioRepo.findNombreUsuarioForId(respuesta.getIdUsuario()),
+                                    null,
+                                    this.usuarioRepo.findFotosUsuarioForId(respuesta.getIdUsuario()).get(0),
+                                    null,
+                                    respuesta.getMensaje(),
+                                    respuesta.getFecha());
+                        }
                         mensaje.add(new MensajeChatDTO(
                                 clase.getMensajes().getFirst().getIdMensaje(),
                                 clase.getMensajes().getFirst().getIdCurso(),
@@ -119,7 +166,9 @@ public class InitChatService {
                                 this.cursoRepo.findImagenCursoById(clase.getMensajes().getFirst().getIdCurso()),
                                 this.usuarioRepo.findFotosUsuarioForId(clase.getMensajes().getFirst().getIdUsuario())
                                         .get(0),
-                                clase.getMensajes().getFirst().getMensaje()));
+                                respuestaDTO,
+                                clase.getMensajes().getFirst().getMensaje(),
+                                clase.getMensajes().getFirst().getFecha()));
 
                         clasesDTO.add(new ClaseChatDTO(
                                 clase.getIdClase(),

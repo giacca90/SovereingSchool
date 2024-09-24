@@ -1,6 +1,7 @@
 package com.sovereingschool.back_chat.DTOs;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,6 +27,10 @@ public class MensajeChatDTO implements Serializable {
     private String foto_curso;
     private String foto_usuario;
 
+    private MensajeChatDTO respuesta;
+
     private String mensaje;
+
+    private Date fecha;
 
 }

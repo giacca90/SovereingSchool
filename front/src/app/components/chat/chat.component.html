@@ -12,6 +12,9 @@
 					@if (mensaje.nombre_clase) {
 						<p>{{ mensaje.nombre_clase }}</p>
 					}
+					@if (mensaje.respuesta) {
+						<p>En respuesta a:</p>
+					}
 					<p>{{ mensaje.mensaje }}</p>
 				</div>
 			}

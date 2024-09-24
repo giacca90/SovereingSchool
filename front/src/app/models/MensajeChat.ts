@@ -11,9 +11,13 @@ export class MensajeChat {
 	foto_curso: string;
 	foto_usuario: string;
 
+	respuesta: MensajeChat;
+
 	mensaje: string;
 
-	constructor(_id_mensaje: number, _id_curso: number, _id_clase: number, _id_usuario: number, _nombre_curso: string, _nombre_clase: string, _nombre_usuario: string, _foto_curso: string, _foto_usuario: string, _mensaje: string) {
+	fecha: Date;
+
+	constructor(_id_mensaje: number, _id_curso: number, _id_clase: number, _id_usuario: number, _nombre_curso: string, _nombre_clase: string, _nombre_usuario: string, _foto_curso: string, _foto_usuario: string, _respuesta: MensajeChat, _mensaje: string, _fecha: Date) {
 		this.id_mensaje = _id_mensaje;
 		this.id_curso = _id_curso;
 		this.id_clase = _id_clase;
@@ -23,6 +27,8 @@ export class MensajeChat {
 		this.nombre_usuario = _nombre_usuario;
 		this.foto_curso = _foto_curso;
 		this.foto_usuario = _foto_usuario;
+		this.respuesta = _respuesta;
 		this.mensaje = _mensaje;
+		this.fecha = _fecha;
 	}
 }
