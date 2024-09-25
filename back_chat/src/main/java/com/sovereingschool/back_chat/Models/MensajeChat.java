@@ -2,6 +2,8 @@ package com.sovereingschool.back_chat.Models;
 
 import java.util.Date;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,9 +16,10 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Document(collection = "messages_chat")
 public class MensajeChat {
     @Id
-    private Long idMensaje;
+    private String idMensaje;
 
     private Long idCurso;
 
@@ -24,7 +27,7 @@ public class MensajeChat {
 
     private Long idUsuario;
 
-    private Long respuesta;
+    private String respuesta;
 
     private String mensaje;
 

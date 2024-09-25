@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.sovereingschool.back_chat.Models.MensajeChat;
 
 @Repository
-public interface MensajeChatRepository extends MongoRepository<MensajeChat, Long> {
+public interface MensajeChatRepository extends MongoRepository<MensajeChat, String> {
 
 }

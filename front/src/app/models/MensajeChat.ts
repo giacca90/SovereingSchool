@@ -1,5 +1,5 @@
 export class MensajeChat {
-	id_mensaje: number;
+	id_mensaje: string;
 	id_curso: number;
 	id_clase: number;
 	id_usuario: number;
@@ -17,7 +17,7 @@ export class MensajeChat {
 
 	fecha: Date;
 
-	constructor(_id_mensaje: number, _id_curso: number, _id_clase: number, _id_usuario: number, _nombre_curso: string, _nombre_clase: string, _nombre_usuario: string, _foto_curso: string, _foto_usuario: string, _respuesta: MensajeChat, _mensaje: string, _fecha: Date) {
+	constructor(_id_mensaje: string, _id_curso: number, _id_clase: number, _id_usuario: number, _nombre_curso: string, _nombre_clase: string, _nombre_usuario: string, _foto_curso: string, _foto_usuario: string, _respuesta: MensajeChat, _mensaje: string, _fecha: Date) {
 		this.id_mensaje = _id_mensaje;
 		this.id_curso = _id_curso;
 		this.id_clase = _id_clase;

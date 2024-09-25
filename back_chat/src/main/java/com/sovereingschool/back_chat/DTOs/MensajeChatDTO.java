@@ -15,7 +15,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class MensajeChatDTO implements Serializable {
-    private Long id_mensaje;
+    private String id_mensaje;
     private Long id_curso;
     private Long id_clase;
     private Long id_usuario;
