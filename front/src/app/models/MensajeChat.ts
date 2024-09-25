@@ -1,5 +1,5 @@
 export class MensajeChat {
-	id_mensaje: string;
+	id_mensaje: string | null;
 	id_curso: number;
 	id_clase: number;
 	id_usuario: number;
@@ -11,7 +11,7 @@ export class MensajeChat {
 	foto_curso: string;
 	foto_usuario: string;
 
-	respuesta: MensajeChat;
+	respuesta: MensajeChat | null;
 
 	mensaje: string;
 

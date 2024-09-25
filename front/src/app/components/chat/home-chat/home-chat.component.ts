@@ -1,18 +1,18 @@
 import { afterNextRender, ChangeDetectorRef, Component } from '@angular/core';
-import { CursoChat } from '../../models/CursoChat';
-import { InitChatUsuario } from '../../models/InitChatUsuario';
-import { MensajeChat } from '../../models/MensajeChat';
-import { ChatService } from '../../services/chat.service';
-import { LoginService } from '../../services/login.service';
+import { CursoChat } from '../../../models/CursoChat';
+import { InitChatUsuario } from '../../../models/InitChatUsuario';
+import { MensajeChat } from '../../../models/MensajeChat';
+import { ChatService } from '../../../services/chat.service';
+import { LoginService } from '../../../services/login.service';
 
 @Component({
-	selector: 'app-chat',
+	selector: 'app-home-chat',
 	standalone: true,
 	imports: [],
-	templateUrl: './chat.component.html',
-	styleUrl: './chat.component.css',
+	templateUrl: './home-chat.component.html',
+	styleUrl: './home-chat.component.css',
 })
-export class ChatComponent {
+export class HomeChatComponent {
 	chats: MensajeChat[] = [];
 	cursos: CursoChat[] = [];
 	cargando: boolean = true;
