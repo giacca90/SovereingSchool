@@ -1,28 +1,39 @@
-<div class="relative m-4 p-2">
-	@if (this.loading) {
-		<div class="absolute inset-0 z-10 flex items-center justify-center">
-			<p class="animate-pulse text-2xl font-bold text-white">Cargando Video</p>
-		</div>
-	}
-	<video id="video" controls class="video-js vjs-default-skin z-0 w-full"></video>
-</div>
-<div class="relative m-2 flex rounded-lg border border-black">
-	<img class="absolute -z-10 h-full w-full object-cover object-center opacity-20" [src]="this.curso?.imagen_curso" alt="curso" />
-	<div class="flex w-3/4 flex-col">
-		@if (this.clase) {
-			<h3 class="text-center font-bold text-green-700">{{ this.clase.nombre_clase }}</h3>
-			<p>{{ this.clase.contenido_clase }}</p>
-		} @else {
-			<h3>NO HAY CLASE CARGADA</h3>
+<div class="flex w-full flex-col">
+	<div class="m-4 p-2">
+		@if (this.loading) {
+			<div class="absolute inset-0 z-10 flex items-center justify-center">
+				<p class="animate-pulse text-2xl font-bold text-white">Cargando Video</p>
+			</div>
 		}
+		<video id="video" controls class="video-js vjs-default-skin z-0 w-full"></video>
 	</div>
-	<div class="m-2 flex w-1/4 flex-col rounded-lg border border-black p-2">
-		@if (this.curso && this.curso.clases_curso) {
-			@for (class of this.curso.clases_curso; track class) {
-				<div class="mb-2 cursor-pointer" (click)="this.navega(class)" tabindex="0" (keydown.enter)="this.navega(class)">
-					{{ class.nombre_clase }}
-				</div>
+	<div class="relative m-2 flex flex-grow rounded-lg border border-black">
+		<img class="absolute -z-10 h-full w-full object-cover object-center opacity-20" [src]="this.curso?.imagen_curso" alt="curso" />
+		<div class="flex w-3/4 flex-col">
+			<div class="flex">
+				<button class="m-2 rounded-lg border border-black p-2" (click)="cambiaVista(0)">Contenido del curso</button>
+				<button class="m-2 rounded-lg border border-black p-2" (click)="cambiaVista(1)">Chat</button>
+			</div>
+			<div id="contenido">
+				@if (this.clase) {
+					<h3 class="text-center font-bold text-green-700">{{ this.clase.nombre_clase }}</h3>
+					<p>{{ this.clase.contenido_clase }}</p>
+				} @else {
+					<h3>NO HAY CLASE CARGADA</h3>
+				}
+			</div>
+			<div id="chat" hidden>
+				<app-chat [idCurso]="this.id_curso"></app-chat>
+			</div>
+		</div>
+		<div class="m-2 flex w-1/4 flex-col rounded-lg border border-black p-2">
+			@if (this.curso && this.curso.clases_curso) {
+				@for (class of this.curso.clases_curso; track class) {
+					<div class="mb-2 cursor-pointer" (click)="this.navega(class)" tabindex="0" (keydown.enter)="this.navega(class)">
+						{{ class.nombre_clase }}
+					</div>
+				}
 			}
-		}
+		</div>
 	</div>
 </div>

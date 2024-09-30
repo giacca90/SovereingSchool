@@ -6,11 +6,12 @@ import videojs from 'video.js';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
+import { ChatComponent } from '../chat/chat/chat.component';
 
 @Component({
 	selector: 'app-reproduction',
 	standalone: true,
-	imports: [],
+	imports: [ChatComponent],
 	templateUrl: './reproduction.component.html',
 	styleUrl: './reproduction.component.css',
 })
@@ -102,5 +103,22 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.router.navigate(['/']).then(() => {
 			this.router.navigate(['repro/' + this.id_usuario + '/' + this.id_curso + '/' + clase.id_clase]);
 		});
+	}
+
+	cambiaVista(vista: number) {
+		const vistaContenido: HTMLDivElement = document.getElementById('contenido') as HTMLDivElement;
+		const vistaChat: HTMLDivElement = document.getElementById('chat') as HTMLDivElement;
+		switch (vista) {
+			case 0: {
+				vistaContenido.hidden = false;
+				vistaChat.hidden = true;
+				break;
+			}
+			case 1: {
+				vistaContenido.hidden = true;
+				vistaChat.hidden = false;
+				break;
+			}
+		}
 	}
 }

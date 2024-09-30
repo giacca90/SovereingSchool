@@ -63,21 +63,28 @@ export class ChatService {
 	}
 
 	getChat(idCurso: number): Observable<CursoChat | null> {
-		// Suscríbete a las respuestas del backend
-		this.client.subscribe('/init_chat/' + idCurso, (response) => {
-			console.log('RESPONSE: ', response.body);
-			const curso: CursoChat = JSON.parse(response.body) as CursoChat;
-			console.log('SE RECIBE RESPUESTA DEL BACK!!!', curso);
+		this.client.onConnect = (frame) => {
+			console.log('Connected: ' + frame);
 
-			// Emitir el valor recibido
-			this.cursoSubject.next(curso);
-		});
+			// Suscríbete a las respuestas del backend
+			this.client.subscribe('/init_chat/' + idCurso, (response) => {
+				console.log('RESPONSE: ', response.body);
+				const curso: CursoChat = JSON.parse(response.body) as CursoChat;
+				console.log('SE RECIBE RESPUESTA DEL BACK!!!', curso);
 
-		// Publicar el mensaje al backend
-		this.client.publish({
-			destination: '/app/curso',
-			body: idCurso.toString(),
-		});
+				// Emitir el valor recibido
+				this.cursoSubject.next(curso);
+			});
+
+			// Publicar el mensaje al backend
+			this.client.publish({
+				destination: '/app/curso',
+				body: idCurso.toString(),
+			});
+		};
+
+		// Activa el WebSocket
+		this.client.activate();
 
 		// Devolver el observable que los componentes pueden suscribirse
 		return this.cursoSubject.asObservable().pipe(

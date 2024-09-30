@@ -1,1 +1,7 @@
-<p>chat works!</p>
+<div>
+	@if (this.chat === null) {
+		<h3>CARGANDO...</h3>
+	} @else {
+		<h3>Chat del curso {{ this.chat.nombre_curso }}</h3>
+	}
+</div>
