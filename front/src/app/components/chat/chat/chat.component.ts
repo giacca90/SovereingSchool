@@ -30,6 +30,7 @@ export class ChatComponent {
 			if (this.idCurso) {
 				this.chatService.getChat(this.idCurso).subscribe({
 					next: (data: CursoChat | null) => {
+						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', data);
 						if (data) {
 							this.chat = data;
 							this.cdr.detectChanges();
@@ -41,5 +42,12 @@ export class ChatComponent {
 				});
 			}
 		});
+	}
+
+	enviarMensaje(clase: number) {
+		const input: HTMLInputElement = document.getElementById('mex') as HTMLInputElement;
+		if (input.value) {
+			this.chatService.enviarMensaje(this.idCurso, clase, input.value);
+		}
 	}
 }

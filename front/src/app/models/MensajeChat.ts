@@ -1,15 +1,15 @@
 export class MensajeChat {
 	id_mensaje: string | null;
-	id_curso: number;
-	id_clase: number;
-	id_usuario: number;
+	id_curso: number | null;
+	id_clase: number | null;
+	id_usuario: number | undefined;
 
-	nombre_curso: string;
-	nombre_clase: string;
-	nombre_usuario: string;
+	nombre_curso: string | null;
+	nombre_clase: string | null;
+	nombre_usuario: string | null;
 
-	foto_curso: string;
-	foto_usuario: string;
+	foto_curso: string | null;
+	foto_usuario: string | null;
 
 	respuesta: MensajeChat | null;
 
@@ -17,7 +17,7 @@ export class MensajeChat {
 
 	fecha: Date;
 
-	constructor(_id_mensaje: string, _id_curso: number, _id_clase: number, _id_usuario: number, _nombre_curso: string, _nombre_clase: string, _nombre_usuario: string, _foto_curso: string, _foto_usuario: string, _respuesta: MensajeChat, _mensaje: string, _fecha: Date) {
+	constructor(_id_mensaje: string | null, _id_curso: number | null, _id_clase: number | null, _id_usuario: number | undefined, _nombre_curso: string | null, _nombre_clase: string | null, _nombre_usuario: string | null, _foto_curso: string | null, _foto_usuario: string | null, _respuesta: MensajeChat | null, _mensaje: string, _fecha: Date) {
 		this.id_mensaje = _id_mensaje;
 		this.id_curso = _id_curso;
 		this.id_clase = _id_clase;

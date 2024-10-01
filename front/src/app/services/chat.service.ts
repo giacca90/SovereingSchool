@@ -3,6 +3,8 @@ import { Client } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
+import { MensajeChat } from '../models/MensajeChat';
+import { LoginService } from './login.service';
 
 @Injectable({
 	providedIn: 'root',
@@ -14,7 +16,7 @@ export class ChatService {
 	private unsubscribe$ = new Subject<void>();
 	private client: Client;
 
-	constructor() {
+	constructor(private loginService: LoginService) {
 		this.client = new Client({
 			brokerURL: this.url,
 		});
@@ -83,12 +85,35 @@ export class ChatService {
 			});
 		};
 
-		// Activa el WebSocket
+		// Activa el WebSocke
 		this.client.activate();
 
 		// Devolver el observable que los componentes pueden suscribirse
 		return this.cursoSubject.asObservable().pipe(
 			takeUntil(this.unsubscribe$), // Desuscribirse cuando sea necesario
 		);
+	}
+
+	enviarMensaje(idCurso: number | null, clase: number, value: string) {
+		const mensaje: MensajeChat = new MensajeChat(
+			null, // id mensaje
+			idCurso, // id curso
+			clase, // id clase
+			this.loginService.usuario?.id_usuario, // id usuario
+			null, // nombre curso
+			null, // nombre clase
+			null, // nombre usuario
+			null, // foto curso
+			null, // foto usuario
+			null, // respuesta
+			value, // mensaje
+			new Date(), // fecha
+		);
+
+		// Publicar el mensaje al backend
+		this.client.publish({
+			destination: '/app/chat',
+			body: JSON.stringify(mensaje),
+		});
 	}
 }

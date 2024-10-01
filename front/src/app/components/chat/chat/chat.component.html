@@ -2,6 +2,18 @@
 	@if (this.chat === null) {
 		<h3>CARGANDO...</h3>
 	} @else {
-		<h3>Chat del curso {{ this.chat.nombre_curso }}</h3>
+		<h3 class="text-center font-bold text-green-700">{{ this.chat.nombre_curso }} (CHAT)</h3>
+		@for (clase of this.chat.clases; track $index) {
+			<div>{{ clase.nombre_clase }}</div>
+		}
+		<br />
+		@for (mensaje of this.chat.mensajes; track $index) {
+			<div>{{ mensaje.mensaje }}</div>
+		}
+		<br />
+		<div class="flex">
+			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black" placeholder="Escribe tu mensaje..." />
+			<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black" (click)="this.enviarMensaje(0)">Enviar</button>
+		</div>
 	}
 </div>

@@ -8,9 +8,12 @@ import com.sovereingschool.back_chat.Models.CursoChat;
 
 @Repository
 public interface CursoChatRepository extends MongoRepository<CursoChat, String> {
+
     @Aggregation(pipeline = {
-            "{ '$match': { 'id_curso' : ?0 } }",
+            "{ '$match': { 'idCurso' : ?0 } }",
             "{ '$project': { 'mensajes': { '$slice': ['$mensajes', 20] }, 'idCurso': 1, 'clases': 1 } }"
     })
-    CursoChat findByIdCurso(Long id_curso);
+
+    // @Query(value = "{ 'idCurso' : ?0 }")
+    CursoChat findByIdCurso(Long idCurso);
 }

@@ -19,7 +19,7 @@ import lombok.ToString;
 @Document(collection = "messages_chat")
 public class MensajeChat {
     @Id
-    private String idMensaje;
+    private String id;
 
     private Long idCurso;
 
