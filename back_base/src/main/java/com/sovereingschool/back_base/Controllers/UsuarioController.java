@@ -187,7 +187,7 @@ public class UsuarioController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			response = "Error en crear el nuevo usuario: " + e.getMessage();
-			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

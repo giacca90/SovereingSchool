@@ -9,6 +9,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
 import com.sovereingschool.back_chat.DTOs.InitChatDTO;
@@ -56,8 +58,31 @@ public class ChatController {
         this.cursoChatService.guardaMensaje(message);
     }
 
+    @PostMapping("/crea_usuario_chat")
+    public ResponseEntity<?> creaUsuarioChat(@RequestBody String message) {
+        try {
+            this.cursoChatService.creaUsuarioChat(message);
+            return new ResponseEntity<String>("Usuario chat creado con exito!!!", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en crear en usuario del chat: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/crea_curso_chat")
+    public ResponseEntity<?> creaCursoChat(@RequestBody String message) {
+        try {
+            this.cursoChatService.creaCursoChat(message);
+            return new ResponseEntity<String>("Curso chat creado con exito!!!", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en crear en curso del chat: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
     @GetMapping("/init")
-    public ResponseEntity<?> get() {
+    public ResponseEntity<?> init() {
         try {
             this.cursoChatService.init();
             return new ResponseEntity<String>("Iniciado mongo con exito!!!", HttpStatus.OK);

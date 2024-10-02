@@ -44,27 +44,53 @@ public class UsuarioService implements IUsuarioService {
     private EntityManager entityManager;
 
     private String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Fotos";
+    private final String backChatURL = "http://localhost:8070";
 
     @Override
     public String createUsuario(NewUsuario new_usuario) {
-        Usuario usuario = new Usuario();
-        usuario.setNombre_usuario(new_usuario.getNombre_usuario());
-        usuario.setFoto_usuario(new_usuario.getFoto_usuario());
-        usuario.setRoll_usuario(2);
-        usuario.setPlan_usuario(new_usuario.getPlan_usuario());
-        usuario.setCursos_usuario(new_usuario.getCursos_usuario());
-        usuario.setFecha_registro_usuario(new_usuario.getFecha_registro_usuario());
+        Usuario usuario = new Usuario(
+                null, // Long id_usuario
+                new_usuario.getNombre_usuario(), // String nombre_usuario
+                new_usuario.getFoto_usuario(), // List<String> foto_usuario
+                null, // Strting presentación
+                2, // Integer rol_usuario
+                new_usuario.getPlan_usuario(), // Plan plan_usuario
+                new_usuario.getCursos_usuario(), // List<String> cursos_usuario
+                new_usuario.getFecha_registro_usuario()); // Date fecha_registro_usuario
         Usuario usuarioInsertado = this.repo.save(usuario);
-        if (usuarioInsertado.getId_usuario() == null)
+        if (usuarioInsertado.getId_usuario() == null) {
             return "Error en crear el usuario";
+        }
         Login login = new Login();
         login.setUsuario(usuarioInsertado);
         login.setCorreo_electronico(new_usuario.getCorreo_electronico());
         login.setPassword(new_usuario.getPassword());
         this.loginRepo.save(login);
 
-        sendDataToStream(usuarioInsertado, 0).subscribe(response -> {
-            System.out.println("Respuesta del segundo microservicio: " + response);
+        try {
+            WebClient webClient = WebClient.create(backChatURL);
+            webClient.post().uri("/crea_usuario_chat")
+                    .body(Mono.just(usuarioInsertado), Usuario.class)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .doOnError(e -> {
+                        // Manejo de errores
+                        System.err.println("ERROR: " + e.getMessage());
+                        e.printStackTrace();
+                    }).subscribe(res -> {
+                        // Maneja el resultado cuando esté disponible
+                        if (res != null && res.equals("Usuario chat creado con exito!!!")) {
+                            System.out.println("Usuario chat creado con éxito!!!");
+                        } else {
+                            System.err.println("Error en crear el usuario en el chat");
+                        }
+                    });
+        } catch (Exception e) {
+            System.err.println("Error en crear el usuario en el chat: " + e.getMessage());
+        }
+
+        sendDataToStream(usuarioInsertado, 0).subscribe(resp -> {
+            System.out.println("Respuesta del segundo microservicio: " + resp);
         }, error -> {
             System.err.println("Error al comunicarse con el segundo microservicio: " + error.getMessage());
         });

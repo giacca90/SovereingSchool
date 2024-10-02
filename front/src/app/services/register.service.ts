@@ -10,11 +10,11 @@ export class RegisterService {
 	private apiUrl = 'http://localhost:8080/';
 	constructor(private http: HttpClient) {}
 
-	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario) {
+	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario): Promise<boolean> {
 		return new Promise(async (resolve, reject) => {
-			const sub = this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { observe: 'response' }).subscribe({
+			const sub = this.http.post<string>(`${this.apiUrl}usuario/nuevo`, nuevoUsuario, { observe: 'response', responseType: 'text' as 'json' }).subscribe({
 				next: (response: HttpResponse<string>) => {
-					if(response.ok) {
+					if (response.status === 200) {
 						resolve(true);
 						sub.unsubscribe();
 					} else {

@@ -35,6 +35,7 @@ import com.sovereingschool.back_base.Repositories.CursoRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import reactor.core.publisher.Mono;
 
 @Service
 @Transactional
@@ -55,6 +56,7 @@ public class CursoService implements ICursoService {
     private final String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos";
     private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
     private final String backStreamURL = "http://localhost:8090";
+    private final String backChatURL = "http://localhost:8070";
 
     @Override
     public Long createCurso(Curso new_curso) {
@@ -108,8 +110,26 @@ public class CursoService implements ICursoService {
         curso.setClases_curso(null);
         if (curso.getId_curso().equals(0L)) {
             curso.setId_curso(null);
+            curso = this.repo.save(curso);
+
             try {
-                curso = this.repo.save(curso);
+                WebClient webClient = WebClient.create(backChatURL);
+                webClient.post().uri("/crea_curso_chat")
+                        .body(Mono.just(curso), Curso.class)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .doOnError(e -> {
+                            // Manejo de errores
+                            System.err.println("ERROR: " + e.getMessage());
+                            e.printStackTrace();
+                        }).subscribe(res -> {
+                            // Maneja el resultado cuando esté disponible
+                            if (res != null && res.equals("Curso chat creado con exito!!!")) {
+                                System.out.println("Curso chat creado con éxito!!!");
+                            } else {
+                                System.err.println("Error en crear el curso en el chat");
+                            }
+                        });
             } catch (Exception e) {
                 System.err.println("Error en crear el curso: " + e.getMessage());
                 return null;
@@ -159,8 +179,10 @@ public class CursoService implements ICursoService {
         if (!this.repo.findById(id_curso).isPresent()) {
             return false;
         }
-        for (Clase clase : this.getCurso(id_curso).getClases_curso()) {
-            this.deleteClase(clase);
+        if (this.getCurso(id_curso).getClases_curso() != null) {
+            for (Clase clase : this.getCurso(id_curso).getClases_curso()) {
+                this.deleteClase(clase);
+            }
         }
         this.repo.deleteById(id_curso);
 
@@ -274,105 +296,115 @@ public class CursoService implements ICursoService {
     @Override
     @Async
     public void convertVideos(Curso curso) {
-        for (Clase clase : curso.getClases_curso()) {
-            Path base = Paths.get(baseUploadDir.toString(), curso.getId_curso().toString(),
-                    clase.getId_clase().toString());
-            if (clase.getDireccion_clase().length() > 0 && !clase.getDireccion_clase().equals(base)) {
+        if (curso.getClases_curso() != null && curso.getClases_curso().size() > 0) {
+            for (Clase clase : curso.getClases_curso()) {
+                Path base = Paths.get(baseUploadDir.toString(), curso.getId_curso().toString(),
+                        clase.getId_clase().toString());
+                if (clase.getDireccion_clase().length() > 0 && !clase.getDireccion_clase().equals(base)) {
 
-                // Extrae el directorio y el nombre del archivo de entrada
-                Path inputPath = Paths.get(clase.getDireccion_clase());
-                System.out.println("INPUT: " + inputPath.toString());
-                File baseFile = new File(base.toString());
-                File inputFile = new File(inputPath.toString());
-                File destino = new File(baseFile, inputPath.getFileName().toString());
-                System.out.println("DESTINO: " + destino.toString());
-                if (!inputFile.renameTo(destino)) {
-                    System.err.println("Error en mover el video a la carpeta de destino");
-                    break;
-                }
-                String inputFileName = destino.getName().toString();
-
-                // Construye el comando FFmpeg
-                ProcessBuilder processBuilder = new ProcessBuilder(
-                        "ffmpeg",
-                        "-i", inputFileName,
-                        "-filter_complex",
-                        "[0:v]split=3[v1][v2][v3]; [v1]copy[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]",
-                        "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0",
-                        "5M",
-                        "-bufsize:v:0", "10M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                        "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-minrate:v:1",
-                        "3M",
-                        "-bufsize:v:1", "3M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                        "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2",
-                        "1M",
-                        "-bufsize:v:2", "1M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                        "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ac", "2",
-                        "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
-                        "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
-                        "-f", "hls",
-                        "-hls_time", "5",
-                        "-hls_playlist_type", "vod",
-                        "-hls_flags", "independent_segments",
-                        "-hls_segment_type", "mpegts",
-                        "-hls_segment_filename", "stream_%v/data%02d.ts",
-                        "-hls_base_url", "stream_%v/",
-                        "-master_pl_name", "master.m3u8",
-                        "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2",
-                        "stream_%v.m3u8");
-
-                // Establece el directorio de trabajo al directorio que contiene el archivo de
-                // entrada
-                processBuilder.directory(new java.io.File(base.toString()));
-                processBuilder.redirectErrorStream(true);
-
-                // Inicia el proceso
-                try {
-                    Process process = processBuilder.start();
-
-                    // Lee la salida del proceso para depuración
-                    try (var reader = new java.io.BufferedReader(
-                            new java.io.InputStreamReader(process.getInputStream()))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            System.out.println(line);
-                        }
+                    // Extrae el directorio y el nombre del archivo de entrada
+                    Path inputPath = Paths.get(clase.getDireccion_clase());
+                    System.out.println("INPUT: " + inputPath.toString());
+                    File baseFile = new File(base.toString());
+                    File inputFile = new File(inputPath.toString());
+                    File destino = new File(baseFile, inputPath.getFileName().toString());
+                    System.out.println("DESTINO: " + destino.toString());
+                    if (!inputFile.renameTo(destino)) {
+                        System.err.println("Error en mover el video a la carpeta de destino");
+                        break;
                     }
+                    String inputFileName = destino.getName().toString();
 
-                    // Espera a que el proceso termine
-                    int exitCode = process.waitFor();
-                    if (exitCode != 0) {
-                        throw new IOException("FFmpeg process failed with exit code " + exitCode);
-                    } else {
-                        List<Path> m3u8Files = new ArrayList<>();
-                        DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(base.toString()), "*.m3u8");
-                        for (Path entry : stream) {
-                            if (!entry.endsWith("master.m3u8")) {
-                                m3u8Files.add(entry);
+                    // Construye el comando FFmpeg
+                    ProcessBuilder processBuilder = new ProcessBuilder(
+                            "ffmpeg",
+                            "-i", inputFileName,
+                            "-filter_complex",
+                            "[0:v]split=3[v1][v2][v3]; [v1]copy[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]",
+                            "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M",
+                            "-minrate:v:0",
+                            "5M",
+                            "-bufsize:v:0", "10M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min",
+                            "48",
+                            "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M",
+                            "-minrate:v:1",
+                            "3M",
+                            "-bufsize:v:1", "3M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min",
+                            "48",
+                            "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M",
+                            "-minrate:v:2",
+                            "1M",
+                            "-bufsize:v:2", "1M", "-preset", "slow", "-g", "48", "-sc_threshold", "0", "-keyint_min",
+                            "48",
+                            "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ac", "2",
+                            "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
+                            "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
+                            "-f", "hls",
+                            "-hls_time", "5",
+                            "-hls_playlist_type", "vod",
+                            "-hls_flags", "independent_segments",
+                            "-hls_segment_type", "mpegts",
+                            "-hls_segment_filename", "stream_%v/data%02d.ts",
+                            "-hls_base_url", "stream_%v/",
+                            "-master_pl_name", "master.m3u8",
+                            "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2",
+                            "stream_%v.m3u8");
+
+                    // Establece el directorio de trabajo al directorio que contiene el archivo de
+                    // entrada
+                    processBuilder.directory(new java.io.File(base.toString()));
+                    processBuilder.redirectErrorStream(true);
+
+                    // Inicia el proceso
+                    try {
+                        Process process = processBuilder.start();
+
+                        // Lee la salida del proceso para depuración
+                        try (var reader = new java.io.BufferedReader(
+                                new java.io.InputStreamReader(process.getInputStream()))) {
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                System.out.println(line);
                             }
                         }
-                        for (Path m3u8File : m3u8Files) {
-                            String fileName = m3u8File.toString().substring(m3u8File.toString().lastIndexOf("/") + 1,
-                                    m3u8File.toString().lastIndexOf("."));
-                            List<String> lines = Files.readAllLines(m3u8File, StandardCharsets.UTF_8);
-                            List<String> modifiedLines = new ArrayList<>();
 
-                            for (String line : lines) {
-                                // Modifica la línea según tus necesidades
-                                if (line.startsWith("stream_%v/")) {
-                                    line = line.replace("stream_%v/", fileName + "/");
+                        // Espera a que el proceso termine
+                        int exitCode = process.waitFor();
+                        if (exitCode != 0) {
+                            throw new IOException("FFmpeg process failed with exit code " + exitCode);
+                        } else {
+                            List<Path> m3u8Files = new ArrayList<>();
+                            DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(base.toString()),
+                                    "*.m3u8");
+                            for (Path entry : stream) {
+                                if (!entry.endsWith("master.m3u8")) {
+                                    m3u8Files.add(entry);
                                 }
-                                modifiedLines.add(line);
                             }
+                            for (Path m3u8File : m3u8Files) {
+                                String fileName = m3u8File.toString().substring(
+                                        m3u8File.toString().lastIndexOf("/") + 1,
+                                        m3u8File.toString().lastIndexOf("."));
+                                List<String> lines = Files.readAllLines(m3u8File, StandardCharsets.UTF_8);
+                                List<String> modifiedLines = new ArrayList<>();
 
-                            Files.write(m3u8File, modifiedLines, StandardCharsets.UTF_8);
+                                for (String line : lines) {
+                                    // Modifica la línea según tus necesidades
+                                    if (line.startsWith("stream_%v/")) {
+                                        line = line.replace("stream_%v/", fileName + "/");
+                                    }
+                                    modifiedLines.add(line);
+                                }
+
+                                Files.write(m3u8File, modifiedLines, StandardCharsets.UTF_8);
+                            }
+                            stream.close();
+                            clase.setDireccion_clase(base.toString() + "/master.m3u8");
+                            this.claseRepo.save(clase);
                         }
-                        stream.close();
-                        clase.setDireccion_clase(base.toString() + "/master.m3u8");
-                        this.claseRepo.save(clase);
+                    } catch (Exception e) {
+                        System.err.println("Error en convertir el video: " + e.getCause());
                     }
-                } catch (Exception e) {
-                    System.err.println("Error en convertir el video: " + e.getCause());
                 }
             }
         }

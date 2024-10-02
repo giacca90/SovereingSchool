@@ -105,14 +105,15 @@ export class RegisterComponent implements OnDestroy {
 		if (pass == pass2) {
 			this.nuevoUsuario.password = pass;
 			this.nuevoUsuario.fecha_registro_usuario = new Date();
-			this.registerService.registrarNuevoUsuario(this.nuevoUsuario);
-			message.classList.remove('text-red-600');
-			message.classList.add('text-green-700');
-			message.innerHTML = 'Te has registrado con éxito!!!';
-			setTimeout(() => {
-				this.close();
-			}, 1000);
-			return;
+			this.registerService.registrarNuevoUsuario(this.nuevoUsuario).then(() => {
+				message.classList.remove('text-red-600');
+				message.classList.add('text-green-700');
+				message.innerHTML = 'Te has registrado con éxito!!!';
+				setTimeout(() => {
+					this.close();
+				}, 1000);
+				return;
+			});
 		} else {
 			message.textContent = 'Las dos contraseñas no coinciden';
 			return;

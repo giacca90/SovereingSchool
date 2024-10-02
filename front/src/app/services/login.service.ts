@@ -22,19 +22,17 @@ export class LoginService {
 		return new Promise(async (resolve, reject) => {
 			const sub = this.http.get<number>(`${this.apiUrl}${correo}`, { observe: 'response' }).subscribe({
 				next: (response: HttpResponse<number>) => {
-					if (response.ok  && response.body) {
+					if (response.ok) {
 						if (response.body == 0) {
 							resolve(false);
 							sub.unsubscribe();
-						}
-
-						if (response.body > 0) {
+						} else {
 							this.id_usuario = response.body;
 							resolve(true);
 							sub.unsubscribe();
 						}
 					} else {
-						console.error('Error en comprobar el correo: '+response.status)
+						console.error('Error en comprobar el correo: ' + response.status);
 						reject(false);
 					}
 				},
@@ -53,7 +51,6 @@ export class LoginService {
 				next: (response: HttpResponse<Usuario>) => {
 					if (response.ok && response.body) {
 						if (response.body.id_usuario === null) {
-							
 							resolve(false);
 							sub.unsubscribe();
 							return;
@@ -64,7 +61,7 @@ export class LoginService {
 						sub.unsubscribe();
 						return;
 					} else {
-						console.error('Error en comprobar las password: '+response.status);
+						console.error('Error en comprobar las password: ' + response.status);
 						return;
 					}
 				},

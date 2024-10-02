@@ -16,10 +16,13 @@ import com.sovereingschool.back_chat.Models.ClaseChat;
 import com.sovereingschool.back_chat.Models.Curso;
 import com.sovereingschool.back_chat.Models.CursoChat;
 import com.sovereingschool.back_chat.Models.MensajeChat;
+import com.sovereingschool.back_chat.Models.Usuario;
+import com.sovereingschool.back_chat.Models.UsuarioChat;
 import com.sovereingschool.back_chat.Repositories.ClaseRepository;
 import com.sovereingschool.back_chat.Repositories.CursoChatRepository;
 import com.sovereingschool.back_chat.Repositories.CursoRepository;
 import com.sovereingschool.back_chat.Repositories.MensajeChatRepository;
+import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioRepository;
 
 import jakarta.transaction.Transactional;
@@ -42,6 +45,9 @@ public class CursoChatService {
 
     @Autowired
     private MensajeChatRepository mensajeChatRepo;
+
+    @Autowired
+    private UsuarioChatRepository usuarioChatRepo;
 
     public CursoChatDTO getChat(Long idCurso) {
         CursoChat cursoChat = cursoChatRepo.findByIdCurso(idCurso);
@@ -131,6 +137,13 @@ public class CursoChatService {
             CursoChat cursoChat = new CursoChat(null, curso.getId_curso(), clasesChat, new ArrayList<>());
             cursoChatRepo.save(cursoChat);
         }
+
+        List<Usuario> usuarios = usuarioRepo.findAll();
+        for (Usuario usuario : usuarios) {
+            UsuarioChat usuarioChat = new UsuarioChat(null, usuario.getId_usuario(), new ArrayList<>(),
+                    new ArrayList<>());
+            usuarioChatRepo.save(usuarioChat);
+        }
     }
 
     public void guardaMensaje(String message) {
@@ -170,9 +183,76 @@ public class CursoChatService {
                 });
             }
             cursoChatRepo.save(cursoChat);
+
+            // Actualiza el estado del usuario
+            UsuarioChat usuarioChat = usuarioChatRepo.findByIdUsuario(mensajeChatDTO.getId_usuario());
+            if (usuarioChat != null) {
+                List<CursoChat> cursoChatList = usuarioChat.getCursos();
+                Boolean presente = false;
+                for (CursoChat curso : cursoChatList) {
+                    if (curso.getIdCurso() == mensajeChatDTO.getId_curso()) {
+                        presente = true;
+                        break;
+                    }
+                }
+                if (!presente) {
+                    cursoChatList.add(cursoChat);
+                }
+                usuarioChat.setCursos(cursoChatList);
+                usuarioChatRepo.save(usuarioChat);
+            } else {
+                System.err.println("No se pudo guardar el mensaje, el usuario no existe");
+            }
+
         } catch (JsonProcessingException e) {
             // Manejar errores de parseo
             System.err.println("Error al parsear el mensaje JSON: " + e.getMessage());
+        }
+    }
+
+    public void creaUsuarioChat(String message) {
+        // Crear una instancia de ObjectMapper para parsear el JSON
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Convertir el JSON en un objeto MensajeChatDTO
+            Usuario usuario = objectMapper.readValue(message, Usuario.class);
+            UsuarioChat usuarioChat = new UsuarioChat(
+                    null, // String id
+                    usuario.getId_usuario(), // Long id_usuario
+                    new ArrayList<CursoChat>(), // List<CursoChat> cursos
+                    new ArrayList<MensajeChat>()); // List<MensajeChat> mensajes
+            usuarioChatRepo.save(usuarioChat);
+        } catch (Exception e) {
+            System.err.println("Error en crear el usuario del chat: " + e.getMessage());
+        }
+    }
+
+    public void creaCursoChat(String message) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Convertir el JSON en un objeto MensajeChatDTO
+            Curso curso = objectMapper.readValue(message, Curso.class);
+
+            List<Clase> clases = curso.getClases_curso();
+            List<ClaseChat> clasesChat = new ArrayList<>();
+            if (clases != null && clases.size() > 0) {
+                for (Clase clase : clases) {
+                    ClaseChat claseChat = new ClaseChat(
+                            clase.getId_clase(), // Long id_clase
+                            curso.getId_curso(), // Long id_curso
+                            new ArrayList<String>()); // List<String> mensajes
+                    clasesChat.add(claseChat);
+                }
+            }
+
+            CursoChat cursoChat = new CursoChat(
+                    null, // String id
+                    curso.getId_curso(), // Long id_curso
+                    clasesChat, // List<ClaseChat> clases
+                    new ArrayList<String>()); // List<String> mensajes
+            cursoChatRepo.save(cursoChat);
+        } catch (Exception e) {
+            System.err.println("Error en crear el usuario del chat: " + e.getMessage());
         }
     }
 }
