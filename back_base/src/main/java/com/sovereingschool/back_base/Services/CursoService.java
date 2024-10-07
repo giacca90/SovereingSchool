@@ -53,7 +53,7 @@ public class CursoService implements ICursoService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private final String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Videos";
+    private final String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Videos";
     private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
     private final String backStreamURL = "http://localhost:8090";
     private final String backChatURL = "http://localhost:8070";

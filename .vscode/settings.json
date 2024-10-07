@@ -1,18 +1,15 @@
 {
 	"java.compile.nullAnalysis.mode": "automatic",
-	"java.configuration.updateBuildConfiguration": "interactive",
 	"sqltools.connections": [
 		{
 			"previewLimit": 50,
 			"server": "localhost",
 			"port": 5432,
 			"driver": "PostgreSQL",
-			"name": "postgre",
+			"name": "Sov_School",
 			"database": "sov_school",
 			"username": "postgres",
 			"password": "giacca90"
 		}
-	],
-	"cSpell.enableFiletypes": ["sql"],
-	"java.checkstyle.version": "10.18.1"
+	]
 }

@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import org.hibernate.annotations.Type;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -44,7 +42,7 @@ public class Usuario implements Serializable {
     private String nombre_usuario;
 
     @Column(unique = true, columnDefinition = "text[]")
-    @Type(com.vladmihalcea.hibernate.type.array.ListArrayType.class)
+    // @Type(com.vladmihalcea.hibernate.type.array.ListArrayType.class)
     private List<String> foto_usuario;
 
     @Column(nullable = false)

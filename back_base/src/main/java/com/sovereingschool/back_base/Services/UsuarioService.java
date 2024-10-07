@@ -43,7 +43,7 @@ public class UsuarioService implements IUsuarioService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private String uploadDir = "/media/giacca90/298364D85CECA1BB/Proyectos/SovereingSchool/Fotos";
+    private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
     private final String backChatURL = "http://localhost:8070";
 
     @Override
