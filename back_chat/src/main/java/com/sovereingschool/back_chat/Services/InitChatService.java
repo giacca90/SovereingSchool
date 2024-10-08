@@ -1,22 +1,16 @@
 package com.sovereingschool.back_chat.Services;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.ChangeStreamEvent;
+import org.springframework.data.mongodb.core.ChangeStreamOptions;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.sovereingschool.back_chat.DTOs.ClaseChatDTO;
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
 import com.sovereingschool.back_chat.DTOs.InitChatDTO;
@@ -32,8 +26,8 @@ import com.sovereingschool.back_chat.Repositories.MensajeChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioRepository;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
+import reactor.core.publisher.Flux;
 
 @Service
 @Transactional
@@ -54,21 +48,13 @@ public class InitChatService {
     private ClaseRepository claseRepo;
 
     @Autowired
-    private MongoClient mongoClient;
-
-    @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
-    private MongoCollection<Document> collection;
-    private final ExecutorService executorService;
+    @Autowired
+    private ReactiveMongoTemplate reactiveMongoTemplate;
 
     public InitChatService() {
-        this.executorService = Executors.newSingleThreadExecutor();
-    }
-
-    @PostConstruct
-    public void init() {
-        this.collection = mongoClient.getDatabase("SovSchoolChat").getCollection("users_chat");
+        observeMultipleCollections();
     }
 
     public InitChatDTO initChat(Long idUsuario) {
@@ -78,8 +64,6 @@ public class InitChatService {
             if (usuarioChat == null) {
                 usuarioChat = new UsuarioChat(null, 0L, null, null); // Objeto por defecto si no se encuentra
                 return new InitChatDTO();
-            } else {
-                this.startWatchingUsuario(idUsuario);
             }
             List<MensajeChat> mensajes = usuarioChat.getMensajes();
             List<CursoChat> cursos = usuarioChat.getCursos();
@@ -202,20 +186,26 @@ public class InitChatService {
 
     }
 
-    public void startWatchingUsuario(Long idUsuario) {
-        executorService.submit(() -> {
-            try {
-                List<Bson> pipeline = Arrays.asList(
-                        Aggregates.match(Filters.eq("idUsuario", idUsuario)));
+    public void observeMultipleCollections() {
+        // Lista de colecciones a observar
+        String[] collections = { "courses_chat", "messages_chat", "users_chat" };
 
-                collection.watch(pipeline).forEach((ChangeStreamDocument<Document> change) -> {
-                    System.out.println("Cambio detectado: " + change.getFullDocument());
-                    notifyFrontendUsuario(change.getFullDocument());
-                });
-            } catch (Exception e) {
-                System.err.println("Error al observar cambios: " + e.getMessage());
-            }
-        });
+        for (String collection : collections) {
+            // Configura las opciones de ChangeStream
+            ChangeStreamOptions options = ChangeStreamOptions.builder()
+                    .build();
+
+            // Configura el ChangeStream y escucha los eventos
+            Flux<Document> changeStreamFlux = reactiveMongoTemplate
+                    .changeStream(collection, options, Document.class)
+                    .map(ChangeStreamEvent::getBody); // Extrae el documento directamente
+
+            changeStreamFlux.subscribe(changedDocument -> {
+                System.out.println("Cambio detectado en colección: " + collection);
+                System.out.println("Documento modificado: " + changedDocument);
+                notifyFrontendUsuario(changedDocument);
+            });
+        }
     }
 
     private void notifyFrontendUsuario(Document document) {
@@ -238,10 +228,10 @@ public class InitChatService {
                                 null, // String nombre_curso
                                 null, // String nombre_clase
                                 this.usuarioRepo.findNombreUsuarioForId(respuesta.getIdUsuario()), // String
-                                                                                                   // nombre_usuario
+                                // nombre_usuario
                                 null, // String foto_curso
                                 this.usuarioRepo.findFotosUsuarioForId(respuesta.getIdUsuario()).get(0), // String
-                                                                                                         // foto_usuario
+                                // foto_usuario
                                 null, // MensajeChatDTO respuesta
                                 respuesta.getMensaje(), // String mensaje
                                 respuesta.getFecha()); // Date fecha
@@ -286,7 +276,7 @@ public class InitChatService {
                                             cursoRepo.findNombreCursoById(mensaje.getIdCurso()), // String nombre_curso
                                             claseRepo.findNombreClaseById(mensaje.getIdClase()), // String nombre_clase
                                             usuarioRepo.findNombreUsuarioForId(mensaje.getIdUsuario()), // String
-                                                                                                        // nombre_usuario
+                                            // nombre_usuario
                                             cursoRepo.findImagenCursoById(mensaje.getIdCurso()), // String foto_curso
                                             usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()).get(0), // String
                                             // foto_usuario
