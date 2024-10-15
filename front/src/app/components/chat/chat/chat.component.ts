@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectorRef, Component, Input } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CursoChat } from '../../../models/CursoChat';
 import { ChatService } from '../../../services/chat.service';
@@ -10,7 +10,7 @@ import { ChatService } from '../../../services/chat.service';
 	templateUrl: './chat.component.html',
 	styleUrl: './chat.component.css',
 })
-export class ChatComponent {
+export class ChatComponent implements OnInit {
 	@Input() idCurso: number | null = null;
 	chat: CursoChat | null = null;
 
@@ -19,12 +19,6 @@ export class ChatComponent {
 		private route: ActivatedRoute,
 		private cdr: ChangeDetectorRef,
 	) {
-		if (!this.idCurso) {
-			this.route.paramMap.subscribe((params) => {
-				this.idCurso = params.get('idCurso') as number | null;
-			});
-		}
-
 		afterNextRender(() => {
 			console.log('AFTERNEXTRENDER');
 			if (this.idCurso) {
@@ -44,10 +38,24 @@ export class ChatComponent {
 		});
 	}
 
+	ngOnInit(): void {
+		if (!this.idCurso) {
+			this.route.paramMap.subscribe((params) => {
+				this.idCurso = params.get('idCurso') as number | null;
+			});
+		}
+	}
+
 	enviarMensaje(clase: number) {
+		if (this.idCurso === null) {
+			console.error('El curso es null');
+			return;
+		}
 		const input: HTMLInputElement = document.getElementById('mex') as HTMLInputElement;
 		if (input.value) {
 			this.chatService.enviarMensaje(this.idCurso, clase, input.value);
+			input.value = '';
+			this.cdr.detectChanges();
 		}
 	}
 }

@@ -190,7 +190,7 @@ public class CursoChatService {
                 List<CursoChat> cursoChatList = usuarioChat.getCursos();
                 Boolean presente = false;
                 for (CursoChat curso : cursoChatList) {
-                    if (curso.getIdCurso() == mensajeChatDTO.getId_curso()) {
+                    if (curso.getIdCurso().equals(mensajeChatDTO.getId_curso())) {
                         presente = true;
                         break;
                     }
