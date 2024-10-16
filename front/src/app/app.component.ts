@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HomeComponent } from './components/home/home.component';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
 import { SearchComponent } from './components/search/search.component';
+import { Usuario } from './models/Usuario';
 import { InitService } from './services/init.service';
 import { LoginModalService } from './services/login-modal.service';
 import { LoginService } from './services/login.service';
@@ -21,10 +22,12 @@ export class AppComponent implements OnInit, OnDestroy {
 	isModalVisible: boolean = false;
 	vistaMenu: boolean = false;
 	private subscription: Subscription = new Subscription();
+	usuario: Usuario | null = null;
 
 	constructor(
 		private modalService: LoginModalService,
 		private initService: InitService,
+		private cdr: ChangeDetectorRef,
 		public loginService: LoginService,
 		public router: Router,
 	) {}
@@ -35,6 +38,13 @@ export class AppComponent implements OnInit, OnDestroy {
 				this.isModalVisible = isVisible;
 			}),
 		);
+
+		this.subscription.add(
+			this.loginService.usuario$.subscribe((usuario) => {
+				this.usuario = usuario;
+				this.cdr.detectChanges();
+			}),
+		);
 	}
 
 	openModal() {
@@ -43,8 +53,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	salir() {
 		this.vistaMenu = false;
-		this.loginService.usuario = null;
-		localStorage.clear();
+		this.loginService.salir();
 		this.router.navigate(['']);
 	}
 	ngOnDestroy(): void {

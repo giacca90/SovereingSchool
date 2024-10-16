@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
 import { MensajeChat } from '../models/MensajeChat';
+import { Usuario } from '../models/Usuario';
 import { LoginService } from './login.service';
 
 @Injectable({
@@ -15,8 +16,13 @@ export class ChatService {
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();
 	private client: Client;
+	public usuario: Usuario | null = null;
 
 	constructor(private loginService: LoginService) {
+		this.loginService.usuario$.subscribe((usuario) => {
+			this.usuario = usuario;
+		});
+
 		this.client = new Client({
 			brokerURL: this.url,
 		});
@@ -99,7 +105,7 @@ export class ChatService {
 			null, // id mensaje
 			idCurso, // id curso
 			clase, // id clase
-			this.loginService.usuario?.id_usuario, // id usuario
+			this.usuario?.id_usuario, // id usuario
 			null, // nombre curso
 			null, // nombre clase
 			null, // nombre usuario

@@ -24,7 +24,11 @@ export class PerfilUsuarioComponent implements OnDestroy {
 		private usuarioService: UsuariosService,
 		private initService: InitService,
 	) {
-		this.usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
+		this.subscription.add(
+			this.loginService.usuario$.subscribe((usuario) => {
+				this.usuario = JSON.parse(JSON.stringify(usuario));
+			}),
+		);
 	}
 
 	cargaFoto(event: Event) {
@@ -46,7 +50,7 @@ export class PerfilUsuarioComponent implements OnDestroy {
 	}
 
 	save() {
-		if (JSON.stringify(this.usuario) !== JSON.stringify(this.loginService.usuario) || (document.getElementById('fotoPrincipal') as HTMLImageElement).src !== this.usuario?.foto_usuario[0]) {
+		if (JSON.stringify(this.usuario) !== JSON.stringify(this.usuario) || (document.getElementById('fotoPrincipal') as HTMLImageElement).src !== this.usuario?.foto_usuario[0]) {
 			const formData = new FormData();
 			if (this.fotos) {
 				Array.from(this.fotos).forEach((file) => {
@@ -58,7 +62,7 @@ export class PerfilUsuarioComponent implements OnDestroy {
 							if (this.usuario?.foto_usuario && response) {
 								const temp: string[] = [];
 								for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
-									if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
+									if (this.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
 										temp.push(this.usuario.foto_usuario[i]);
 									}
 								}
@@ -83,8 +87,8 @@ export class PerfilUsuarioComponent implements OnDestroy {
 	}
 
 	actualizaUsuario() {
-		const temp: Usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
-		if (this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
+		const temp: Usuario = JSON.parse(JSON.stringify(this.usuario));
+		if (this.usuario?.foto_usuario && this.usuario?.foto_usuario !== undefined) {
 			const fotoPrincipal: string = (document.getElementById('fotoPrincipal') as HTMLImageElement).src;
 			if (fotoPrincipal !== this.usuario.foto_usuario[0]) {
 				const f: string[] = [];
