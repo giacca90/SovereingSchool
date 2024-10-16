@@ -49,7 +49,7 @@ public class ChatController {
         if (cursoChat != null) {
             System.out.println("SE DEVUELVE: " + cursoChat.toString());
             // Enviar el mensaje a un destino dinámico usando SimpMessagingTemplate
-            messagingTemplate.convertAndSend("/init_chat/" + message, cursoChat);
+            messagingTemplate.convertAndSend("/init_chat/" + idCurso, cursoChat);
         }
     }
 

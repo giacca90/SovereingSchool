@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import videojs from 'video.js';
@@ -26,6 +26,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	public clase: Clase | null = null;
 	constructor(
 		private route: ActivatedRoute,
+		private cdr: ChangeDetectorRef,
 		@Inject(PLATFORM_ID) private platformId: object,
 		public cursoService: CursosService,
 		public router: Router,
@@ -90,6 +91,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				});
 
 				this.loading = false;
+				this.cdr.detectChanges();
 			}
 		} catch (error) {
 			console.error('Error loading video:', error);

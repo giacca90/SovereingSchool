@@ -15,6 +15,7 @@ import com.sovereingschool.back_chat.DTOs.ClaseChatDTO;
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
 import com.sovereingschool.back_chat.DTOs.InitChatDTO;
 import com.sovereingschool.back_chat.DTOs.MensajeChatDTO;
+import com.sovereingschool.back_chat.Models.ClaseChat;
 import com.sovereingschool.back_chat.Models.CursoChat;
 import com.sovereingschool.back_chat.Models.MensajeChat;
 import com.sovereingschool.back_chat.Models.UsuarioChat;
@@ -53,33 +54,44 @@ public class InitChatService {
     private ReactiveMongoTemplate reactiveMongoTemplate;
 
     public InitChatDTO initChat(Long idUsuario) {
-        try {
-            UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario);
-            System.out.println("USUARIOCHAT: " + usuarioChat);
-            if (usuarioChat == null) {
-                usuarioChat = new UsuarioChat(null, 0L, null, null); // Objeto por defecto si no se encuentra
-                return new InitChatDTO();
-            }
-            List<MensajeChat> mensajes = usuarioChat.getMensajes();
-            List<CursoChat> cursos = usuarioChat.getCursos();
 
-            List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
-            if (mensajes != null && mensajes.size() > 0) {
-                mensajesDTO = getMensajesDTO(mensajes);
-            }
+        UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario);
+        System.out.println("USUARIOCHAT: " + usuarioChat);
+        if (usuarioChat == null) {
+            usuarioChat = new UsuarioChat(null, 0L, null, null); // Objeto por defecto si no se encuentra
+            return new InitChatDTO();
+        }
+        List<MensajeChat> mensajes = usuarioChat.getMensajes();
+        System.out.println("MENSAJESCHAT: " + mensajes);
+        List<CursoChat> cursos = usuarioChat.getCursos();
+        System.out.println("CURSOCHAT: " + cursos);
 
-            List<CursoChatDTO> cursosDTO = new ArrayList<>();
-            if (cursos != null && cursos.size() > 0) {
-                for (CursoChat curso : cursos) {
-                    CursoChatDTO cursoDTO = new CursoChatDTO();
-                    cursoDTO.setId_curso(curso.getIdCurso());
-                    cursoDTO.setNombre_curso(cursoRepo.findNombreCursoById(curso.getIdCurso()));
-                    cursoDTO.setFoto_curso(cursoRepo.findImagenCursoById(curso.getIdCurso()));
-                    List<ClaseChatDTO> clasesDTO = new ArrayList<>();
-                    curso.getClases().forEach(clase -> {
-                        List<MensajeChatDTO> mensaje = new ArrayList<>();
-                        String respuestaId = this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get()
-                                .getRespuesta();
+        List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
+        if (mensajes != null && mensajes.size() > 0) {
+            mensajesDTO = getMensajesDTO(mensajes);
+        }
+
+        List<CursoChatDTO> cursosDTO = new ArrayList<>();
+        if (cursos != null && cursos.size() > 0) {
+            for (CursoChat curso : cursos) {
+                CursoChatDTO cursoDTO = new CursoChatDTO();
+                cursoDTO.setId_curso(curso.getIdCurso());
+                cursoDTO.setNombre_curso(cursoRepo.findNombreCursoById(curso.getIdCurso()));
+                cursoDTO.setFoto_curso(cursoRepo.findImagenCursoById(curso.getIdCurso()));
+                List<ClaseChatDTO> clasesDTO = new ArrayList<>();
+                List<ClaseChat> clases = curso.getClases();
+                if (clases != null && clases.size() > 0) {
+                    for (ClaseChat clase : clases) {
+                        List<MensajeChatDTO> mensajeChatDTOs = new ArrayList<>();
+                        String respuestaId = null;
+                        List<String> mensajeIDs = clase.getMensajes();
+                        String primerMensajeID = null;
+                        if (mensajeIDs != null && mensajeIDs.size() > 0) {
+                            primerMensajeID = mensajeIDs.getFirst();
+                        }
+                        if (primerMensajeID != null) {
+                            respuestaId = this.mensajeChatRepo.findById(primerMensajeID).get().getRespuesta();
+                        }
                         MensajeChatDTO respuestaDTO = null;
                         if (respuestaId != null) {
                             MensajeChat respuesta = this.mensajeChatRepo.findById(respuestaId).get();
@@ -99,49 +111,48 @@ public class InitChatService {
                                     respuesta.getMensaje(), // String mensaje
                                     respuesta.getFecha()); // Date fecha
                         }
-                        MensajeChat mex = this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get();
-                        mensaje.add(new MensajeChatDTO(
-                                mex.getId(), // String id_mensaje
-                                mex.getIdCurso(), // Long id_curso
-                                mex.getIdClase(), // Long id_clase
-                                mex.getIdUsuario(), // Long id_usuario
-                                this.cursoRepo.findNombreCursoById(
-                                        (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
-                                                .getIdCurso()), // String nombre_curso
-                                this.claseRepo.findNombreClaseById(
-                                        (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
-                                                .getIdClase()), // String nombre_clase
-                                this.usuarioRepo.findNombreUsuarioForId(
-                                        (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
-                                                .getIdUsuario()), // String nombre_usuario
-                                this.cursoRepo.findImagenCursoById(
-                                        (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
-                                                .getIdCurso()), // String foto_curso
-                                this.usuarioRepo.findFotosUsuarioForId(
-                                        (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
-                                                .getIdUsuario())
-                                        .get(0), // String foto_usuario
-                                respuestaDTO, // MensajeChatDTO respuesta
-                                mex.getMensaje(), // String mensaje
-                                mex.getFecha())); // Date fecha
+                        if (primerMensajeID != null) {
+                            MensajeChat mex = this.mensajeChatRepo.findById(primerMensajeID).get();
+                            mensajeChatDTOs.add(new MensajeChatDTO(
+                                    mex.getId(), // String id_mensaje
+                                    mex.getIdCurso(), // Long id_curso
+                                    mex.getIdClase(), // Long id_clase
+                                    mex.getIdUsuario(), // Long id_usuario
+                                    this.cursoRepo.findNombreCursoById(
+                                            (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
+                                                    .getIdCurso()), // String nombre_curso
+                                    this.claseRepo.findNombreClaseById(
+                                            (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
+                                                    .getIdClase()), // String nombre_clase
+                                    this.usuarioRepo.findNombreUsuarioForId(
+                                            (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
+                                                    .getIdUsuario()), // String nombre_usuario
+                                    this.cursoRepo.findImagenCursoById(
+                                            (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
+                                                    .getIdCurso()), // String foto_curso
+                                    this.usuarioRepo.findFotosUsuarioForId(
+                                            (this.mensajeChatRepo.findById(clase.getMensajes().getFirst()).get())
+                                                    .getIdUsuario())
+                                            .get(0), // String foto_usuario
+                                    respuestaDTO, // MensajeChatDTO respuesta
+                                    mex.getMensaje(), // String mensaje
+                                    mex.getFecha())); // Date fecha
 
+                        }
                         clasesDTO.add(new ClaseChatDTO(
                                 clase.getIdClase(), // Long id_clase
                                 clase.getIdCurso(), // Long id_curso
-                                this.claseRepo.findById(clase.getIdClase()).get().getNombre_clase(), mensaje));
-                        cursosDTO.add(cursoDTO);
-                    });
-
+                                this.claseRepo.findById(clase.getIdClase()).get().getNombre_clase(),
+                                mensajeChatDTOs));
+                    }
                 }
+                List<MensajeChatDTO> mensajesCursoDTO = getMensajesDTO(
+                        this.mensajeChatRepo.findAllById(curso.getMensajes()));
+                cursoDTO.setMensajes(mensajesCursoDTO);
+                cursosDTO.add(cursoDTO);
             }
-
-            return new InitChatDTO(usuarioChat.getIdUsuario(), mensajesDTO, cursosDTO);
-        } catch (Exception e) {
-            // Manejo de excepciones
-            System.err.println("Error al buscar usuario: " + e.getMessage());
-            return new InitChatDTO();
         }
-
+        return new InitChatDTO(usuarioChat.getIdUsuario(), mensajesDTO, cursosDTO);
     }
 
     @PostConstruct
@@ -238,7 +249,7 @@ public class InitChatService {
         String nombre_curso = this.cursoRepo.findNombreCursoById(id_curso);
         String foto_curso = this.cursoRepo.findImagenCursoById(id_curso);
 
-        List<String> mensajesIDs = document.getList(mensajes, String.class);
+        List<String> mensajesIDs = document.getList("mensajes", String.class);
         if (mensajesIDs != null && mensajesIDs.size() > 0) {
             List<MensajeChat> mensajesChat = this.mensajeChatRepo.findAllById(mensajesIDs);
             if (mensajesChat != null && mensajesChat.size() > 0) {
@@ -263,7 +274,7 @@ public class InitChatService {
         }
 
         CursoChatDTO cursoChatDTO = new CursoChatDTO(id_curso, clases, mensajes, nombre_curso, foto_curso);
-        simpMessagingTemplate.convertAndSend("/cursos_chat/" + id_curso, cursoChatDTO);
+        simpMessagingTemplate.convertAndSend("/init_chat/" + id_curso, cursoChatDTO);
     }
 
     /**
