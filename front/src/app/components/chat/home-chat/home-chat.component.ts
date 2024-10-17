@@ -1,9 +1,7 @@
-import { afterNextRender, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { afterNextRender, ChangeDetectorRef, Component } from '@angular/core';
 import { CursoChat } from '../../../models/CursoChat';
 import { InitChatUsuario } from '../../../models/InitChatUsuario';
 import { MensajeChat } from '../../../models/MensajeChat';
-import { Usuario } from '../../../models/Usuario';
 import { ChatService } from '../../../services/chat.service';
 import { LoginService } from '../../../services/login.service';
 
@@ -14,30 +12,22 @@ import { LoginService } from '../../../services/login.service';
 	templateUrl: './home-chat.component.html',
 	styleUrl: './home-chat.component.css',
 })
-export class HomeChatComponent implements OnDestroy {
+export class HomeChatComponent {
 	chats: MensajeChat[] = [];
 	cursos: CursoChat[] = [];
 	cargando: boolean = true;
-	private subscription: Subscription = new Subscription();
 
 	constructor(
 		private loginService: LoginService,
 		private chatService: ChatService,
 		private cdr: ChangeDetectorRef,
-		private usuario: Usuario | null = null,
 	) {
-		this.subscription.add(
-			this.loginService.usuario$.subscribe((usuario) => {
-				this.usuario = usuario;
-			}),
-		);
-
 		afterNextRender(() => {
-			if (this.usuario) {
-				this.chatService.initUsuario(this.usuario.id_usuario).subscribe({
+			if (this.loginService.usuario) {
+				this.chatService.initUsuario(this.loginService.usuario.id_usuario).subscribe({
 					next: (init: InitChatUsuario | null) => {
 						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', init);
-						if (init && init.mensajes && init.cursos && init.idUsuario === this.usuario?.id_usuario) {
+						if (init && init.mensajes && init.cursos && init.idUsuario === this.loginService.usuario?.id_usuario) {
 							this.chats = init.mensajes;
 							this.cursos = init.cursos;
 							this.cargando = false;
@@ -53,8 +43,5 @@ export class HomeChatComponent implements OnDestroy {
 				});
 			}
 		});
-	}
-	ngOnDestroy(): void {
-		this.subscription.unsubscribe();
 	}
 }

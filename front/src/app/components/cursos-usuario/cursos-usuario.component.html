@@ -1,39 +1,39 @@
 <div class="m-2 flex flex-grow flex-col items-center rounded-lg border border-black p-2">
 	<h2 class="font-bold text-blue-500">Tus Cursos</h2>
 	<br />
-	@if (this.usuario) {
-		@if (this.usuario.roll_usuario && this.usuario.roll_usuario > 1) {
-			@if (this.usuario.cursos_usuario?.length === 0) {
+	@if (this.loginService.usuario) {
+		@if (this.loginService.usuario.roll_usuario && this.loginService.usuario.roll_usuario > 1) {
+			@if (this.loginService.usuario.cursos_usuario?.length === 0) {
 				<h3 class="font-bold text-red-600">No tienes cursos!!!</h3>
 			} @else {
-				@for (curso of this.usuario.cursos_usuario; track curso) {
+				@for (curso of this.loginService.usuario.cursos_usuario; track curso) {
 					<div class="flex w-full">
 						<div class="m-2 flex flex-grow rounded-lg border border-black p-2">
 							<p>{{ curso.nombre_curso }}</p>
 							<p class="ml-2 flex-grow text-gray-500">{{ curso.descriccion_corta }}</p>
 						</div>
-						@if (this.usuario.id_usuario !== null) {
-							<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['repro/' + this.usuario.id_usuario + '/' + curso.id_curso])">Ir al curso</button>
+						@if (this.loginService.usuario.id_usuario !== null) {
+							<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['repro/' + this.loginService.usuario.id_usuario + '/' + curso.id_curso])">Ir al curso</button>
 						}
 					</div>
 				}
 			}
 		} @else {
-			@if (this.cursoService.getCursosProfe(this.usuario).length === 0) {
+			@if (this.cursoService.getCursosProfe(this.loginService.usuario).length === 0) {
 				<h3 class="font-bold text-red-600">No tienes cursos!!!</h3>
 			} @else {
-				@for (curso of this.cursoService.getCursosProfe(this.usuario); track curso) {
+				@for (curso of this.cursoService.getCursosProfe(this.loginService.usuario); track curso) {
 					<div class="flex w-full">
 						<div class="m-2 flex flex-grow rounded-lg border border-black p-2">
 							<p>{{ curso.nombre_curso }}</p>
 							<p class="ml-2 flex-grow text-gray-500">{{ curso.descriccion_corta }}</p>
 						</div>
-						@if (this.usuario.id_usuario !== null) {
+						@if (this.loginService.usuario.id_usuario !== null) {
 							<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['editorCurso/' + curso.id_curso])">Editar este curso</button>
 						}
 					</div>
 				}
-				@if (this.usuario.id_usuario !== null) {
+				@if (this.loginService.usuario.id_usuario !== null) {
 					<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['editorCurso/' + 0])">Crea un nuevo curso</button>
 				}
 			}

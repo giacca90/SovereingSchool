@@ -5,7 +5,6 @@ import { Subscription } from 'rxjs';
 import videojs from 'video.js';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
-import { Usuario } from '../../models/Usuario';
 import { CursosService } from '../../services/cursos.service';
 import { InitService } from '../../services/init.service';
 import { LoginService } from '../../services/login.service';
@@ -25,7 +24,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	editado: boolean = false;
 	editar: Clase | null = null;
 	videoPlayer: HTMLVideoElement | null = null;
-	usuario: Usuario | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -35,17 +33,11 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		private initService: InitService,
 	) {
 		this.subscription.add(
-			this.loginService.usuario$.subscribe((usuario) => {
-				this.usuario = usuario;
-			}),
-		);
-
-		this.subscription.add(
 			this.route.params.subscribe((params) => {
 				this.id_curso = params['id_curso'];
 				if (this.id_curso == 0) {
-					if (this.usuario) {
-						this.curso = new Curso(0, '', [this.usuario], '', '', new Date(), [], [], '', 0);
+					if (this.loginService.usuario) {
+						this.curso = new Curso(0, '', [this.loginService.usuario], '', '', new Date(), [], [], '', 0);
 					}
 				} else {
 					this.cursoService.getCurso(this.id_curso).then((curso) => {
@@ -180,7 +172,9 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 	guardarCambiosClase() {
 		if (this.curso && this.editar) {
-			this.curso.clases_curso?.push(this.editar);
+			if (this.editar.id_clase === 0) {
+				this.curso.clases_curso?.push(this.editar);
+			}
 			this.editar = null;
 		}
 	}
@@ -311,7 +305,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 					preload: 'auto',
 				});
 				player.src({
-					src: `http://localhost:8090/${this.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
+					src: `http://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
 				});
 			}

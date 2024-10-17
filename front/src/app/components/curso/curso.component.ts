@@ -4,7 +4,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Curso } from '../../models/Curso';
 import { Plan } from '../../models/Plan';
-import { Usuario } from '../../models/Usuario';
 import { CursosService } from '../../services/cursos.service';
 import { LoginService } from '../../services/login.service';
 import { UsuariosService } from '../../services/usuarios.service';
@@ -21,7 +20,6 @@ export class CursoComponent implements OnDestroy {
 	public curso: Curso | null = null;
 	public nombresProfesores: string | undefined = '';
 	private subscription: Subscription = new Subscription();
-	public usuario: Usuario | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -33,12 +31,6 @@ export class CursoComponent implements OnDestroy {
 		this.subscription.add(
 			this.route.params.subscribe((params) => {
 				this.id_curso = params['id_curso'];
-			}),
-		);
-
-		this.subscription.add(
-			this.loginService.usuario$.subscribe((usuario) => {
-				this.usuario = usuario;
 			}),
 		);
 

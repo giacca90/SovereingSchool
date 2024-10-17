@@ -19,15 +19,15 @@
 
 	<div>
 		<span class="font-bold">Precio: {{ curso?.precio_curso }}€</span>
-		@if (this.usuario && this.usuario.roll_usuario !== undefined && curso && curso.clases_curso) {
-			@if (this.usuario.roll_usuario < 2 || this.usuario.cursos_usuario?.includes(curso) || compruebaPlan(this.usuario.plan_usuario) !== null) {
-				<button id="boton" class="ml-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['repro/' + this.usuario.id_usuario + '/' + this.curso.id_curso + '/0'])">Ir al curso</button>
+		@if (this.loginService.usuario && this.loginService.usuario.roll_usuario !== undefined && curso && curso.clases_curso) {
+			@if (this.loginService.usuario.roll_usuario < 2 || this.loginService.usuario.cursos_usuario?.includes(curso) || compruebaPlan(this.loginService.usuario.plan_usuario) !== null) {
+				<button id="boton" class="ml-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['repro/' + this.loginService.usuario.id_usuario + '/' + this.curso.id_curso + '/0'])">Ir al curso</button>
 			} @else {
 				<button id="boton" class="ml-2 rounded-lg border border-black p-2">Compra este curso</button>]
 			}
 		}
-		@if (compruebaPlan(this.usuario?.plan_usuario)) {
-			<p class="font-bold">Este curso es parte de tu plan {{ compruebaPlan(this.usuario?.plan_usuario)?.nombre_plan }}</p>
+		@if (compruebaPlan(this.loginService.usuario?.plan_usuario)) {
+			<p class="font-bold">Este curso es parte de tu plan {{ compruebaPlan(this.loginService.usuario?.plan_usuario)?.nombre_plan }}</p>
 		}
 	</div>
 </div>
