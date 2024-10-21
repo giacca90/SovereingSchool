@@ -14,7 +14,9 @@ export class LoginService {
 	constructor(private http: HttpClient) {
 		afterNextRender(() => {
 			const usuario_guardado: string | null = localStorage.getItem('Usuario');
-			if (usuario_guardado) this.usuario = JSON.parse(usuario_guardado);
+			if (usuario_guardado) {
+				this.usuario = JSON.parse(usuario_guardado);
+			}
 		});
 	}
 

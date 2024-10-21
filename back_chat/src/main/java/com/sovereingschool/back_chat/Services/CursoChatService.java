@@ -157,12 +157,16 @@ public class CursoChatService {
             System.out.println("Mensaje recibido: " + mensajeChatDTO);
 
             // Aquí puedes agregar la lógica para guardar el mensaje en la base de datos
+            String resp = null;
+            if (mensajeChatDTO.getRespuesta() != null) {
+                resp = mensajeChatDTO.getRespuesta().getId_mensaje();
+            }
             MensajeChat mensajeChat = new MensajeChat(
                     null, // String id
                     mensajeChatDTO.getId_curso(), // Long id_curso
                     mensajeChatDTO.getId_clase(), // Long id_clase
                     mensajeChatDTO.getId_usuario(), // Long id_usuario
-                    null, // String respuesta
+                    resp, // String respuesta
                     mensajeChatDTO.getMensaje(), // String mensaje
                     mensajeChatDTO.getFecha()); // Date fecha
             MensajeChat mex = this.mensajeChatRepo.save(mensajeChat);
@@ -184,7 +188,7 @@ public class CursoChatService {
             }
             cursoChatRepo.save(cursoChat);
 
-            // Actualiza el estado del usuario
+            // Actualiza el estado del usuario incluida la respuesta
             UsuarioChat usuarioChat = usuarioChatRepo.findByIdUsuario(mensajeChatDTO.getId_usuario());
             if (usuarioChat != null) {
                 List<CursoChat> cursoChatList = usuarioChat.getCursos();
@@ -200,6 +204,16 @@ public class CursoChatService {
                 }
                 usuarioChat.setCursos(cursoChatList);
                 usuarioChatRepo.save(usuarioChat);
+
+                // Controla la respuesta
+                if (resp != null) {
+                    MensajeChat respuesta = mensajeChatRepo.findById(resp).get();
+                    UsuarioChat usuarioRespuesta = usuarioChatRepo.findByIdUsuario(respuesta.getIdUsuario());
+                    List<MensajeChat> mensajes = usuarioRespuesta.getMensajes();
+                    mensajes.add(mex);
+                    usuarioRespuesta.setMensajes(mensajes);
+                    usuarioChatRepo.save(usuarioRespuesta);
+                }
             } else {
                 System.err.println("No se pudo guardar el mensaje, el usuario no existe");
             }

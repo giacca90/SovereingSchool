@@ -94,7 +94,25 @@ export class ChatService {
 		);
 	}
 
-	enviarMensaje(idCurso: number | null, clase: number, value: string) {
+	enviarMensaje(idCurso: number | null, clase: number, value: string, respuesta: string | null) {
+		let resp: MensajeChat | null = null;
+		if (respuesta) {
+			resp = new MensajeChat(
+				respuesta, // id mensaje
+				idCurso, // id curso
+				clase, // id clase
+				this.loginService.usuario?.id_usuario, // id usuario
+				null, // nombre curso
+				null, // nombre clase
+				null, // nombre usuario
+				null, // foto curso
+				null, // foto usuario
+				null, // respuesta
+				null, // mensaje
+				null, // fecha
+			);
+		}
+
 		const mensaje: MensajeChat = new MensajeChat(
 			null, // id mensaje
 			idCurso, // id curso
@@ -105,7 +123,7 @@ export class ChatService {
 			null, // nombre usuario
 			null, // foto curso
 			null, // foto usuario
-			null, // respuesta
+			resp, // respuesta
 			value, // mensaje
 			new Date(), // fecha
 		);

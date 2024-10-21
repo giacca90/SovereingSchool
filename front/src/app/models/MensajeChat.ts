@@ -13,11 +13,11 @@ export class MensajeChat {
 
 	respuesta: MensajeChat | null;
 
-	mensaje: string;
+	mensaje: string | null;
 
-	fecha: Date;
+	fecha: Date | null;
 
-	constructor(_id_mensaje: string | null, _id_curso: number | null, _id_clase: number | null, _id_usuario: number | undefined, _nombre_curso: string | null, _nombre_clase: string | null, _nombre_usuario: string | null, _foto_curso: string | null, _foto_usuario: string | null, _respuesta: MensajeChat | null, _mensaje: string, _fecha: Date) {
+	constructor(_id_mensaje: string | null, _id_curso: number | null, _id_clase: number | null, _id_usuario: number | undefined, _nombre_curso: string | null, _nombre_clase: string | null, _nombre_usuario: string | null, _foto_curso: string | null, _foto_usuario: string | null, _respuesta: MensajeChat | null, _mensaje: string | null, _fecha: Date | null) {
 		this.id_mensaje = _id_mensaje;
 		this.id_curso = _id_curso;
 		this.id_clase = _id_clase;

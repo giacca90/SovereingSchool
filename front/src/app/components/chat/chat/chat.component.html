@@ -8,11 +8,26 @@
 		}
 		<br />
 		@for (mensaje of this.chat.mensajes; track $index) {
-			<div>{{ mensaje.mensaje }}</div>
+			<div class="m-2 flex rounded-lg border border-black p-2">
+				<p class="flex-grow">
+					{{ mensaje.mensaje }}
+				</p>
+				<button (click)="this.respuesta = mensaje"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
+			</div>
 		}
 		<br />
+		@if (respuesta !== null) {
+			<div class="rounded-t-lg border border-black border-b-transparent p-2">
+				<div class="flex">
+					<p class="flex-grow text-gray-500">En respuesta a: {{ respuesta.nombre_usuario }}</p>
+					<button (click)="this.respuesta = null"><img src="../../../../assets/close.svg" alt="close" class="h-6 w-6" /></button>
+				</div>
+				<p class="text-gray-500">{{ respuesta.mensaje }}</p>
+			</div>
+		}
 		<div class="flex">
 			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black" placeholder="Escribe tu mensaje..." />
+			<!-- TODO arreglar respuesta -->
 			<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black" (click)="this.enviarMensaje(0)">Enviar</button>
 		</div>
 	}

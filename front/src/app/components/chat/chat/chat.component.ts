@@ -1,6 +1,7 @@
 import { afterNextRender, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CursoChat } from '../../../models/CursoChat';
+import { MensajeChat } from '../../../models/MensajeChat';
 import { ChatService } from '../../../services/chat.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { ChatService } from '../../../services/chat.service';
 export class ChatComponent implements OnInit {
 	@Input() idCurso: number | null = null;
 	chat: CursoChat | null = null;
+	respuesta: MensajeChat | null = null;
 
 	constructor(
 		public chatService: ChatService,
@@ -27,7 +29,7 @@ export class ChatComponent implements OnInit {
 						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', data);
 						if (data) {
 							this.chat = data;
-							this.cdr.detectChanges();
+							//							this.cdr.detectChanges();
 						}
 					},
 					error: (e) => {
@@ -51,10 +53,16 @@ export class ChatComponent implements OnInit {
 			console.error('El curso es null');
 			return;
 		}
+		let resp: string | null = null;
+		if (this.respuesta) {
+			resp = this.respuesta.id_mensaje;
+		}
 		const input: HTMLInputElement = document.getElementById('mex') as HTMLInputElement;
 		if (input.value) {
-			this.chatService.enviarMensaje(this.idCurso, clase, input.value);
+			// TODO gestionar la respuesta
+			this.chatService.enviarMensaje(this.idCurso, clase, input.value, resp);
 			input.value = '';
+			this.respuesta = null;
 			this.cdr.detectChanges();
 		}
 	}
