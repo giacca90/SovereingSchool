@@ -3,16 +3,51 @@
 		<h3>CARGANDO...</h3>
 	} @else {
 		<h3 class="text-center font-bold text-green-700">{{ this.chat.nombre_curso }} (CHAT)</h3>
-		@for (clase of this.chat.clases; track $index) {
-			<div>{{ clase.nombre_clase }}</div>
-		}
+		<div class="m-2 flex flex-col rounded-lg border border-black p-2">
+			@for (clase of this.chat.clases; track $index) {
+				<button class="m-2 flex rounded-lg border border-black p-2" (click)="abreChatClase(clase.id_clase)">
+					<p class="flex-grow">{{ clase.nombre_clase }}</p>
+					<img class="h-6 w-6" src="../../../../assets/arrow-down.svg" alt="" />
+				</button>
+				<div id="clase-{{ clase.id_clase }}" class="clases hidden">
+					@if (clase.mensajes.length === 0) {
+						<p class="text-center text-gray-500">No hay mensajes en esta clase</p>
+					}
+					@for (mex of clase.mensajes; track $index) {
+						<div class="m-2 flex rounded-lg border border-black p-2">
+							<div class="flex-grow flex-col">
+								<p class="text-gray-500">Mensaje de: {{ mex.nombre_usuario }}</p>
+								<p>{{ mex.mensaje }}</p>
+							</div>
+							<button (click)="this.respuestaClase = mex; this.respuesta = null"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
+						</div>
+					}
+					<br />
+					@if (respuestaClase !== null) {
+						<div class="rounded-t-lg border border-black border-b-transparent p-2">
+							<div class="flex">
+								<p class="flex-grow text-gray-500">En respuesta a: {{ respuestaClase.nombre_usuario }}</p>
+								<button (click)="this.respuesta = null; this.respuestaClase = null"><img src="../../../../assets/close.svg" alt="close" class="h-6 w-6" /></button>
+							</div>
+							<p class="text-gray-500">{{ respuestaClase.mensaje }}</p>
+						</div>
+					}
+					<div class="flex">
+						<input id="mexc" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black" placeholder="Escribe tu mensaje en la clase..." />
+						<!-- TODO arreglar respuesta -->
+						<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black" (click)="this.enviarMensaje(clase.id_clase)">Enviar</button>
+					</div>
+				</div>
+			}
+		</div>
 		<br />
 		@for (mensaje of this.chat.mensajes; track $index) {
 			<div class="m-2 flex rounded-lg border border-black p-2">
-				<p class="flex-grow">
-					{{ mensaje.mensaje }}
-				</p>
-				<button (click)="this.respuesta = mensaje"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
+				<div class="flex-grow flex-col">
+					<p class="text-gray-500">Mensaje de: {{ mensaje.nombre_usuario }}</p>
+					<p>{{ mensaje.mensaje }}</p>
+				</div>
+				<button (click)="this.respuesta = mensaje; this.respuestaClase = null"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
 			</div>
 		}
 		<br />
@@ -26,9 +61,9 @@
 			</div>
 		}
 		<div class="flex">
-			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black" placeholder="Escribe tu mensaje..." />
+			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black" placeholder="Escribe tu mensaje en el curso..." />
 			<!-- TODO arreglar respuesta -->
-			<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black" (click)="this.enviarMensaje(0)">Enviar</button>
+			<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black" (click)="this.enviarMensaje()">Enviar</button>
 		</div>
 	}
 </div>
