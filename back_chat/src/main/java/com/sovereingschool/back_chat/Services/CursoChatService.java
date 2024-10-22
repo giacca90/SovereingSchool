@@ -209,8 +209,8 @@ public class CursoChatService {
                 if (resp != null) {
                     MensajeChat respuesta = mensajeChatRepo.findById(resp).get();
                     UsuarioChat usuarioRespuesta = usuarioChatRepo.findByIdUsuario(respuesta.getIdUsuario());
-                    List<MensajeChat> mensajes = usuarioRespuesta.getMensajes();
-                    mensajes.add(mex);
+                    List<String> mensajes = usuarioRespuesta.getMensajes();
+                    mensajes.add(mex.getId());
                     usuarioRespuesta.setMensajes(mensajes);
                     usuarioChatRepo.save(usuarioRespuesta);
                 }
@@ -234,7 +234,7 @@ public class CursoChatService {
                     null, // String id
                     usuario.getId_usuario(), // Long id_usuario
                     new ArrayList<CursoChat>(), // List<CursoChat> cursos
-                    new ArrayList<MensajeChat>()); // List<MensajeChat> mensajes
+                    new ArrayList<String>()); // List<String> mensajes
             usuarioChatRepo.save(usuarioChat);
         } catch (Exception e) {
             System.err.println("Error en crear el usuario del chat: " + e.getMessage());

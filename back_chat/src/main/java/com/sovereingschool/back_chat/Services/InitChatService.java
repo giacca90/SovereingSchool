@@ -61,7 +61,10 @@ public class InitChatService {
             usuarioChat = new UsuarioChat(null, 0L, null, null); // Objeto por defecto si no se encuentra
             return new InitChatDTO();
         }
-        List<MensajeChat> mensajes = usuarioChat.getMensajes();
+        List<MensajeChat> mensajes = new ArrayList<>();
+        usuarioChat.getMensajes().forEach((mexID) -> {
+            mensajes.add(this.mensajeChatRepo.findById(mexID).get());
+        });
         System.out.println("MENSAJESCHAT: " + mensajes);
         List<CursoChat> cursos = usuarioChat.getCursos();
         System.out.println("CURSOCHAT: " + cursos);

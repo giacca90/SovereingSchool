@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Client } from '@stomp/stompjs';
+import { Client, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
@@ -15,6 +15,7 @@ export class ChatService {
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();
 	private client: Client;
+	private currentSubscription: StompSubscription | null = null; // Guardar referencia a la suscripción actual
 
 	constructor(private loginService: LoginService) {
 		this.client = new Client({
@@ -65,11 +66,16 @@ export class ChatService {
 	}
 
 	getChat(idCurso: number): Observable<CursoChat | null> {
+		// Si hay una suscripción anterior, desuscríbete antes de suscribirte a la nueva
+		if (this.currentSubscription) {
+			this.currentSubscription.unsubscribe();
+		}
+		this.client.forceDisconnect();
 		this.client.onConnect = (frame) => {
 			console.log('Connected: ' + frame);
 
 			// Suscríbete a las respuestas del backend
-			this.client.subscribe('/init_chat/' + idCurso, (response) => {
+			this.currentSubscription = this.client.subscribe('/init_chat/' + idCurso, (response) => {
 				console.log('RESPONSE: ', response.body);
 				const curso: CursoChat = JSON.parse(response.body) as CursoChat;
 				console.log('SE RECIBE RESPUESTA DEL BACK!!!', curso);

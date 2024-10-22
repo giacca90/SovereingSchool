@@ -41,6 +41,8 @@ export class HomeChatComponent {
 						console.error('Error en recibir la respuesta: ' + e.message);
 					},
 				});
+			} else {
+				console.error('El usuario no esta logueado');
 			}
 		});
 	}

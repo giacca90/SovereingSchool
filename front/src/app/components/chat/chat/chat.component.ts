@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CursoChat } from '../../../models/CursoChat';
 import { MensajeChat } from '../../../models/MensajeChat';
@@ -11,7 +11,7 @@ import { ChatService } from '../../../services/chat.service';
 	templateUrl: './chat.component.html',
 	styleUrl: './chat.component.css',
 })
-export class ChatComponent implements OnInit {
+export class ChatComponent implements OnInit, OnDestroy {
 	@Input() idCurso: number | null = null;
 	chat: CursoChat | null = null;
 	respuesta: MensajeChat | null = null;
@@ -29,15 +29,23 @@ export class ChatComponent implements OnInit {
 						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', data);
 						if (data) {
 							this.chat = data;
-							//							this.cdr.detectChanges();
+							this.cdr.detectChanges();
 						}
 					},
 					error: (e) => {
 						console.error('Error en recibir el chat: ' + e.message);
 					},
 				});
+			} else {
+				console.error('El curso es nulo');
 			}
 		});
+	}
+	ngOnDestroy(): void {
+		console.log('Se destruye el componente');
+		this.idCurso = null;
+		this.chat = null;
+		this.respuesta = null;
 	}
 
 	ngOnInit(): void {
