@@ -32,22 +32,22 @@ public class ChatController {
     @MessageMapping("/init")
     @SendTo("/init_chat/result")
     public InitChatDTO handleInitChat(String message) {
-        System.out.println("LLEGADA LA LLAMADA A INIT_CHAT: " + message);
+        // System.out.println("LLEGADA LA LLAMADA A INIT_CHAT: " + message);
         Long idUsuario = Long.parseLong(message);
 
         InitChatDTO initChat = this.initChatService.initChat(idUsuario);
-        System.out.println("SE DEVUELVE: " + initChat.toString());
+        // System.out.println("SE DEVUELVE: " + initChat.toString());
         return initChat; // Objeto que representa el estado inicial
     }
 
     @MessageMapping("/curso")
     public void getCursoChat(String message) {
-        System.out.println("LLEGADA LA LLAMADA A INIT_CURSO: " + message);
+        // System.out.println("LLEGADA LA LLAMADA A INIT_CURSO: " + message);
         Long idCurso = Long.parseLong(message);
 
         CursoChatDTO cursoChat = cursoChatService.getChat(idCurso);
         if (cursoChat != null) {
-            System.out.println("SE DEVUELVE: " + cursoChat.toString());
+            // System.out.println("SE DEVUELVE: " + cursoChat.toString());
             // Enviar el mensaje a un destino dinámico usando SimpMessagingTemplate
             messagingTemplate.convertAndSend("/init_chat/" + idCurso, cursoChat);
         }

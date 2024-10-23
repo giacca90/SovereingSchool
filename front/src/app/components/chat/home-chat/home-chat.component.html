@@ -13,7 +13,7 @@
 						<p>{{ mensaje.nombre_clase }}</p>
 					}
 					@if (mensaje.respuesta) {
-						<p>En respuesta a:</p>
+						<p class="text-gray-500">En respuesta a: {{ mensaje.respuesta.mensaje }}</p>
 					}
 					<p>{{ mensaje.mensaje }}</p>
 				</div>
@@ -24,7 +24,7 @@
 		} @else {
 			@for (ultimo of this.cursos; track $index) {
 				<div class="m-2 flex flex-grow flex-col rounded-lg border border-black p-2">
-					<p>{{ ultimo.nombre_curso }}</p>
+					<p class="font-bold text-green-700">{{ ultimo.nombre_curso }}</p>
 					@if (ultimo.mensajes[0].id_clase) {
 						<p>{{ ultimo.mensajes[0].nombre_clase }}</p>
 					}

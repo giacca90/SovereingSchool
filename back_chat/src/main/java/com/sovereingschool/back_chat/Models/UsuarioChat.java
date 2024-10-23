@@ -24,7 +24,7 @@ public class UsuarioChat implements Serializable {
 
     private Long idUsuario;
 
-    private List<CursoChat> cursos;
+    private List<String> cursos;
 
     private List<String> mensajes;
 

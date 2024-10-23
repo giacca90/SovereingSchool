@@ -51,16 +51,16 @@ public class CursoChatService {
 
     public CursoChatDTO getChat(Long idCurso) {
         CursoChat cursoChat = cursoChatRepo.findByIdCurso(idCurso);
-        System.out.println("LOG1: " + cursoChat.toString());
+        // System.out.println("LOG1: " + cursoChat.toString());
         CursoChatDTO cursoChatDTO = null;
         if (cursoChat != null) {
             List<ClaseChat> clases = cursoChat.getClases();
             List<ClaseChatDTO> clasesDTO = new ArrayList<>();
-            System.out.println("LOG2: " + clases.toString());
+            // System.out.println("LOG2: " + clases.toString());
             if (clases != null && clases.size() > 0) {
                 for (ClaseChat clase : clases) {
                     List<String> mensajes = clase.getMensajes();
-                    System.out.println("LOG3: " + mensajes.toString());
+                    // System.out.println("LOG3: " + mensajes.toString());
                     List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
                     if (mensajes != null && mensajes.size() > 0) {
                         for (String mensajeId : mensajes) {
@@ -92,7 +92,7 @@ public class CursoChatService {
 
             List<String> mensajes = cursoChat.getMensajes();
             List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
-            System.out.println("LOG4: " + mensajes.toString());
+            // System.out.println("LOG4: " + mensajes.toString());
             if (mensajes != null && mensajes.size() > 0) {
                 for (String mensajeId : mensajes) {
                     MensajeChat mensaje = mensajeChatRepo.findById(mensajeId).get();
@@ -121,7 +121,7 @@ public class CursoChatService {
                     cursoRepo.findImagenCursoById(idCurso));
         }
 
-        System.out.println("LOG5: " + cursoChatDTO.toString());
+        // System.out.println("LOG5: " + cursoChatDTO.toString());
         return cursoChatDTO;
     }
 
@@ -154,7 +154,7 @@ public class CursoChatService {
             MensajeChatDTO mensajeChatDTO = objectMapper.readValue(message, MensajeChatDTO.class);
 
             // Imprimir el objeto parseado (solo para verificación)
-            System.out.println("Mensaje recibido: " + mensajeChatDTO);
+            // System.out.println("Mensaje recibido: " + mensajeChatDTO);
 
             // Aquí puedes agregar la lógica para guardar el mensaje en la base de datos
             String resp = null;
@@ -170,7 +170,7 @@ public class CursoChatService {
                     mensajeChatDTO.getMensaje(), // String mensaje
                     mensajeChatDTO.getFecha()); // Date fecha
             MensajeChat mex = this.mensajeChatRepo.save(mensajeChat);
-            System.out.println("MEX: " + mex);
+            // System.out.println("MEX: " + mex);
 
             String idMex = mex.getId();
 
@@ -191,7 +191,7 @@ public class CursoChatService {
             // Actualiza el estado del usuario incluida la respuesta
             UsuarioChat usuarioChat = usuarioChatRepo.findByIdUsuario(mensajeChatDTO.getId_usuario());
             if (usuarioChat != null) {
-                List<CursoChat> cursoChatList = usuarioChat.getCursos();
+                List<CursoChat> cursoChatList = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
                 Boolean presente = false;
                 for (CursoChat curso : cursoChatList) {
                     if (curso.getIdCurso().equals(mensajeChatDTO.getId_curso())) {
@@ -202,7 +202,11 @@ public class CursoChatService {
                 if (!presente) {
                     cursoChatList.add(cursoChat);
                 }
-                usuarioChat.setCursos(cursoChatList);
+                List<String> IDs = new ArrayList<>();
+                cursoChatList.forEach((cur) -> {
+                    IDs.add(cur.getId());
+                });
+                usuarioChat.setCursos(IDs);
                 usuarioChatRepo.save(usuarioChat);
 
                 // Controla la respuesta
@@ -233,7 +237,7 @@ public class CursoChatService {
             UsuarioChat usuarioChat = new UsuarioChat(
                     null, // String id
                     usuario.getId_usuario(), // Long id_usuario
-                    new ArrayList<CursoChat>(), // List<CursoChat> cursos
+                    new ArrayList<String>(), // List<CursoChat> cursos
                     new ArrayList<String>()); // List<String> mensajes
             usuarioChatRepo.save(usuarioChat);
         } catch (Exception e) {

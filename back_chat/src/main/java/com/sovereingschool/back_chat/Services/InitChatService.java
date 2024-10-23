@@ -20,6 +20,7 @@ import com.sovereingschool.back_chat.Models.CursoChat;
 import com.sovereingschool.back_chat.Models.MensajeChat;
 import com.sovereingschool.back_chat.Models.UsuarioChat;
 import com.sovereingschool.back_chat.Repositories.ClaseRepository;
+import com.sovereingschool.back_chat.Repositories.CursoChatRepository;
 import com.sovereingschool.back_chat.Repositories.CursoRepository;
 import com.sovereingschool.back_chat.Repositories.MensajeChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
@@ -45,6 +46,9 @@ public class InitChatService {
     private CursoRepository cursoRepo;
 
     @Autowired
+    private CursoChatRepository cursoChatRepo;
+
+    @Autowired
     private ClaseRepository claseRepo;
 
     @Autowired
@@ -56,7 +60,7 @@ public class InitChatService {
     public InitChatDTO initChat(Long idUsuario) {
 
         UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario);
-        System.out.println("USUARIOCHAT: " + usuarioChat);
+        // System.out.println("USUARIOCHAT: " + usuarioChat);
         if (usuarioChat == null) {
             usuarioChat = new UsuarioChat(null, 0L, null, null); // Objeto por defecto si no se encuentra
             return new InitChatDTO();
@@ -65,9 +69,9 @@ public class InitChatService {
         usuarioChat.getMensajes().forEach((mexID) -> {
             mensajes.add(this.mensajeChatRepo.findById(mexID).get());
         });
-        System.out.println("MENSAJESCHAT: " + mensajes);
-        List<CursoChat> cursos = usuarioChat.getCursos();
-        System.out.println("CURSOCHAT: " + cursos);
+        // System.out.println("MENSAJESCHAT: " + mensajes);
+        List<CursoChat> cursos = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
+        // System.out.println("CURSOCHAT: " + cursos);
 
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         if (mensajes != null && mensajes.size() > 0) {
@@ -160,7 +164,7 @@ public class InitChatService {
 
     @PostConstruct
     public void observeMultipleCollections() {
-        System.out.println("Observing multiple collections");
+        // System.out.println("Observing multiple collections");
 
         // Configura las opciones de ChangeStream
         ChangeStreamOptions options = ChangeStreamOptions.builder()
@@ -173,7 +177,7 @@ public class InitChatService {
         // Configura el ChangeStream y escucha los eventos
 
         userChatFlux.subscribe(changedDocument -> {
-            System.out.println("Users_chat modificado: " + changedDocument);
+            // System.out.println("Users_chat modificado: " + changedDocument);
             notifyUsersChat(changedDocument);
         });
 
@@ -182,7 +186,7 @@ public class InitChatService {
                 .map(ChangeStreamEvent::getBody); // Extrae el documento directamente
 
         coursesChatFlux.subscribe(changedDocument -> {
-            System.out.println("Courses_chat modificado: " + changedDocument);
+            // System.out.println("Courses_chat modificado: " + changedDocument);
             notifyCoursesChat(changedDocument);
         });
     }
@@ -245,7 +249,7 @@ public class InitChatService {
      *                 El documento tiene que ser de tipo CursoChat
      */
     private void notifyCoursesChat(Document document) {
-        System.out.println("Documento modificado: " + document);
+        // System.out.println("Documento modificado: " + document);
         Long id_curso = document.getLong("idCurso");
         List<ClaseChatDTO> clases = new ArrayList<>();
         List<MensajeChatDTO> mensajes = new ArrayList<>();
@@ -286,7 +290,7 @@ public class InitChatService {
      * @param document Documento de chat del usuario
      */
     private void notifyUsersChat(Document document) {
-        System.out.println("DOCUMENTO MODIFICADO: " + document);
+        // System.out.println("DOCUMENTO MODIFICADO: " + document);
         Long idUsuario = document.getLong("idUsuario");
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         List<CursoChatDTO> cursosDTO = new ArrayList<>();
