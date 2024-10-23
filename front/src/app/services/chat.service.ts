@@ -140,4 +140,11 @@ export class ChatService {
 			body: JSON.stringify(mensaje),
 		});
 	}
+
+	mensajeLeido(idMensaje: string) {
+		this.client.publish({
+			destination: '/app/leido',
+			body: JSON.stringify(this.loginService.usuario?.id_usuario + ',' + idMensaje),
+		});
+	}
 }

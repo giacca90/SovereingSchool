@@ -33,6 +33,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 		}
 		afterNextRender(() => {
 			console.log('AFTERNEXTRENDER');
+			if (this.idCurso && this.idMensaje) {
+				this.chatService.mensajeLeido(this.idMensaje);
+			}
 			if (this.idCurso) {
 				this.subscription = this.chatService.getChat(this.idCurso).subscribe({
 					next: (data: CursoChat | null) => {

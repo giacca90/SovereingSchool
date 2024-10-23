@@ -58,6 +58,11 @@ public class ChatController {
         this.cursoChatService.guardaMensaje(message);
     }
 
+    @MessageMapping("/leido")
+    public void mensajeLeido(String message) {
+        this.cursoChatService.mensajeLeido(message);
+    }
+
     @PostMapping("/crea_usuario_chat")
     public ResponseEntity<?> creaUsuarioChat(@RequestBody String message) {
         try {

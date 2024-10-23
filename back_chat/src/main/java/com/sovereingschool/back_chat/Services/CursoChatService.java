@@ -273,4 +273,15 @@ public class CursoChatService {
             System.err.println("Error en crear el usuario del chat: " + e.getMessage());
         }
     }
+
+    public void mensajeLeido(String message) {
+        String[] lMex = message.replaceAll("\"", "").split(",");
+        UsuarioChat usuario = this.usuarioChatRepo.findByIdUsuario(Long.parseLong(lMex[0]));
+        if (usuario != null) {
+            List<String> mensajes = usuario.getMensajes();
+            mensajes.remove(lMex[1]);
+            usuario.setMensajes(mensajes);
+            this.usuarioChatRepo.save(usuario);
+        }
+    }
 }
