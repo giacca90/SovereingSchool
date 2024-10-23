@@ -1,4 +1,5 @@
-import { afterNextRender, ChangeDetectorRef, Component } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, NgZone } from '@angular/core';
+import { Router } from '@angular/router';
 import { CursoChat } from '../../../models/CursoChat';
 import { InitChatUsuario } from '../../../models/InitChatUsuario';
 import { MensajeChat } from '../../../models/MensajeChat';
@@ -18,9 +19,11 @@ export class HomeChatComponent {
 	cargando: boolean = true;
 
 	constructor(
+		public router: Router,
 		private loginService: LoginService,
 		private chatService: ChatService,
 		private cdr: ChangeDetectorRef,
+		private ngZone: NgZone,
 	) {
 		afterNextRender(() => {
 			if (this.loginService.usuario) {
@@ -44,6 +47,18 @@ export class HomeChatComponent {
 			} else {
 				console.error('El usuario no esta logueado');
 			}
+		});
+	}
+
+	navegaMensaje(mensaje: MensajeChat) {
+		this.ngZone.run(() => {
+			this.router.navigate(['chat/', mensaje.id_curso?.toString(), mensaje.id_mensaje]);
+		});
+	}
+
+	navegaCurso(curso: CursoChat) {
+		this.ngZone.run(() => {
+			this.router.navigate(['chat/', curso.id_curso.toString()]);
 		});
 	}
 }

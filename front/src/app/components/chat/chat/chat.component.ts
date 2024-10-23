@@ -18,12 +18,19 @@ export class ChatComponent implements OnInit, OnDestroy {
 	respuesta: MensajeChat | null = null;
 	respuestaClase: MensajeChat | null = null;
 	subscription: Subscription | null = null;
+	idMensaje: string | null = null;
 
 	constructor(
 		public chatService: ChatService,
 		private route: ActivatedRoute,
 		private cdr: ChangeDetectorRef,
 	) {
+		if (!this.idCurso) {
+			this.route.paramMap.subscribe((params) => {
+				this.idCurso = params.get('id_curso') as number | null;
+				this.idMensaje = params.get('id_mensaje');
+			});
+		}
 		afterNextRender(() => {
 			console.log('AFTERNEXTRENDER');
 			if (this.idCurso) {
@@ -33,13 +40,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 						if (data) {
 							this.chat = data;
 							this.cdr.detectChanges();
-							// TEST
-
-							console.log('Curso: ' + this.chat);
-							console.log('Clases: ' + this.chat.clases);
-							this.chat.clases.forEach((clase) => {
-								console.log('Clase: ' + clase);
-							});
 						}
 					},
 					error: (e) => {
@@ -51,20 +51,21 @@ export class ChatComponent implements OnInit, OnDestroy {
 			}
 		});
 	}
+
+	ngOnInit(): void {
+		if (!this.idCurso) {
+			this.route.paramMap.subscribe((params) => {
+				this.idCurso = params.get('id_curso') as number | null;
+			});
+		}
+	}
+
 	ngOnDestroy(): void {
 		console.log('Se destruye el componente');
 		this.idCurso = null;
 		this.chat = null;
 		this.respuesta = null;
 		this.subscription?.unsubscribe();
-	}
-
-	ngOnInit(): void {
-		if (!this.idCurso) {
-			this.route.paramMap.subscribe((params) => {
-				this.idCurso = params.get('idCurso') as number | null;
-			});
-		}
 	}
 
 	enviarMensaje(clase?: number) {
