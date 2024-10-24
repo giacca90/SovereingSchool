@@ -295,29 +295,34 @@ public class InitChatService {
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         List<CursoChatDTO> cursosDTO = new ArrayList<>();
 
-        List<MensajeChat> mensajes = document.getList("mensajes", MensajeChat.class);
-        if (mensajes != null && mensajes.size() > 0) {
+        List<String> mensajesS = document.getList("mensajes", String.class);
+        if (mensajesS != null && mensajesS.size() > 0) {
+            List<MensajeChat> mensajes = new ArrayList<>();
+            mensajesS.forEach((mexs) -> {
+                mensajes.add(this.mensajeChatRepo.findById(mexs).get());
+            });
             mensajesDTO = getMensajesDTO(mensajes);
         }
 
-        List<Document> cursosD = document.getList("cursos", Document.class);
-        if (cursosD != null && cursosD.size() > 0) {
-            for (Document cursoD : cursosD) {
-                Long idCurso = cursoD.getLong("idCurso");
+        List<String> cursosS = document.getList("cursos", String.class);
+        if (cursosS != null && cursosS.size() > 0) {
+            for (String cursoS : cursosS) {
+                CursoChat cursoD = cursoChatRepo.findById(cursoS).get();
+                Long idCurso = cursoD.getIdCurso();
                 List<ClaseChatDTO> clasesDTO = new ArrayList<>();
-                List<Document> clasesD = cursoD.getList("clases", Document.class);
+                List<ClaseChat> clasesD = cursoD.getClases();
                 if (clasesD != null && clasesD.size() > 0) {
-                    for (Document claseD : clasesD) {
+                    for (ClaseChat claseD : clasesD) {
                         List<MensajeChatDTO> mensajesChatDTO = new ArrayList<>();
-                        List<String> mex = claseD.getList("mensajes", String.class);
+                        List<String> mex = claseD.getMensajes();
                         List<MensajeChat> mensajesChat = this.mensajeChatRepo.findAllById(mex);
                         if (mensajesChat != null && mensajesChat.size() > 0) {
                             mensajesChatDTO = getMensajesDTO(mensajesChat);
                         }
                         clasesDTO.add(new ClaseChatDTO(
-                                claseD.getLong("idClase"), // id_clase;
-                                claseD.getLong("idCurso"), // id_curso;
-                                this.claseRepo.findNombreClaseById(claseD.getLong("idClase")), // nombre_clase;
+                                claseD.getIdClase(), // id_clase;
+                                claseD.getIdCurso(), // id_curso;
+                                this.claseRepo.findNombreClaseById(claseD.getIdClase()), // nombre_clase;
                                 mensajesChatDTO// mensajes;
                         ));
                     }

@@ -1,4 +1,4 @@
-<div>
+<div class="flex flex-grow flex-col">
 	@if (this.chat === null) {
 		<h3>CARGANDO...</h3>
 	} @else {
@@ -7,19 +7,23 @@
 			@for (clase of this.chat.clases; track $index) {
 				<button class="m-2 flex rounded-lg border border-black p-2" (click)="abreChatClase(clase.id_clase)">
 					<p class="flex-grow">{{ clase.nombre_clase }}</p>
-					<img class="h-6 w-6" src="../../../../assets/arrow-down.svg" alt="" />
+					<img class="h-6 w-6" src="../../../../assets/arrow-down.svg" alt="open" />
 				</button>
 				<div id="clase-{{ clase.id_clase }}" class="clases hidden">
 					@if (clase.mensajes.length === 0) {
 						<p class="text-center text-gray-500">No hay mensajes en esta clase</p>
 					}
 					@for (mex of clase.mensajes; track $index) {
-						<div class="m-2 flex rounded-lg border border-black p-2">
+						<div id="mex-{{ mex.id_mensaje }}" class="m-2 flex rounded-lg border border-black p-2">
 							<div class="flex-grow flex-col">
 								<p class="text-gray-500">Mensaje de: {{ mex.nombre_usuario }}</p>
+								@if (mex.respuesta) {
+									<p class="text-gray-500">En respuesta a: {{ mex.respuesta.nombre_usuario }}</p>
+									<p class="text-gray-500">{{ mex.respuesta.mensaje }}</p>
+								}
 								<p>{{ mex.mensaje }}</p>
 							</div>
-							<button (click)="this.respuestaClase = mex; this.respuesta = null"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
+							<button (click)="this.respuestaClase = mex; this.respuesta = null; this.cdr.detectChanges()"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
 						</div>
 					}
 					<br />
@@ -27,7 +31,7 @@
 						<div class="rounded-t-lg border border-black border-b-transparent p-2">
 							<div class="flex">
 								<p class="flex-grow text-gray-500">En respuesta a: {{ respuestaClase.nombre_usuario }}</p>
-								<button (click)="this.respuesta = null; this.respuestaClase = null"><img src="../../../../assets/close.svg" alt="close" class="h-6 w-6" /></button>
+								<button (click)="this.respuesta = null; this.respuestaClase = null; this.cdr.detectChanges()"><img src="../../../../assets/close.svg" alt="close" class="h-6 w-6" /></button>
 							</div>
 							<p class="text-gray-500">{{ respuestaClase.mensaje }}</p>
 						</div>
@@ -42,12 +46,16 @@
 		</div>
 		<br />
 		@for (mensaje of this.chat.mensajes; track $index) {
-			<div class="m-2 flex rounded-lg border border-black p-2">
+			<div id="mex-{{ mensaje.id_mensaje }}" class="m-2 flex rounded-lg border border-black p-2">
 				<div class="flex-grow flex-col">
 					<p class="text-gray-500">Mensaje de: {{ mensaje.nombre_usuario }}</p>
+					@if (mensaje.respuesta) {
+						<p class="text-gray-500">En respuesta a: {{ mensaje.respuesta.nombre_usuario }}</p>
+						<p class="text-gray-500">{{ mensaje.respuesta.mensaje }}</p>
+					}
 					<p>{{ mensaje.mensaje }}</p>
 				</div>
-				<button (click)="this.respuesta = mensaje; this.respuestaClase = null"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
+				<button (click)="this.respuesta = mensaje; this.respuestaClase = null; this.cdr.detectChanges()"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>
 			</div>
 		}
 		<br />
@@ -55,7 +63,7 @@
 			<div class="rounded-t-lg border border-black border-b-transparent p-2">
 				<div class="flex">
 					<p class="flex-grow text-gray-500">En respuesta a: {{ respuesta.nombre_usuario }}</p>
-					<button (click)="this.respuesta = null"><img src="../../../../assets/close.svg" alt="close" class="h-6 w-6" /></button>
+					<button (click)="this.respuesta = null; this.cdr.detectChanges()"><img src="../../../../assets/close.svg" alt="close" class="h-6 w-6" /></button>
 				</div>
 				<p class="text-gray-500">{{ respuesta.mensaje }}</p>
 			</div>

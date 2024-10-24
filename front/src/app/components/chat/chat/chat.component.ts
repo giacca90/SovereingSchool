@@ -23,7 +23,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 	constructor(
 		public chatService: ChatService,
 		private route: ActivatedRoute,
-		private cdr: ChangeDetectorRef,
+		public cdr: ChangeDetectorRef,
 	) {
 		if (!this.idCurso) {
 			this.route.paramMap.subscribe((params) => {
