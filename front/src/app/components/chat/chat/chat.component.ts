@@ -43,6 +43,31 @@ export class ChatComponent implements OnInit, OnDestroy {
 						if (data) {
 							this.chat = data;
 							this.cdr.detectChanges();
+							if (this.idMensaje) {
+								if (data.mensajes.filter((mensaje) => mensaje.id_mensaje === this.idMensaje) && data.mensajes.filter((mensaje) => mensaje.id_mensaje === this.idMensaje).length > 0) {
+									const mexc: HTMLElement | null = document.getElementById('mex-' + this.idMensaje);
+									if (mexc) {
+										mexc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+										mexc.focus();
+									}
+								} else {
+									data.clases.forEach((clase) => {
+										if (clase.mensajes.filter((mex) => mex.id_mensaje === this.idMensaje) && clase.mensajes.filter((mex) => mex.id_mensaje === this.idMensaje).length > 0) {
+											this.abreChatClase(clase.id_clase);
+											this.cdr.detectChanges();
+											const mexc = document.getElementById('mex-' + this.idMensaje);
+											console.log('MEXC2: ' + mexc);
+
+											if (mexc) {
+												mexc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+												mexc.focus();
+												return;
+											}
+										}
+									});
+								}
+							}
+							this.cdr.detectChanges();
 						}
 					},
 					error: (e) => {
@@ -81,9 +106,8 @@ export class ChatComponent implements OnInit, OnDestroy {
 			if (this.respuestaClase) {
 				resp = this.respuestaClase.id_mensaje;
 			}
-			const input: HTMLInputElement = document.getElementById('mexc') as HTMLInputElement;
+			const input: HTMLInputElement = document.getElementById('mexc-' + clase) as HTMLInputElement;
 			if (input.value) {
-				// TODO gestionar la respuesta
 				this.chatService.enviarMensaje(this.idCurso, clase, input.value, resp);
 				input.value = '';
 				this.respuesta = null;
