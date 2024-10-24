@@ -9,6 +9,8 @@
 	</div>
 	<div class="relative m-2 flex flex-grow rounded-lg border border-black">
 		<img class="absolute -z-10 h-full w-full object-cover object-center opacity-20" [src]="this.curso?.imagen_curso" alt="curso" />
+		<div class="absolute -z-30 h-full w-full bg-white object-cover object-center"></div>
+
 		<div class="flex w-3/4 flex-col">
 			<div class="flex">
 				<button class="m-2 rounded-lg border border-black p-2" (click)="cambiaVista(0)">Contenido del curso</button>
