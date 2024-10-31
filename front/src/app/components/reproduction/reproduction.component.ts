@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import videojs from 'video.js';
@@ -24,6 +24,8 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	public loading: boolean = true;
 	public curso: Curso | null = null;
 	public clase: Clase | null = null;
+	@ViewChild(ChatComponent, { static: false }) chatComponent!: ChatComponent;
+
 	constructor(
 		private route: ActivatedRoute,
 		private cdr: ChangeDetectorRef,
@@ -90,6 +92,37 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 					type: 'application/x-mpegURL',
 				});
 
+				// Esperar a que el reproductor esté listo
+				player.ready(() => {
+					// Obtener el SeekBar del ProgressControl
+					let seekBar = player.getChild('ControlBar');
+					if (seekBar) {
+						console.log('controlBar');
+						seekBar = seekBar.getChild('ProgressControl');
+						if (seekBar) {
+							console.log('progressControl');
+							seekBar = seekBar.getChild('SeekBar');
+							if (seekBar) {
+								console.log('seekBar');
+								// Añadir el evento de clic derecho
+								seekBar.on('contextmenu', (event: { preventDefault: () => void; clientX: number; clientY: number }) => {
+									event.preventDefault(); // Evita el comportamiento predeterminado del clic
+									if (seekBar) {
+										const rect = seekBar.el().getBoundingClientRect();
+										const clickPosition = event.clientX - rect.left;
+										const clickRatio = clickPosition / rect.width;
+										const duration = player.duration();
+										if (duration) {
+											const timeInSeconds = clickRatio * duration;
+											this.muestraCortina(event.clientX, event.clientY, timeInSeconds);
+										}
+									}
+								});
+							}
+						}
+					}
+				});
+
 				this.loading = false;
 				this.cdr.detectChanges();
 			}
@@ -97,6 +130,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 			console.error('Error loading video:', error);
 		}
 	}
+
 	ngOnDestroy(): void {
 		this.subscription.unsubscribe();
 	}
@@ -122,5 +156,44 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				break;
 			}
 		}
+	}
+
+	// Función para mostrar la cortina en la posición del clic
+	private muestraCortina(x: number, y: number, timeInSeconds: number) {
+		const curtain = document.createElement('div');
+		curtain.style.position = 'absolute';
+		curtain.style.top = `${y}px`;
+		curtain.style.left = `${x}px`;
+		curtain.style.width = '200px';
+		curtain.style.height = '100px';
+		curtain.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+		curtain.style.color = 'white';
+		curtain.style.padding = '10px';
+		curtain.style.borderRadius = '5px';
+		curtain.style.zIndex = '1000';
+
+		// Botón para hacer una pregunta
+		const pregunta: HTMLDivElement = document.createElement('div');
+		pregunta.innerText = 'Haz una pregunta';
+		pregunta.style.cursor = 'pointer';
+		pregunta.addEventListener('click', () => {
+			this.cambiaVista(1);
+			this.chatComponent.creaPregunta(this.id_clase, timeInSeconds);
+			document.body.removeChild(curtain);
+		});
+
+		curtain.appendChild(pregunta);
+		document.body.appendChild(curtain);
+
+		// Cierra la cortina al hacer clic fuera de ella
+		window.addEventListener(
+			'click',
+			(event) => {
+				if (!curtain.contains(event.target as Node)) {
+					document.body.removeChild(curtain);
+				}
+			},
+			{ once: true },
+		);
 	}
 }

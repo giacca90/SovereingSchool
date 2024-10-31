@@ -140,7 +140,7 @@ public class StreamingController {
         responseHeaders.add(HttpHeaders.CACHE_CONTROL, "no-store");
         responseHeaders.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
-        long fileLength = Files.size(videoPath);
+        Long fileLength = Files.size(videoPath);
         List<HttpRange> ranges = headers.getRange();
         if (ranges.isEmpty()) {
             System.out.println("Log5: " + videoPath.toString().substring(videoPath.toString().lastIndexOf(".")));

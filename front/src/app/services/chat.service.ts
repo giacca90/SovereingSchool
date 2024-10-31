@@ -100,8 +100,12 @@ export class ChatService {
 		);
 	}
 
-	enviarMensaje(idCurso: number | null, clase: number, value: string, respuesta: string | null) {
+	enviarMensaje(idCurso: number | null, clase: number, value: string, respuesta: string | null, pregunta: { minute: number; second: number } | null) {
 		let resp: MensajeChat | null = null;
+		let preg: number | null = null;
+		if (pregunta) {
+			preg = pregunta.minute * 60 + pregunta.second;
+		}
 		if (respuesta) {
 			resp = new MensajeChat(
 				respuesta, // id mensaje
@@ -114,6 +118,7 @@ export class ChatService {
 				null, // foto curso
 				null, // foto usuario
 				null, // respuesta
+				preg, // pregunta
 				null, // mensaje
 				null, // fecha
 			);
@@ -130,6 +135,7 @@ export class ChatService {
 			null, // foto curso
 			null, // foto usuario
 			resp, // respuesta
+			preg, // pregunta
 			value, // mensaje
 			new Date(), // fecha
 		);

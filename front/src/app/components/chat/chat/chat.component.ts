@@ -19,6 +19,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 	respuestaClase: MensajeChat | null = null;
 	subscription: Subscription | null = null;
 	idMensaje: string | null = null;
+	pregunta: { minute: number; second: number } | null = null;
 
 	constructor(
 		public chatService: ChatService,
@@ -108,7 +109,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 			}
 			const input: HTMLInputElement = document.getElementById('mexc-' + clase) as HTMLInputElement;
 			if (input.value) {
-				this.chatService.enviarMensaje(this.idCurso, clase, input.value, resp);
+				this.chatService.enviarMensaje(this.idCurso, clase, input.value, resp, this.pregunta);
 				input.value = '';
 				this.respuesta = null;
 				this.respuestaClase = null;
@@ -122,7 +123,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 			const input: HTMLInputElement = document.getElementById('mex') as HTMLInputElement;
 			if (input.value) {
 				// TODO gestionar la respuesta
-				this.chatService.enviarMensaje(this.idCurso, 0, input.value, resp);
+				this.chatService.enviarMensaje(this.idCurso, 0, input.value, resp, this.pregunta);
 				input.value = '';
 				this.respuesta = null;
 				this.respuestaClase = null;
@@ -145,5 +146,25 @@ export class ChatComponent implements OnInit, OnDestroy {
 			}
 			document.getElementById('clase-' + idClase)?.classList.remove('hidden');
 		}
+	}
+
+	creaPregunta(idClase: number, momento: number) {
+		this.abreChatClase(idClase);
+		const minutes = Math.floor(momento / 60);
+		const seconds = Math.floor(momento % 60);
+		this.pregunta = { minute: minutes, second: seconds };
+		console.log(`Clic en el tiempo: ${minutes}:${seconds}`);
+		const input: HTMLInputElement = document.getElementById('mexc-' + idClase) as HTMLInputElement;
+		input.placeholder = `Haz una pregunta en ${minutes}:${seconds}`;
+		input.focus();
+	}
+
+	cierraPregunta(idClase: number) {
+		this.respuesta = null;
+		this.respuestaClase = null;
+		this.pregunta = null;
+		const input: HTMLInputElement = document.getElementById('mexc-' + idClase) as HTMLInputElement;
+		input.placeholder = 'Escribe tu mensaje en la clase...';
+		this.cdr.detectChanges();
 	}
 }
