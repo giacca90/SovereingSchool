@@ -20,6 +20,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 	subscription: Subscription | null = null;
 	idMensaje: string | null = null;
 	pregunta: { minute: number; second: number } | null = null;
+	public Math = Math;
 
 	constructor(
 		public chatService: ChatService,
@@ -113,6 +114,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 				input.value = '';
 				this.respuesta = null;
 				this.respuestaClase = null;
+				this.pregunta = null;
 				this.cdr.detectChanges();
 			}
 		} else {
@@ -122,11 +124,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 			}
 			const input: HTMLInputElement = document.getElementById('mex') as HTMLInputElement;
 			if (input.value) {
-				// TODO gestionar la respuesta
 				this.chatService.enviarMensaje(this.idCurso, 0, input.value, resp, this.pregunta);
 				input.value = '';
 				this.respuesta = null;
 				this.respuestaClase = null;
+				this.pregunta = null;
 				this.cdr.detectChanges();
 			}
 		}

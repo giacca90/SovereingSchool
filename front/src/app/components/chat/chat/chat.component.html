@@ -22,6 +22,9 @@
 									<p class="text-gray-500">En respuesta a: {{ mex.respuesta.nombre_usuario }}</p>
 									<p class="text-gray-500">{{ mex.respuesta.mensaje }}</p>
 								}
+								@if (mex.pregunta) {
+									<p class="text-gray-500">Pregunta en el momento {{ Math.floor(mex.pregunta / 60) }}:{{ (mex.pregunta % 60).toString().padStart(2, '0') }}</p>
+								}
 								<p>{{ mex.mensaje }}</p>
 							</div>
 							<button (click)="this.respuestaClase = mex; this.respuesta = null; this.cdr.detectChanges()"><img src="../../../../assets/reply.svg" alt="reply" class="h-6 w-6" /></button>

@@ -143,6 +143,7 @@ public class CursoChatService {
                     mensajeChatDTO.getId_clase(), // Long id_clase
                     mensajeChatDTO.getId_usuario(), // Long id_usuario
                     resp, // String respuesta
+                    mensajeChatDTO.getPregunta(), // int momento
                     mensajeChatDTO.getMensaje(), // String mensaje
                     mensajeChatDTO.getFecha()); // Date fecha
             MensajeChat mex = this.mensajeChatRepo.save(mensajeChat);

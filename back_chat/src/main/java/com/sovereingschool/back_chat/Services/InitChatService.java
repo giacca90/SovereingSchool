@@ -115,6 +115,7 @@ public class InitChatService {
                                     this.usuarioRepo.findFotosUsuarioForId(respuesta.getIdUsuario()).get(0), // String
                                     // foto_usuario
                                     null, // MensajeChatDTO respuesta
+                                    respuesta.getMomento(), // int momento
                                     respuesta.getMensaje(), // String mensaje
                                     respuesta.getFecha()); // Date fecha
                         }
@@ -142,6 +143,7 @@ public class InitChatService {
                                                     .getIdUsuario())
                                             .get(0), // String foto_usuario
                                     respuestaDTO, // MensajeChatDTO respuesta
+                                    mex.getMomento(), // int momento
                                     mex.getMensaje(), // String mensaje
                                     mex.getFecha())); // Date fecha
 
@@ -193,7 +195,7 @@ public class InitChatService {
 
     /**
      * Convierte una lista de Mensajes en una lista de MensajesDTO
-     * Gestiona tambien la respuesta de los mensajes
+     * Gestiona tambien la respuesta de los mensajes y las preguntas
      * 
      * @param mensajes Lista de mensajes
      * @return Lista de MensajesDTO
@@ -220,6 +222,7 @@ public class InitChatService {
                         this.usuarioRepo.findFotosUsuarioForId(respuesta.getIdUsuario()).get(0), // String
                         // foto_usuario
                         null, // MensajeChatDTO respuesta
+                        respuesta.getMomento(), // int momento
                         respuesta.getMensaje(), // String mensaje
                         respuesta.getFecha()); // Date fecha
             }
@@ -235,6 +238,7 @@ public class InitChatService {
                     cursoRepo.findImagenCursoById(mensaje.getIdCurso()), // String foto_curso
                     usuarioRepo.findNombreUsuarioForId(mensaje.getIdUsuario()), // String foto_usuario
                     respuestaDTO, // MensajeChatDTO respuesta
+                    mensaje.getMomento(), // int momento
                     mensaje.getMensaje(), // String mensaje
                     mensaje.getFecha()); // Date fecha
             mensajesDTO.add(mensajeDTO);
