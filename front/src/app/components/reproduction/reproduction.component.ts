@@ -3,7 +3,9 @@ import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit,
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import videojs from 'video.js';
+import Player from 'video.js/dist/types/player';
 import { Clase } from '../../models/Clase';
+import { ClaseChat } from '../../models/ClaseChat';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
 import { ChatComponent } from '../chat/chat/chat.component';
@@ -121,10 +123,10 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 							}
 						}
 					}
+					this.loading = false;
+					this.cdr.detectChanges();
+					this.esperarChatComponent(player);
 				});
-
-				this.loading = false;
-				this.cdr.detectChanges();
 			}
 		} catch (error) {
 			console.error('Error loading video:', error);
@@ -195,5 +197,106 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 			},
 			{ once: true },
 		);
+	}
+
+	async esperarChatComponent(player: Player) {
+		// Si `chat` no está cargado, espera un segundo antes de continuar
+		while (!this.chatComponent.chat) {
+			console.log('CHAT NO CARGADO');
+			await new Promise((resolve) => setTimeout(resolve, 1000)); // Espera 1 segundo
+		}
+
+		// Ejecutar el código después de verificar que `chat` está definido
+		console.log('CHAT CARGADO');
+		console.log('this.id_clase: ' + this.id_clase);
+		const claseChat: ClaseChat | undefined = this.chatComponent.chat?.clases.find((clase) => clase.id_clase == this.id_clase);
+		if (claseChat) {
+			console.log('CLASE CHAT: ' + claseChat);
+			claseChat.mensajes
+				.filter((mex) => mex.pregunta)
+				.forEach((preg) => {
+					console.log('PREG: ' + preg);
+					if (preg.pregunta) {
+						const duration = player.duration(); // Duración total del video en segundos
+						const preguntaTime = preg.pregunta; // Tiempo de la pregunta en segundos
+						if (duration && preguntaTime <= duration) {
+							const clickRatio = preguntaTime / duration; // Ratio del tiempo de la pregunta respecto a la duración
+							const seekBar = player.getChild('ControlBar')?.getChild('ProgressControl')?.getChild('SeekBar');
+							if (seekBar) {
+								const rect = seekBar.el().getBoundingClientRect();
+								const preguntaPosX = rect.width * clickRatio; // Posición en píxeles en la barra de progreso
+
+								console.log(`Pregunta en el tiempo: ${preguntaTime} segundos, Posición en la barra: ${preguntaPosX}px`);
+
+								// Aquí puedes usar 'preguntaPosX' para posicionar algún marcador visual en la barra de progreso
+								// Crear el marcador como un div
+								const marcador = document.createElement('div');
+								marcador.className = 'marcador-pregunta'; // Añadir clase CSS
+								marcador.style.position = 'absolute';
+								marcador.style.left = `${preguntaPosX}px`; // Posición en la barra
+								marcador.style.top = '0';
+								marcador.style.width = '4px';
+								marcador.style.height = '100%';
+								marcador.style.zIndex = '10';
+								marcador.style.backgroundColor = '#eab308';
+								// Evento para mostrar la cortina al pasar el ratón
+								let overCortina: boolean = false;
+								marcador.addEventListener('mouseover', () => {
+									const cortina = document.createElement('div');
+									cortina.className = 'cortina-info';
+									cortina.innerText = preg.mensaje ? preg.mensaje : '';
+									cortina.style.position = 'absolute';
+									cortina.style.left = `${preguntaPosX + rect.left}px`;
+									cortina.style.top = `${rect.top + 20}px`; // Posición encima de la barra
+									cortina.style.padding = '5px';
+									cortina.style.zIndex = '10';
+									cortina.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+									cortina.style.color = 'white';
+									cortina.style.borderRadius = '3px';
+									cortina.style.zIndex = '1000';
+									cortina.style.cursor = 'pointer';
+									cortina.addEventListener('mouseout', () => {
+										document.body.removeChild(cortina);
+										overCortina = false;
+									});
+									cortina.addEventListener('mouseover', () => (overCortina = true));
+
+									// TODO: acabar navegación al mensaje
+									cortina.addEventListener('click', () => {
+										this.cambiaVista(1);
+										this.chatComponent.abreChatClase(this.id_clase);
+										document.body.removeChild(cortina);
+										const mensajeElement = document.getElementById('mex-' + preg.id_mensaje);
+										if (mensajeElement) {
+											mensajeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+										} else {
+											console.log('No se encontró el mensaje');
+										}
+									});
+
+									// Agregar la cortina al documento
+									document.body.appendChild(cortina);
+
+									// Evento para ocultar la cortina cuando el ratón sale del marcador
+									marcador.addEventListener(
+										'mouseout',
+										() => {
+											setTimeout(() => {
+												if (!overCortina) {
+													document.body.removeChild(cortina);
+												}
+											}, 1000);
+										},
+										{ once: true },
+									);
+								});
+								// Añadir el marcador al SeekBar
+								seekBar.el().appendChild(marcador);
+							}
+						}
+					}
+				});
+		}
+		this.cdr.detectChanges();
 	}
 }
