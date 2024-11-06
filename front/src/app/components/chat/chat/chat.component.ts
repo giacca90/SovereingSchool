@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { CursoChat } from '../../../models/CursoChat';
 import { MensajeChat } from '../../../models/MensajeChat';
 import { ChatService } from '../../../services/chat.service';
+import { LoginService } from '../../../services/login.service';
 
 @Component({
 	selector: 'app-chat',
@@ -24,6 +25,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
 	constructor(
 		public chatService: ChatService,
+		public loginService: LoginService,
 		private route: ActivatedRoute,
 		public cdr: ChangeDetectorRef,
 	) {
@@ -168,5 +170,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 		const input: HTMLInputElement = document.getElementById('mexc-' + idClase) as HTMLInputElement;
 		input.placeholder = 'Escribe tu mensaje en la clase...';
 		this.cdr.detectChanges();
+	}
+
+	navegaAlVideo(arg0: number) {
+		console.log('NAVEGA AL VIDEO' + arg0);
 	}
 }

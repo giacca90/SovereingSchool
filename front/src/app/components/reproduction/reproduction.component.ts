@@ -21,6 +21,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	public id_usuario: number = 0;
 	public id_curso: number = 0;
 	public id_clase: number = 0;
+	public momento: number | null = null;
 	private isBrowser: boolean;
 	private subscription: Subscription = new Subscription();
 	public loading: boolean = true;
@@ -44,6 +45,8 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.id_usuario = params['id_usuario'];
 				this.id_curso = params['id_curso'];
 				this.id_clase = params['id_clase'];
+				this.momento = params['momento'] || null;
+
 				if (this.id_clase == 0) {
 					this.cursoService.getStatusCurso(this.id_usuario, this.id_curso).subscribe({
 						next: (resp) => {
@@ -57,6 +60,11 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				} else {
 					this.loadData();
 				}
+			}),
+		);
+		this.subscription.add(
+			this.route.queryParams.subscribe((qparams) => {
+				this.momento = qparams['momento'] || null;
 			}),
 		);
 	}
@@ -124,7 +132,18 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 						}
 					}
 					this.loading = false;
+					if (this.momento) {
+						if (this.momento > 3) {
+							player.currentTime(this.momento - 3);
+						} else {
+							player.currentTime(this.momento);
+						}
+					}
 					this.cdr.detectChanges();
+				});
+
+				// Cuando se reproduce el video
+				player.on('play', () => {
 					this.esperarChatComponent(player);
 				});
 			}
@@ -228,10 +247,8 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 
 								console.log(`Pregunta en el tiempo: ${preguntaTime} segundos, Posición en la barra: ${preguntaPosX}px`);
 
-								// Aquí puedes usar 'preguntaPosX' para posicionar algún marcador visual en la barra de progreso
 								// Crear el marcador como un div
 								const marcador = document.createElement('div');
-								marcador.className = 'marcador-pregunta'; // Añadir clase CSS
 								marcador.style.position = 'absolute';
 								marcador.style.left = `${preguntaPosX}px`; // Posición en la barra
 								marcador.style.top = '0';
@@ -241,13 +258,13 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 								marcador.style.backgroundColor = '#eab308';
 								// Evento para mostrar la cortina al pasar el ratón
 								let overCortina: boolean = false;
-								marcador.addEventListener('mouseover', () => {
+								marcador.addEventListener('mouseover', (event: MouseEvent) => {
 									const cortina = document.createElement('div');
 									cortina.className = 'cortina-info';
 									cortina.innerText = preg.mensaje ? preg.mensaje : '';
 									cortina.style.position = 'absolute';
-									cortina.style.left = `${preguntaPosX + rect.left}px`;
-									cortina.style.top = `${rect.top + 20}px`; // Posición encima de la barra
+									cortina.style.left = `${event.clientX}px`; // Posición en X según el ratón
+									cortina.style.top = `${event.clientY + 20}px`; // Posición en Y ajustada ligeramente para aparecer debajo del ratón
 									cortina.style.padding = '5px';
 									cortina.style.zIndex = '10';
 									cortina.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
