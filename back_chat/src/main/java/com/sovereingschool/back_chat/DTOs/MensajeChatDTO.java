@@ -28,7 +28,7 @@ public class MensajeChatDTO implements Serializable {
     private String foto_usuario;
 
     private MensajeChatDTO respuesta;
-    private int pregunta;
+    private Integer pregunta;
 
     private String mensaje;
 

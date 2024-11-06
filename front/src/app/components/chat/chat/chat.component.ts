@@ -114,6 +114,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 			if (input.value) {
 				this.chatService.enviarMensaje(this.idCurso, clase, input.value, resp, this.pregunta);
 				input.value = '';
+				input.placeholder = 'Escribe tu mensaje en la clase...';
 				this.respuesta = null;
 				this.respuestaClase = null;
 				this.pregunta = null;

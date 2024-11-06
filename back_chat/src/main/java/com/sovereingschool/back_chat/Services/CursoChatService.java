@@ -130,6 +130,7 @@ public class CursoChatService {
             MensajeChatDTO mensajeChatDTO = objectMapper.readValue(message, MensajeChatDTO.class);
 
             // Imprimir el objeto parseado (solo para verificación)
+            // System.out.println("Message: " + message);
             // System.out.println("Mensaje recibido: " + mensajeChatDTO);
 
             // Aquí puedes agregar la lógica para guardar el mensaje en la base de datos
@@ -197,6 +198,18 @@ public class CursoChatService {
                 }
             } else {
                 System.err.println("No se pudo guardar el mensaje, el usuario no existe");
+            }
+
+            // Avisar a los profesores en caso de preguntas
+            if (!mensajeChatDTO.getPregunta().equals(null)) {
+                List<Usuario> profes = cursoRepo.findById(mensajeChat.getIdCurso()).get().getProfesores_curso();
+                for (Usuario usuario : profes) {
+                    UsuarioChat profeChat = usuarioChatRepo.findByIdUsuario(usuario.getId_usuario());
+                    List<String> mensajes = profeChat.getMensajes();
+                    mensajes.add(mensajeChat.getId());
+                    profeChat.setMensajes(mensajes);
+                    usuarioChatRepo.save(profeChat);
+                }
             }
 
         } catch (JsonProcessingException e) {

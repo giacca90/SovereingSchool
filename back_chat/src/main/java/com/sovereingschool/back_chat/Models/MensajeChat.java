@@ -29,7 +29,7 @@ public class MensajeChat {
 
     private String respuesta;
 
-    private int momento;
+    private Integer momento;
 
     private String mensaje;
 
