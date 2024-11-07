@@ -17,10 +17,11 @@ export class HomeChatComponent {
 	chats: MensajeChat[] = [];
 	cursos: CursoChat[] = [];
 	cargando: boolean = true;
+	public Math = Math;
 
 	constructor(
 		public router: Router,
-		private loginService: LoginService,
+		public loginService: LoginService,
 		private chatService: ChatService,
 		private cdr: ChangeDetectorRef,
 		private ngZone: NgZone,

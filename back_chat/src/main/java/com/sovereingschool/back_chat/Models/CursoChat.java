@@ -28,4 +28,6 @@ public class CursoChat implements Serializable {
 
     private List<String> mensajes;
 
+    private String ultimo;
+
 }

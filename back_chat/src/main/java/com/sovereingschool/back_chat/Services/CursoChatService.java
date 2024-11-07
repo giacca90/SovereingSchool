@@ -110,7 +110,7 @@ public class CursoChatService {
                 ClaseChat claseChat = new ClaseChat(clase.getId_clase(), curso.getId_curso(), new ArrayList<>());
                 clasesChat.add(claseChat);
             }
-            CursoChat cursoChat = new CursoChat(null, curso.getId_curso(), clasesChat, new ArrayList<>());
+            CursoChat cursoChat = new CursoChat(null, curso.getId_curso(), clasesChat, new ArrayList<>(), null);
             cursoChatRepo.save(cursoChat);
         }
 
@@ -164,6 +164,7 @@ public class CursoChatService {
                     }
                 });
             }
+            cursoChat.setUltimo(idMex);
             cursoChatRepo.save(cursoChat);
 
             // Actualiza el estado del usuario incluida la respuesta
@@ -201,7 +202,7 @@ public class CursoChatService {
             }
 
             // Avisar a los profesores en caso de preguntas
-            if (!mensajeChatDTO.getPregunta().equals(null)) {
+            if (mensajeChatDTO.getPregunta() != null) {
                 List<Usuario> profes = cursoRepo.findById(mensajeChat.getIdCurso()).get().getProfesores_curso();
                 for (Usuario usuario : profes) {
                     UsuarioChat profeChat = usuarioChatRepo.findByIdUsuario(usuario.getId_usuario());
@@ -257,7 +258,8 @@ public class CursoChatService {
                     null, // String id
                     curso.getId_curso(), // Long id_curso
                     clasesChat, // List<ClaseChat> clases
-                    new ArrayList<String>()); // List<String> mensajes
+                    new ArrayList<String>(),
+                    null); // List<String> mensajes
             cursoChatRepo.save(cursoChat);
         } catch (Exception e) {
             System.err.println("Error en crear el usuario del chat: " + e.getMessage());

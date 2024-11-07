@@ -28,9 +28,18 @@
 				<div (click)="navegaCurso(curso)" (keydown.enter)="navegaCurso(curso)" tabindex="0" class="m-2 flex flex-grow cursor-pointer flex-col rounded-lg border border-black p-2">
 					<p class="font-bold text-green-700">{{ curso.nombre_curso }}</p>
 					@if (curso.mensajes[0].id_clase) {
-						<p>{{ curso.mensajes[0].nombre_clase }}</p>
+						<p class="text-gray-500">{{ curso.mensajes[0].nombre_clase }}</p>
 					}
 					<p>{{ curso.mensajes[0].nombre_usuario }}</p>
+					@if (curso.mensajes[0].respuesta) {
+						<p class="text-gray-500">En respuesta a: {{ curso.mensajes[0].respuesta.mensaje }}</p>
+					}
+					@if (curso.mensajes[0].pregunta) {
+						<p class="text-gray-500">
+							Pregunta en el momento
+							<a class="text-blue-500 underline visited:text-purple-600 hover:text-blue-700" href="repro/{{ this.loginService.usuario?.id_usuario }}/{{ curso.mensajes[0].id_curso }}/{{ curso.mensajes[0].id_clase }}?momento={{ curso.mensajes[0].pregunta }}">{{ Math.floor(curso.mensajes[0].pregunta / 60) }}:{{ (curso.mensajes[0].pregunta % 60).toString().padStart(2, '0') }}</a>
+						</p>
+					}
 					<p>{{ curso.mensajes[0].mensaje }}</p>
 				</div>
 			}
