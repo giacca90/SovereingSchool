@@ -73,6 +73,7 @@ export class ChatService {
 		// Si hay una suscripción anterior, desuscríbete antes de suscribirte a la nueva
 		if (this.currentSubscription) {
 			this.currentSubscription.unsubscribe();
+			this.cursoSubject.next(null);
 		}
 		this.client.forceDisconnect();
 		this.client.onConnect = (frame) => {

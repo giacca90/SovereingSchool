@@ -164,7 +164,7 @@ public class InitChatService {
                     claseRepo.findNombreClaseById(mensaje.getIdClase()), // String nombre_clase
                     usuarioRepo.findNombreUsuarioForId(mensaje.getIdUsuario()), // String nombre_usuario
                     cursoRepo.findImagenCursoById(mensaje.getIdCurso()), // String foto_curso
-                    usuarioRepo.findNombreUsuarioForId(mensaje.getIdUsuario()), // String foto_usuario
+                    usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()).get(0), // String foto_usuario
                     respuestaDTO, // MensajeChatDTO respuesta
                     mensaje.getMomento(), // int momento
                     mensaje.getMensaje(), // String mensaje
