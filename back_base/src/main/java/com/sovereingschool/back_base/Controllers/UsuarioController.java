@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -117,10 +119,12 @@ public class UsuarioController {
 		}
 
 		// Configurar cache control
-		CacheControl cacheControl = CacheControl.maxAge(30, TimeUnit.DAYS); // 30 días de caché
+		CacheControl cacheControl = CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic(); // 30 días de caché
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setCacheControl(cacheControl.toString());
+		headers.set("Pragma", "cache"); // Compatibilidad con HTTP 1.0
+		headers.set("Expires", ZonedDateTime.now().plusDays(30).format(DateTimeFormatter.RFC_1123_DATE_TIME));
 		headers.setContentType(
 				contentType != null ? MediaType.parseMediaType(contentType) : MediaType.APPLICATION_OCTET_STREAM);
 		headers.setContentDisposition(ContentDisposition.inline().filename(resource.getFilename()).build());

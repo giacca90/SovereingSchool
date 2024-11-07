@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectorRef, Component, NgZone } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, NgZone, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoChat } from '../../../models/CursoChat';
 import { InitChatUsuario } from '../../../models/InitChatUsuario';
@@ -13,7 +13,7 @@ import { LoginService } from '../../../services/login.service';
 	templateUrl: './home-chat.component.html',
 	styleUrl: './home-chat.component.css',
 })
-export class HomeChatComponent {
+export class HomeChatComponent implements OnDestroy {
 	chats: MensajeChat[] = [];
 	cursos: CursoChat[] = [];
 	cargando: boolean = true;
@@ -28,7 +28,7 @@ export class HomeChatComponent {
 	) {
 		afterNextRender(() => {
 			if (this.loginService.usuario) {
-				this.chatService.initUsuario(this.loginService.usuario.id_usuario).subscribe({
+				this.chatService.initSubject.subscribe({
 					next: (init: InitChatUsuario | null) => {
 						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', init);
 						if (init && init.mensajes && init.cursos && init.idUsuario === this.loginService.usuario?.id_usuario) {
@@ -61,5 +61,9 @@ export class HomeChatComponent {
 		this.ngZone.run(() => {
 			this.router.navigate(['chat/', curso.id_curso.toString()]);
 		});
+	}
+
+	ngOnDestroy(): void {
+		this.chatService.initSubject.unsubscribe();
 	}
 }

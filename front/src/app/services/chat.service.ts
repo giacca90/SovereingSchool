@@ -11,7 +11,7 @@ import { LoginService } from './login.service';
 })
 export class ChatService {
 	private url: string = 'ws://localhost:8070/chat-socket';
-	private initSubject = new BehaviorSubject<InitChatUsuario | null>(null); // Utiliza BehaviorSubject para emitir el último valor a nuevos suscriptores
+	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null); // Utiliza BehaviorSubject para emitir el último valor a nuevos suscriptores
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();
 	private client: Client;
@@ -30,9 +30,13 @@ export class ChatService {
 			console.error('Broker reported error: ' + frame.headers['message']);
 			console.error('Additional details: ' + frame.body);
 		};
+
+		if (this.loginService.usuario) {
+			this.initUsuario(this.loginService.usuario.id_usuario);
+		}
 	}
 
-	initUsuario(idUsuario: number): Observable<InitChatUsuario | null> {
+	private initUsuario(idUsuario: number): Observable<InitChatUsuario | null> {
 		console.log('INITUSUARIO');
 
 		this.client.onConnect = (frame) => {
