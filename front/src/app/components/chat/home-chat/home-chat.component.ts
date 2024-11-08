@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectorRef, Component, NgZone, OnDestroy } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoChat } from '../../../models/CursoChat';
 import { InitChatUsuario } from '../../../models/InitChatUsuario';
@@ -13,7 +13,7 @@ import { LoginService } from '../../../services/login.service';
 	templateUrl: './home-chat.component.html',
 	styleUrl: './home-chat.component.css',
 })
-export class HomeChatComponent implements OnDestroy {
+export class HomeChatComponent {
 	chats: MensajeChat[] = [];
 	cursos: CursoChat[] = [];
 	cargando: boolean = true;
@@ -61,9 +61,5 @@ export class HomeChatComponent implements OnDestroy {
 		this.ngZone.run(() => {
 			this.router.navigate(['chat/', curso.id_curso.toString()]);
 		});
-	}
-
-	ngOnDestroy(): void {
-		this.chatService.initSubject.unsubscribe();
 	}
 }

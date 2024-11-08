@@ -222,7 +222,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 		// Si `chat` no está cargado, espera un segundo antes de continuar
 		while (!this.chatComponent.chat) {
 			console.log('CHAT NO CARGADO');
-			await new Promise((resolve) => setTimeout(resolve, 1000)); // Espera 1 segundo
+			await new Promise((resolve) => setTimeout(resolve, 300)); // Espera 0.3 segundos
 		}
 
 		// Ejecutar el código después de verificar que `chat` está definido

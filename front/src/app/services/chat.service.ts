@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { CursoChat } from '../models/CursoChat';
@@ -14,59 +15,64 @@ export class ChatService {
 	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null); // Utiliza BehaviorSubject para emitir el último valor a nuevos suscriptores
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();
-	private client: Client;
-	private currentSubscription: StompSubscription | null = null; // Guardar referencia a la suscripción actual
-
-	constructor(private loginService: LoginService) {
-		this.client = new Client({
-			brokerURL: this.url,
-		});
-
-		this.client.onWebSocketError = (error) => {
-			console.error('Error con WebSocket', error);
-		};
-
-		this.client.onStompError = (frame) => {
+	private client: Client = new Client({
+		brokerURL: this.url,
+		reconnectDelay: 1000, // Intento de reconexión automática
+		onWebSocketError: (error) => console.error('Error con WebSocket', error),
+		onStompError: (frame) => {
 			console.error('Broker reported error: ' + frame.headers['message']);
 			console.error('Additional details: ' + frame.body);
-		};
+		},
+	});
+	private currentSubscription: StompSubscription | null = null; // Guardar referencia a la suscripción actual
 
-		if (this.loginService.usuario) {
-			this.initUsuario(this.loginService.usuario.id_usuario);
+	constructor(
+		private loginService: LoginService,
+		@Inject(PLATFORM_ID) private platformId: object, // Inject PLATFORM_ID to detect server or browser
+	) {
+		if (isPlatformBrowser(this.platformId)) {
+			this.client.onWebSocketError = (error) => {
+				console.error('Error con WebSocket', error);
+			};
+
+			this.client.onStompError = (frame) => {
+				console.error('Broker reported error: ' + frame.headers['message']);
+				console.error('Additional details: ' + frame.body);
+			};
+
+			this.client.onConnect = (frame) => {
+				console.log('Connected: ' + frame);
+				if (this.loginService.usuario) {
+					this.initUsuario(this.loginService.usuario.id_usuario);
+				}
+			};
+
+			// Activa el WebSocke
+			this.client.activate();
 		}
 	}
 
 	private initUsuario(idUsuario: number): Observable<InitChatUsuario | null> {
 		console.log('INITUSUARIO');
+		// Suscríbete a las respuestas del backend
+		this.client.subscribe('/init_chat/result', (response) => {
+			console.log('RESPONSE: ', response.body);
+			const init: InitChatUsuario = JSON.parse(response.body) as InitChatUsuario;
+			console.log('SE RECIBE RESPUESTA DEL BACK!!!', init);
+			console.log('INIT.MENSAJES', init.mensajes);
 
-		this.client.onConnect = (frame) => {
-			console.log('Connected: ' + frame);
+			// Emitir el valor recibido a través del subject
+			this.initSubject.next(init);
+		});
 
-			// Suscríbete a las respuestas del backend
-			this.client.subscribe('/init_chat/result', (response) => {
-				console.log('RESPONSE: ', response.body);
-				const init: InitChatUsuario = JSON.parse(response.body) as InitChatUsuario;
-				console.log('SE RECIBE RESPUESTA DEL BACK!!!', init);
-				console.log('INIT.MENSAJES', init.mensajes);
-
-				// Emitir el valor recibido a través del subject
-				this.initSubject.next(init);
-			});
-
-			// Publicar el mensaje al backend
-			this.client.publish({
-				destination: '/app/init',
-				body: idUsuario.toString(),
-			});
-		};
-
-		// Activa el WebSocket
-		this.client.activate();
+		// Publicar el mensaje al backend
+		this.client.publish({
+			destination: '/app/init',
+			body: idUsuario.toString(),
+		});
 
 		// Devolver el observable que los componentes pueden suscribirse
-		return this.initSubject.asObservable().pipe(
-			takeUntil(this.unsubscribe$), // Desuscribirse cuando sea necesario
-		);
+		return this.initSubject.asObservable();
 	}
 
 	getChat(idCurso: number): Observable<CursoChat | null> {
@@ -95,9 +101,6 @@ export class ChatService {
 				body: idCurso.toString(),
 			});
 		};
-
-		// Activa el WebSocke
-		this.client.activate();
 
 		// Devolver el observable que los componentes pueden suscribirse
 		return this.cursoSubject.asObservable().pipe(
