@@ -81,26 +81,22 @@ export class ChatService {
 			this.currentSubscription.unsubscribe();
 			this.cursoSubject.next(null);
 		}
-		this.client.forceDisconnect();
-		this.client.onConnect = (frame) => {
-			console.log('Connected: ' + frame);
 
-			// Suscríbete a las respuestas del backend
-			this.currentSubscription = this.client.subscribe('/init_chat/' + idCurso, (response) => {
-				console.log('RESPONSE: ', response.body);
-				const curso: CursoChat = JSON.parse(response.body) as CursoChat;
-				console.log('SE RECIBE RESPUESTA DEL BACK!!!', curso);
+		// Suscríbete a las respuestas del backend
+		this.currentSubscription = this.client.subscribe('/init_chat/' + idCurso, (response) => {
+			console.log('RESPONSE: ', response.body);
+			const curso: CursoChat = JSON.parse(response.body) as CursoChat;
+			console.log('SE RECIBE RESPUESTA DEL BACK!!!', curso);
 
-				// Emitir el valor recibido
-				this.cursoSubject.next(curso);
-			});
+			// Emitir el valor recibido
+			this.cursoSubject.next(curso);
+		});
 
-			// Publicar el mensaje al backend
-			this.client.publish({
-				destination: '/app/curso',
-				body: idCurso.toString(),
-			});
-		};
+		// Publicar el mensaje al backend
+		this.client.publish({
+			destination: '/app/curso',
+			body: idCurso.toString(),
+		});
 
 		// Devolver el observable que los componentes pueden suscribirse
 		return this.cursoSubject.asObservable().pipe(
