@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
-import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, switchMap, takeUntil, timer } from 'rxjs';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
 import { MensajeChat } from '../models/MensajeChat';
@@ -76,6 +76,13 @@ export class ChatService {
 	}
 
 	getChat(idCurso: number): Observable<CursoChat | null> {
+		// Si no está conectado, esperar 500ms antes de continuar
+		if (!this.client.connected) {
+			return timer(500).pipe(
+				// Retrasa la ejecución 500ms
+				switchMap(() => this.getChat(idCurso)), // Llama a getChat nuevamente después del retraso
+			);
+		}
 		// Si hay una suscripción anterior, desuscríbete antes de suscribirte a la nueva
 		if (this.currentSubscription) {
 			this.currentSubscription.unsubscribe();

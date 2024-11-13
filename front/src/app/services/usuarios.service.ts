@@ -35,7 +35,7 @@ export class UsuariosService {
 	save(formData: FormData) {
 		return this.http.post<string[]>(this.apiUrl + 'subeFotos', formData, { observe: 'response' }).pipe(
 			map((response: HttpResponse<string[]>) => {
-				if (response.ok) {
+				if (response.status === 200) {
 					return response.body;
 				}
 				return null;
@@ -50,7 +50,7 @@ export class UsuariosService {
 	actualizaUsuario(temp: Usuario) {
 		return this.http.put<string>(this.apiUrl + 'edit', temp, { observe: 'response' }).pipe(
 			map((response: HttpResponse<string>) => {
-				if (response.ok) {
+				if (response.status === 200) {
 					return true;
 				}
 				return false;

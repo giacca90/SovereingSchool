@@ -288,7 +288,6 @@ public class UsuarioController {
 			Path filePath = Paths.get(uploadDir, fileName);
 			System.out.println("Foto: " + filePath.toString());
 			if (!fileName.substring(fileName.lastIndexOf(".")).toLowerCase().equals(".svg")) {
-
 				try {
 					// Convertir la imagen a WebP
 					BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
@@ -322,6 +321,6 @@ public class UsuarioController {
 			}
 		}
 		response = fileNames;
-		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }
