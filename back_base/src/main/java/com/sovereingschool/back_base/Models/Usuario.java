@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,7 +42,8 @@ public class Usuario implements Serializable {
     private String nombre_usuario;
 
     @Column(unique = true, columnDefinition = "text[]")
-    // @Type(com.vladmihalcea.hibernate.type.array.StringArrayType.class)
+    @Type(com.vladmihalcea.hibernate.type.array.StringArrayType.class)
+    // @Type(ListArrayType.class)
     private List<String> foto_usuario;
 
     @Column(length = 1500)

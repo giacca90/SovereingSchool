@@ -6,7 +6,7 @@
 			<div class="m-3 flex items-center justify-between">
 				@for (profe of curso.profesores_curso; track profe) {
 					<span class="font-bold">Por: {{ profe.nombre_usuario }}</span>
-					<img src="{{ profe.foto_usuario }}" alt="logo" class="h-12 w-12 object-contain" />
+					<img src="{{ profe.foto_usuario[0] }}" alt="logo" class="h-12 w-12 object-contain" />
 				}
 			</div>
 			<p class="ml-3 mr-3">{{ curso.descriccion_corta }}</p>

@@ -147,13 +147,16 @@ public class InitChatService {
                         this.usuarioRepo.findNombreUsuarioForId(respuesta.getIdUsuario()), // String
                         // nombre_usuario
                         null, // String foto_curso
-                        this.usuarioRepo.findFotosUsuarioForId(respuesta.getIdUsuario()).get(0), // String
+                        this.usuarioRepo.findFotosUsuarioForId(respuesta.getIdUsuario()).get(0).split(",")[0], // String
                         // foto_usuario
                         null, // MensajeChatDTO respuesta
                         respuesta.getMomento(), // int momento
                         respuesta.getMensaje(), // String mensaje
                         respuesta.getFecha()); // Date fecha
             }
+
+            System.out.println("PRUEBA: " + usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()));
+            System.out.println("PRUEBA2: " + usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()).get(0));
 
             MensajeChatDTO mensajeDTO = new MensajeChatDTO(
                     mensaje.getId(), // String id_mensaje
@@ -164,7 +167,8 @@ public class InitChatService {
                     claseRepo.findNombreClaseById(mensaje.getIdClase()), // String nombre_clase
                     usuarioRepo.findNombreUsuarioForId(mensaje.getIdUsuario()), // String nombre_usuario
                     cursoRepo.findImagenCursoById(mensaje.getIdCurso()), // String foto_curso
-                    usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()).get(0), // String foto_usuario
+                    usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()).get(0).split(",")[0], // String
+                                                                                                    // foto_usuario
                     respuestaDTO, // MensajeChatDTO respuesta
                     mensaje.getMomento(), // int momento
                     mensaje.getMensaje(), // String mensaje
