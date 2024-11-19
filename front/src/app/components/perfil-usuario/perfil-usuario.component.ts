@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { lastValueFrom, Subscription } from 'rxjs';
 import { Usuario } from '../../models/Usuario';
 import { InitService } from '../../services/init.service';
 import { LoginService } from '../../services/login.service';
@@ -16,7 +16,7 @@ import { UsuariosService } from '../../services/usuarios.service';
 export class PerfilUsuarioComponent implements OnDestroy {
 	editable: boolean = false;
 	usuario: Usuario | null = null;
-	fotos: FileList | null = null;
+	fotos: Map<string, File> = new Map();
 	private subscription: Subscription = new Subscription();
 
 	constructor(
@@ -32,52 +32,55 @@ export class PerfilUsuarioComponent implements OnDestroy {
 		if (!input.files) {
 			return;
 		}
-		this.fotos = input.files;
-
-		Array.from(this.fotos).forEach((file) => {
-			const reader = new FileReader();
-			reader.onload = (e: ProgressEvent<FileReader>) => {
-				if (e.target) {
-					this.usuario?.foto_usuario.push(e.target.result as string);
-				}
-			};
-			reader.readAsDataURL(file);
+		// Procesa cada archivo seleccionado
+		Array.from(input.files).forEach((file) => {
+			// Genera una URL temporal para previsualizar el archivo
+			const objectURL = URL.createObjectURL(file);
+			this.fotos.set(objectURL, file);
+			this.usuario?.foto_usuario.push(objectURL); // Guarda la URL temporal para previsualizar
 		});
 	}
 
-	save() {
+	async save() {
+		// Verifica si hay cambios en el usuario o la foto principal
 		if (JSON.stringify(this.usuario) !== JSON.stringify(this.loginService.usuario) || (document.getElementById('fotoPrincipal') as HTMLImageElement).src !== this.usuario?.foto_usuario[0]) {
-			const formData = new FormData();
-			if (this.fotos) {
-				Array.from(this.fotos).forEach((file) => {
-					formData.append('files', file, file.name);
-				});
-				this.subscription.add(
-					this.usuarioService.save(formData).subscribe({
-						next: (response) => {
-							if (this.usuario?.foto_usuario && response) {
-								const temp: string[] = [];
-								for (let i = 0; i < this.usuario.foto_usuario.length; i++) {
-									if (this.loginService.usuario?.foto_usuario.includes(this.usuario.foto_usuario[i])) {
-										temp.push(this.usuario.foto_usuario[i]);
+			const savePromises: Promise<void>[] = []; // Almacena las promesas de guardado
+			// Si hay fotos para procesar
+			if (this.fotos.size > 0) {
+				const fotoPrincipal: string = (document.getElementById('fotoPrincipal') as HTMLImageElement).src;
+				this.usuario?.foto_usuario.forEach((foto, index) => {
+					if (foto.startsWith('blob:')) {
+						const formData = new FormData();
+						const file = this.fotos.get(foto);
+						if (file !== undefined) {
+							formData.append('files', file as Blob, file.name);
+							// Convierte la suscripción a una promesa y la almacena en savePromises
+							const savePromise = lastValueFrom(this.usuarioService.save(formData))
+								.then((response) => {
+									if (this.usuario?.foto_usuario && response) {
+										// Actualiza la foto en la posición correcta
+										this.usuario.foto_usuario[index] = response[0];
+										if (fotoPrincipal === foto) {
+											(document.getElementById('fotoPrincipal') as HTMLImageElement).src = response[0];
+										}
 									}
-								}
-								this.usuario.foto_usuario = temp;
-								response.forEach((resp) => {
-									this.usuario?.foto_usuario.push(resp);
+								})
+								.catch((e) => {
+									console.error('Error en save() ' + e.message);
 								});
-								this.actualizaUsuario();
-								this.fotos = null;
-							}
-							this.initService.carga();
-						},
-						error: (e: Error) => {
-							console.error('Error en save() ' + e.message);
-						},
-					}),
-				);
-			} else {
-				this.actualizaUsuario();
+
+							savePromises.push(savePromise);
+						}
+					}
+				});
+			}
+
+			// Espera a que todas las promesas se resuelvan antes de continuar
+			try {
+				await Promise.all(savePromises);
+				this.actualizaUsuario(); // Ejecuta la actualización del usuario solo cuando todo haya terminado
+			} catch (error) {
+				console.error('Error en save():', error);
 			}
 		}
 	}
@@ -86,6 +89,8 @@ export class PerfilUsuarioComponent implements OnDestroy {
 		const temp: Usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 		if (this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
 			const fotoPrincipal: string = (document.getElementById('fotoPrincipal') as HTMLImageElement).src;
+			console.log('FOTO PRINCIPAL: ' + fotoPrincipal);
+			console.log('FOTOS: ' + this.usuario.foto_usuario);
 			if (fotoPrincipal !== this.usuario.foto_usuario[0]) {
 				const f: string[] = [];
 				f.push(fotoPrincipal);
@@ -95,9 +100,10 @@ export class PerfilUsuarioComponent implements OnDestroy {
 					}
 				});
 				this.usuario.foto_usuario = f;
+				console.log('FOTOS2: ' + this.usuario.foto_usuario);
 			}
 			temp.foto_usuario = this.usuario.foto_usuario;
-			temp.nombre_usuario = this.usuario?.nombre_usuario;
+			temp.nombre_usuario = this.usuario.nombre_usuario;
 			temp.presentacion = this.usuario.presentacion;
 			temp.cursos_usuario?.forEach((curso) => {
 				curso.clases_curso = undefined;
@@ -136,11 +142,10 @@ export class PerfilUsuarioComponent implements OnDestroy {
 			(document.getElementById('fotoPrincipal') as HTMLImageElement).src = this.usuario.foto_usuario[index];
 			if (this.editable) {
 				for (let i = 0; i < this.usuario?.foto_usuario.length; i++) {
-					document.getElementById('foto-' + i)?.classList.remove('border-black');
-					document.getElementById('foto-' + i)?.classList.remove('border');
+					document.getElementById('foto-' + i)?.classList.remove('border', 'border-black');
 				}
-				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add('border');
-				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add('border-black');
+				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add('border', 'border-black');
+				(document.getElementById('foto-' + index) as HTMLImageElement).classList.add();
 			}
 		}
 	}

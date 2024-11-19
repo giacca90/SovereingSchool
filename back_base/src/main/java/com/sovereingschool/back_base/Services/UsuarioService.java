@@ -137,7 +137,12 @@ public class UsuarioService implements IUsuarioService {
     public Usuario updateUsuario(Usuario usuario) {
         Usuario usuario_old = this.getUsuario(usuario.getId_usuario());
         System.out.println("PRUEBA: " + usuario.getFoto_usuario().toString());
-        usuario_old.getFoto_usuario().forEach(foto -> {
+        System.out.println("PRUEBA2: " + usuario.getFoto_usuario().size());
+        for (String foto : usuario.getFoto_usuario()) {
+            System.out.println("PRUEBA3: " + foto);
+        }
+
+        for (String foto : usuario_old.getFoto_usuario()) { // TODO: revisar si esto es necesario
             if (!usuario.getFoto_usuario().contains(foto)) {
                 Path photoPath = Paths.get(uploadDir, foto.substring(foto.lastIndexOf("/")));
                 try {
@@ -152,7 +157,7 @@ public class UsuarioService implements IUsuarioService {
                     e.printStackTrace();
                 }
             }
-        });
+        }
         return this.repo.save(usuario);
     }
 

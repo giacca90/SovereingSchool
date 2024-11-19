@@ -48,7 +48,7 @@ export class UsuariosService {
 	}
 
 	actualizaUsuario(temp: Usuario) {
-		return this.http.put<string>(this.apiUrl + 'edit', temp, { observe: 'response' }).pipe(
+		return this.http.put<string>(this.apiUrl + 'edit', temp, { observe: 'response', responseType: 'text' as 'json' }).pipe(
 			map((response: HttpResponse<string>) => {
 				if (response.status === 200) {
 					return true;
