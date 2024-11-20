@@ -50,13 +50,34 @@
 	<div class="absolute left-0 top-0 z-10 flex h-full w-full flex-col bg-white/90">
 		<div class="m-2 mb-2 mt-2 flex flex-grow flex-col rounded-lg border border-black p-2">
 			<input class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" type="text" placeholder="Pon un nombre a tu Clase" [(ngModel)]="editar.nombre_clase" />
+			@if (editar.id_clase === 0) {
+				<div class="flex flex-row items-center">
+					<button id="claseVideo" class="text- m-2 rounded-lg border border-black p-2 text-blue-700" (click)="cambiaTipoClase(0)">Clase en Video pre-gravado</button>
+					<button id="claseOBS" class="m-2 rounded-lg border border-black p-2" (click)="cambiaTipoClase(1)">Clase en Vivo desde OBS</button>
+					<button id="claseWebCam" class="m-2 rounded-lg border border-black p-2" (click)="cambiaTipoClase(2)">Clase en Vivo desde la Webcam</button>
+					<p class="m-2 font-bold text-red-500">ATENCIÓN: No se podrá cambiar el tipo una vez creada la clase</p>
+				</div>
+			}
 			<div class="flex">
 				<div class="m-2 flex w-2/5 flex-col">
-					<video id="videoPlayer" src="" class="video-js vjs-default-skin w-full"></video>
-					<div class="flex">
-						<label for="video-upload" id="video-upload-button" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
-						<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
-					</div>
+					@if (this.tipoClase === 0 || this.editar.id_clase !== 0) {
+						<video id="videoPlayer" src="" class="video-js vjs-default-skin w-full"></video>
+						<div class="flex">
+							<label for="video-upload" id="video-upload-button" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
+							<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
+						</div>
+					}
+					@if (this.tipoClase === 1) {
+						<p>Este es tu enlace para OBS</p>
+						<span class="rounded-lg border border-black p-2 text-gray-700">Cargando...</span>
+					}
+					@if (this.tipoClase === 2) {
+						<video id="webcam" autoplay playsinline class="border border-black"></video>
+						<div id="audio-bar">
+							<div id="audio-level"></div>
+						</div>
+						<p id="status"></p>
+					}
 				</div>
 				<div class="m-2 flex w-3/5 flex-col">
 					<input type="text" class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" placeholder="Pon una breve descripción de tu clase." [(ngModel)]="editar.descriccion_clase" />

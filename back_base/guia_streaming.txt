@@ -1,0 +1,140 @@
+Para implementar un sistema de streaming en directo que reciba un flujo de datos desde OBS y lo convierta a HLS, puedes usar FFmpeg como base para procesar el video en tiempo real. Aquí te muestro un enfoque para integrar esta funcionalidad:
+
+1. Configurar OBS para enviar el stream
+OBS puede enviar un stream a un servidor mediante el protocolo RTMP. Configura OBS para emitir a tu servidor especificando una URL RTMP, como:
+
+perl
+Copiar código
+rtmp://<tu-servidor>/live/<stream_key>
+En OBS:
+
+Ve a Configuración > Stream.
+Selecciona Personalizado.
+Ingresa la URL de tu servidor RTMP.
+Define una clave de transmisión (stream key).
+2. Configurar un servidor RTMP
+Para recibir el stream desde OBS, necesitas un servidor RTMP que lo procese y lo redirija. Puedes usar Nginx con el módulo RTMP.
+
+Instalar Nginx con RTMP:
+Ubuntu/Debian:
+
+bash
+Copiar código
+sudo apt update
+sudo apt install nginx libnginx-mod-rtmp
+Configura el módulo RTMP en /etc/nginx/nginx.conf:
+
+nginx
+Copiar código
+rtmp {
+    server {
+        listen 1935;
+        chunk_size 4096;
+
+        application live {
+            live on;
+            record off;
+
+            # Ruta para convertir a HLS
+            hls on;
+            hls_path /var/www/html/live;
+            hls_fragment 5s;
+            hls_playlist_length 30s;
+
+            allow publish all;
+            allow play all;
+        }
+    }
+}
+Reinicia Nginx:
+
+bash
+Copiar código
+sudo systemctl restart nginx
+Esto configurará un servidor RTMP que recibe streams en rtmp://<tu-servidor>/live y genera segmentos HLS en /var/www/html/live.
+
+3. Configurar FFmpeg para convertir RTMP a HLS
+Si necesitas personalizar aún más los streams HLS generados (resoluciones, calidad, etc.), usa FFmpeg para procesar el stream RTMP en tiempo real.
+
+FFmpeg para convertir RTMP a HLS:
+Ejecuta un comando FFmpeg para convertir el stream recibido desde RTMP y generar múltiples resoluciones HLS. Por ejemplo:
+
+bash
+Copiar código
+ffmpeg -i rtmp://localhost/live/stream_key \
+-filter_complex "[0:v]split=4[v1][v2][v3][v4]; \
+[v1]scale=w=1920:h=1080[v1out]; \
+[v2]scale=w=1280:h=720[v2out]; \
+[v3]scale=w=854:h=480[v3out]; \
+[v4]scale=w=640:h=360[v4out]" \
+-map "[v1out]" -c:v:0 libx264 -b:v:0 5M -preset veryfast -g 48 -sc_threshold 0 \
+-map "[v2out]" -c:v:1 libx264 -b:v:1 3M -preset veryfast -g 48 -sc_threshold 0 \
+-map "[v3out]" -c:v:2 libx264 -b:v:2 1M -preset veryfast -g 48 -sc_threshold 0 \
+-map "[v4out]" -c:v:3 libx264 -b:v:3 512k -preset veryfast -g 48 -sc_threshold 0 \
+-map a:0 -c:a aac -b:a 128k \
+-f hls \
+-hls_time 5 \
+-hls_list_size 10 \
+-hls_flags independent_segments \
+-master_pl_name master.m3u8 \
+-var_stream_map "v:0,a:0 v:1,a:0 v:2,a:0 v:3,a:0" \
+hls/stream_%v.m3u8
+Este comando:
+
+Toma el stream RTMP de entrada.
+Genera cuatro resoluciones diferentes (1080p, 720p, 480p y 360p).
+Produce segmentos HLS (.ts) y listas de reproducción (.m3u8).
+4. Integración con tu backend (Spring Boot)
+Puedes usar un proceso asíncrono en Spring para manejar la ejecución de FFmpeg para cada stream en directo.
+
+Clase para manejar el proceso de conversión:
+java
+Copiar código
+@Service
+public class LiveStreamService {
+
+    @Async
+    public void startLiveStreaming(String streamKey, Path outputDirectory) {
+        try {
+            // Crear el comando FFmpeg
+            List<String> command = Arrays.asList(
+                "ffmpeg", "-i", "rtmp://localhost/live/" + streamKey,
+                "-filter_complex", "[0:v]split=4[v1][v2][v3][v4]; " +
+                        "[v1]scale=w=1920:h=1080[v1out]; " +
+                        "[v2]scale=w=1280:h=720[v2out]; " +
+                        "[v3]scale=w=854:h=480[v3out]; " +
+                        "[v4]scale=w=640:h=360[v4out]",
+                "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0",
+                "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0",
+                "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0",
+                "-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "512k", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0",
+                "-map", "a:0", "-c:a", "aac", "-b:a", "128k",
+                "-f", "hls", "-hls_time", "5", "-hls_list_size", "10",
+                "-hls_flags", "independent_segments",
+                "-master_pl_name", "master.m3u8",
+                "-var_stream_map", "v:0,a:0 v:1,a:0 v:2,a:0 v:3,a:0",
+                outputDirectory.resolve("stream_%v.m3u8").toString()
+            );
+
+            // Ejecutar el proceso
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.redirectErrorStream(true);
+            processBuilder.directory(outputDirectory.toFile());
+
+            Process process = processBuilder.start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IOException("FFmpeg terminó con código de salida " + exitCode);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al iniciar el streaming: " + e.getMessage());
+        }
+    }
+}

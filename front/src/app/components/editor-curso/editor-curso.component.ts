@@ -24,6 +24,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	editado: boolean = false;
 	editar: Clase | null = null;
 	videoPlayer: HTMLVideoElement | null = null;
+	tipoClase: number = 0;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -305,10 +306,83 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 					preload: 'auto',
 				});
 				player.src({
-					src: `http://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
+					src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
 				});
 			}
 		}
+	}
+
+	cambiaTipoClase(tipo: number) {
+		const videoButton: HTMLButtonElement = document.getElementById('claseVideo') as HTMLButtonElement;
+		const obsButton: HTMLButtonElement = document.getElementById('claseOBS') as HTMLButtonElement;
+		const webcamButton: HTMLButtonElement = document.getElementById('claseWebCam') as HTMLButtonElement;
+		videoButton.classList.remove('text-blue-700');
+		obsButton.classList.remove('text-blue-700');
+		webcamButton.classList.remove('text-blue-700');
+		switch (tipo) {
+			case 0: {
+				this.tipoClase = 0;
+				videoButton.classList.add('text-blue-700');
+				break;
+			}
+			case 1: {
+				this.tipoClase = 1;
+				obsButton.classList.add('text-blue-700');
+				break;
+			}
+			case 2: {
+				this.tipoClase = 2;
+				webcamButton.classList.add('text-blue-700');
+				setTimeout(() => this.startMedia(), 300);
+				break;
+			}
+		}
+	}
+
+	async startMedia() {
+		const status = document.getElementById('status') as HTMLParagraphElement;
+		const video = document.getElementById('webcam') as HTMLVideoElement;
+		const audioLevel = document.getElementById('audio-level') as HTMLDivElement;
+
+		if (status && video && audioLevel) {
+			try {
+				// Solicitar acceso a la cámara y micrófono
+				const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+				// Mostrar el stream de video en el elemento <video>
+				video.srcObject = stream;
+
+				// Configurar visualización de audio
+				this.visualizeAudio(stream, audioLevel);
+
+				status.textContent = 'Acceso concedido a la cámara y el micrófono.';
+			} catch (err) {
+				console.error('Error al obtener acceso:', err);
+				status.textContent = 'Error al acceder a la cámara y el micrófono: ' + err;
+			}
+		}
+	}
+
+	visualizeAudio(stream: MediaStream, audioLevel: HTMLDivElement) {
+		const audioContext = new AudioContext();
+		const analyser = audioContext.createAnalyser();
+		const source = audioContext.createMediaStreamSource(stream);
+
+		source.connect(analyser);
+
+		analyser.fftSize = 256; // Ajusta la resolución de frecuencia
+		const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+		function updateAudioLevel() {
+			analyser.getByteFrequencyData(dataArray);
+			const volume = Math.max(...dataArray) / 255; // Escalar de 0 a 1
+			const percentage = Math.min(volume * 100, 100); // Limitar a 100%
+			audioLevel.style.width = `${percentage}%`; // Ajustar ancho de la barra
+
+			requestAnimationFrame(updateAudioLevel); // Continuar la animación
+		}
+
+		updateAudioLevel(); // Iniciar la visualización
 	}
 }
