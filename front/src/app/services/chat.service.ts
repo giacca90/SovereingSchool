@@ -11,7 +11,7 @@ import { LoginService } from './login.service';
 	providedIn: 'root',
 })
 export class ChatService {
-	private url: string = 'ws://localhost:8070/chat-socket';
+	private url: string = 'wss://localhost:8070/chat-socket';
 	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null); // Utiliza BehaviorSubject para emitir el último valor a nuevos suscriptores
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();

@@ -7,7 +7,7 @@ import { Usuario } from '../models/Usuario';
 	providedIn: 'root',
 })
 export class UsuariosService {
-	private apiUrl = 'http://localhost:8080/usuario/';
+	private apiUrl = 'https://localhost:8080/usuario/';
 	public profes: Usuario[] = [];
 	constructor(private http: HttpClient) {}
 

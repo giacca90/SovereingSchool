@@ -7,7 +7,7 @@ import { NuevoUsuario } from '../models/NuevoUsuario';
 	providedIn: 'root',
 })
 export class RegisterService {
-	private apiUrl = 'http://localhost:8080/';
+	private apiUrl = 'https://localhost:8080/';
 	constructor(private http: HttpClient) {}
 
 	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario): Promise<boolean> {

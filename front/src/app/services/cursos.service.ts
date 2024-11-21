@@ -9,8 +9,8 @@ import { Usuario } from '../models/Usuario';
 	providedIn: 'root',
 })
 export class CursosService {
-	backURL: string = 'http://localhost:8080';
-	backURLStreaming: string = 'http://localhost:8090';
+	backURL: string = 'https://localhost:8080';
+	backURLStreaming: string = 'https://localhost:8090';
 	public cursos: Curso[] = [];
 
 	constructor(private http: HttpClient) {}

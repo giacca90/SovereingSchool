@@ -11,7 +11,7 @@ import { UsuariosService } from './usuarios.service';
 	providedIn: 'root',
 })
 export class InitService {
-	private apiUrl = 'http://localhost:8080/init';
+	private apiUrl = 'https://localhost:8080/init';
 	public estadistica: Estadistica | null = null;
 	constructor(
 		private http: HttpClient,

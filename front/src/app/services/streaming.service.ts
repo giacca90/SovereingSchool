@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 	providedIn: 'root',
 })
 export class StreamingService {
-	private URL: string = 'http://localhost:8090';
+	private URL: string = 'https://localhost:8090';
 
 	constructor(private http: HttpClient) {}
 

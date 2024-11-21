@@ -76,6 +76,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				const result = this.curso.clases_curso.find((clase) => clase.id_clase == this.id_clase);
 				if (result) {
 					this.clase = result;
+					this.cdr.detectChanges();
 				}
 			}
 		});
@@ -98,7 +99,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 					preload: 'auto',
 				});
 				player.src({
-					src: `http://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
+					src: `https://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
 				});
 

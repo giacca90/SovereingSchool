@@ -44,7 +44,7 @@ public class UsuarioService implements IUsuarioService {
     private EntityManager entityManager;
 
     private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
-    private final String backChatURL = "http://localhost:8070";
+    private final String backChatURL = "https://localhost:8070";
 
     @Override
     public String createUsuario(NewUsuario new_usuario) {
@@ -201,7 +201,7 @@ public class UsuarioService implements IUsuarioService {
 
         if (tipo == 0) {
 
-            WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
+            WebClient webClient = webClientBuilder.baseUrl("https://localhost:8090").build();
             return webClient.post().uri("/nuevoUsuario").body(Mono.just(data), Usuario.class).retrieve()
                     .bodyToMono(String.class).retryWhen(Retry.backoff(3, Duration.ofSeconds(5)).filter(throwable -> {
                         if (throwable instanceof WebClientResponseException) {
@@ -215,7 +215,7 @@ public class UsuarioService implements IUsuarioService {
                     });
         } else if (tipo == 1) {
 
-            WebClient webClient = webClientBuilder.baseUrl("http://localhost:8090").build();
+            WebClient webClient = webClientBuilder.baseUrl("https://localhost:8090").build();
             return webClient.put().uri("/nuevoCursoUsuario").body(Mono.just(data), Usuario.class).retrieve()
                     .bodyToMono(String.class).retryWhen(Retry.backoff(3, Duration.ofSeconds(5)).filter(throwable -> {
                         if (throwable instanceof WebClientResponseException) {

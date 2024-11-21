@@ -82,9 +82,9 @@ public class CursoService implements ICursoService {
     private EntityManager entityManager;
     private final String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Videos";
     private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
-    private final String backStreamURL = "http://localhost:8090";
+    private final String backStreamURL = "https://localhost:8090";
 
-    private final String backChatURL = "http://localhost:8070";
+    private final String backChatURL = "https://localhost:8070";
 
     @Override
     public Long createCurso(Curso new_curso) {
