@@ -1,4 +1,3 @@
-/* eslint-disable no-async-promise-executor */
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NuevoUsuario } from '../models/NuevoUsuario';

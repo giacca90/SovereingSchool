@@ -11,6 +11,7 @@ import { Usuario } from '../models/Usuario';
 export class CursosService {
 	backURL: string = 'https://localhost:8080';
 	backURLStreaming: string = 'https://localhost:8090';
+	webSocketUrl: string = 'wss://localhost:8080/live-webcam';
 	public cursos: Curso[] = [];
 
 	constructor(private http: HttpClient) {}
@@ -57,91 +58,6 @@ export class CursosService {
 			}),
 		);
 	}
-
-	/* updateCurso(curso: Curso | null): Observable<boolean> {
-		if (curso) {
-			if (curso.id_curso === 0 && curso.clases_curso) {
-				const clases: Clase[] = curso.clases_curso;
-				curso.clases_curso = [];
-
-				return this.http.post<number>(`${this.backURL}/cursos/new`, curso, { observe: 'response' }).pipe(
-					switchMap((response: HttpResponse<number>) => {
-						if (response.ok && response.body) {
-							curso.id_curso = response.body;
-							return from(clases).pipe(
-								concatMap((clase) => {
-									clase.curso_clase = curso.id_curso;
-									return this.guardarCambiosClase(clase);
-								}),
-								reduce((acc, value) => acc && value, true), // Acumula un booleano para indicar si todas las clases se crearon correctamente
-							);
-						} else {
-							return throwError(() => new Error('Error al crear el curso'));
-						}
-					}),
-					catchError((error) => {
-						console.error('Error al actualizar el curso:', error);
-						return throwError(() => new Error('Error al actualizar'));
-					}),
-				);
-			} else {
-				return this.http.put<string>(`${this.backURL}/cursos/update`, curso, { observe: 'response', responseType: 'text' as 'json' }).pipe(
-					map((response: HttpResponse<string>) => {
-						if (response.ok) {
-							const index = this.cursos.findIndex((cur) => cur.id_curso === curso.id_curso);
-							if (index !== -1) {
-								this.cursos[index] = JSON.parse(JSON.stringify(curso));
-							}
-							return true;
-						} else {
-							return false;
-						}
-					}),
-					catchError((error: HttpErrorResponse) => {
-						console.error('Error al actualizar: ' + error.message);
-						return throwError(() => new Error('Error al actualizar'));
-					}),
-				);
-			}
-		} else {
-			return throwError(() => new Error('El curso es nulo'));
-		}
-	} */
-
-	/* 	editClass(editar: Clase): Observable<boolean> {
-		const curso_clase: number | undefined = editar.curso_clase;
-		editar.curso_clase = undefined;
-		return this.http.put<string>(`${this.backURL}/cursos/${curso_clase}/editClase`, editar, { observe: 'response', responseType: 'text' as 'json' }).pipe(
-			map((response: HttpResponse<string>) => {
-				if (response.ok) {
-					return true;
-				}
-				return false;
-			}),
-			catchError((error: Error) => {
-				console.error('Error en editar la clase: ' + error.message);
-				return of(false);
-			}),
-		);
-	} */
-
-	/* 	createClass(editar: Clase): Observable<boolean> {
-		const curso_clase: number | undefined = editar.curso_clase;
-		editar.curso_clase = undefined;
-		return this.http.put<string>(this.backURL + '/cursos/' + curso_clase + '/addClase', editar, { observe: 'response', responseType: 'text' as 'json' }).pipe(
-			map((response: HttpResponse<string>) => {
-				if (response.ok) {
-					this.cursos[this.cursos.findIndex((curso) => curso.id_curso === curso_clase)].clases_curso = [];
-					return true;
-				}
-				return false;
-			}),
-			catchError((e: Error) => {
-				console.error('Error en crear la clase: ' + e.message);
-				return of(false);
-			}),
-		);
-	} */
 
 	deleteClass(clase: Clase): Observable<boolean> {
 		const curso_clase: number | undefined = clase.curso_clase;
@@ -225,42 +141,6 @@ export class CursosService {
 		);
 	}
 
-	/* 	guardarCambiosClase(editar: Clase): Observable<boolean> {
-		if (editar.id_clase === 0) {
-			return this.createClass(editar).pipe(
-				map((resp: boolean) => {
-					if (resp) {
-						this.getCurso(editar.curso_clase).then((response) => {
-							console.log(response);
-						return true;
-					} else {
-						console.error('Error en actualizar!!!');
-						return false;
-					}
-				}),
-				catchError((e: Error) => {
-					console.error('Error en crear la clase: ' + e.message);
-					return of(false);
-				}),
-			);
-		} else {
-			return this.editClass(editar).pipe(
-				map((resp: boolean) => {
-					if (resp) {
-						return true;
-					} else {
-						console.error('Error en actualizar!!!');
-						return false;
-					}
-				}),
-				catchError((e: Error) => {
-					console.error('Error en editar la clase: ' + e.message);
-					return of(false);
-				}),
-			);
-		}
-	}
- */
 	getStatusCurso(id_usuario: number, id_curso: number): Observable<number | boolean> {
 		return this.http.get<number>(this.backURLStreaming + '/status/' + id_usuario + '/' + id_curso, { observe: 'response' }).pipe(
 			map((response: HttpResponse<number>) => {
@@ -270,5 +150,104 @@ export class CursosService {
 				return false;
 			}),
 		);
+	}
+
+	// TODO: Revisar
+	async sendMediaToServer() {
+		const status = document.getElementById('status') as HTMLParagraphElement;
+
+		if (!window.WebSocket) {
+			console.error('WebSocket no es compatible con este navegador.');
+			if (status) {
+				status.textContent = 'WebSocket no es compatible con este navegador.';
+			}
+			return;
+		}
+
+		// Abrir conexión WebSocket
+		const ws = new WebSocket(this.webSocketUrl);
+
+		ws.onopen = () => {
+			console.log('Conexión WebSocket establecida.');
+			if (status) {
+				status.textContent = 'Conexión WebSocket establecida. Enviando flujo de medios...';
+			}
+		};
+
+		ws.onerror = (error) => {
+			console.error('Error en WebSocket:', error);
+			if (status) {
+				status.textContent = 'Error en WebSocket: ' + error;
+			}
+		};
+
+		ws.onclose = () => {
+			console.log('Conexión WebSocket cerrada.');
+			if (status) {
+				status.textContent = 'Conexión WebSocket cerrada.';
+			}
+		};
+
+		try {
+			// Obtener el flujo de la webcam y el micrófono
+			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+			const videoTracks = stream.getVideoTracks();
+			const audioTracks = stream.getAudioTracks();
+
+			if (videoTracks.length === 0) {
+				console.error('No se encontraron pistas de video.');
+				if (status) {
+					status.textContent = 'No se encontraron pistas de video.';
+				}
+				return;
+			}
+
+			if (audioTracks.length === 0) {
+				console.error('No se encontraron pistas de audio.');
+				if (status) {
+					status.textContent = 'No se encontraron pistas de audio.';
+				}
+				return;
+			}
+
+			const mediaRecorder = new MediaRecorder(stream, {
+				mimeType: 'video/webm; codecs=vp9',
+			});
+
+			mediaRecorder.ondataavailable = (event) => {
+				if (event.data.size > 0) {
+					ws.send(event.data);
+				}
+			};
+
+			mediaRecorder.onstop = () => {
+				console.log('Grabación detenida.');
+				if (status) {
+					status.textContent = 'Grabación detenida.';
+				}
+			};
+
+			mediaRecorder.onerror = (event) => {
+				console.error('Error en MediaRecorder:', event);
+				if (status) {
+					status.textContent = 'Error en MediaRecorder: ' + event;
+				}
+			};
+
+			// Comenzar a grabar y enviar los datos
+			mediaRecorder.start(500); // Fragmentos de 500 ms
+			console.log('Grabación iniciada.');
+
+			// Detener la grabación cuando el WebSocket se cierra
+			ws.onclose = () => {
+				console.log('Cerrando MediaRecorder.');
+				mediaRecorder.stop();
+			};
+		} catch (error) {
+			console.error('Error al capturar medios:', error);
+			if (status) {
+				status.textContent = 'Error al capturar medios: ' + error;
+			}
+		}
 	}
 }

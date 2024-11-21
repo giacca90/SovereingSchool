@@ -2,7 +2,7 @@
 
 ## Microservicio de gestión de Streaming y estado de cursos
 
-> Hecho con Spring 3.3.0.
+> Hecho con Spring 3.4.0.
 
 > Arquitectura de micro-servicios.
 

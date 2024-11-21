@@ -1,13 +1,13 @@
 # BACK-END de la plataforma de Cursos Soberanos (Sovereign School)
 
-## Microservicio de gestión general de la plataforma
+## Microservicio de gestión del Chat
 
 > Hecho con Spring 3.4.0.
 
 > Arquitectura de micro-servicios.
 
-> Utiliza base de datos PostgreSQL.
+> Utiliza base de datos PostgreSQL y MongoDB.
 
 > Utiliza Hibernate con JPA y consultas JPQL.
 
-> Conversión y servicio de videos HLS con FFMPEG.
+> Utiliza WebSockets para comunicación.

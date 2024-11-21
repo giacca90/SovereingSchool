@@ -385,4 +385,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 		updateAudioLevel(); // Iniciar la visualización
 	}
+
+	emiteWebcam() {
+		this.cursoService.sendMediaToServer();
+	}
 }

@@ -16,11 +16,11 @@
 
 #### Back-end
 
-> Hecho con Spring 3.3.0.
+> Hecho con Spring 3.4.0.
 
 > Arquitectura de micro-servicios.
 
-> Utiliza base de datos PostgreSQL.
+> Utiliza base de datos PostgreSQL y MongoDB.
 
 > Utiliza Hibernate con JPA y consultas JPQL.
 

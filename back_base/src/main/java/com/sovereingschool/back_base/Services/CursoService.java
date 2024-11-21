@@ -535,4 +535,108 @@ public class CursoService implements ICursoService {
             return null;
         }
     }
+
+    // TODO: Comprobar
+    public void startLiveStreamingFromWebcam() throws IOException {
+        // Definir la ruta de salida para los segmentos de HLS
+        Path outputDir = baseUploadDir.resolve(UUID.randomUUID().toString());
+        System.out.println("Salida: " + outputDir);
+
+        // Crear un comando ffmpeg para capturar video de la webcam y convertirlo a HLS
+        List<String> ffmpegCommand = new ArrayList<>();
+        ffmpegCommand.add("ffmpeg");
+        ffmpegCommand.add("-f");
+        ffmpegCommand.add("v4l2"); // Para Linux, usa "v4l2" (video4linux2) para acceder a la webcam
+        ffmpegCommand.add("-i");
+        ffmpegCommand.add("/dev/video0"); // Ruta del dispositivo de la webcam
+        ffmpegCommand.add("-c:v");
+        ffmpegCommand.add("libx264");
+        ffmpegCommand.add("-preset");
+        ffmpegCommand.add("fast");
+        ffmpegCommand.add("-f");
+        ffmpegCommand.add("hls");
+        ffmpegCommand.add("-hls_time");
+        ffmpegCommand.add("5");
+        ffmpegCommand.add("-hls_playlist_type");
+        ffmpegCommand.add("event"); // "event" para grabar el evento completo
+        ffmpegCommand.add("-hls_flags");
+        ffmpegCommand.add("delete_segments");
+        ffmpegCommand.add("-hls_segment_filename");
+        ffmpegCommand.add(outputDir + "/stream_%03d.ts");
+        ffmpegCommand.add(outputDir + "/index.m3u8");
+
+        // Ejecutar el comando
+        ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+
+        // Esperar a que termine el proceso
+        int exitCode;
+        try {
+            exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IOException("El proceso de FFmpeg falló con el código de salida " + exitCode);
+            }
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    // TODO: Comprobar
+    public void startLiveStreamingFromRTMP(String rtmpUrl) throws IOException {
+        // Define la carpeta de salida donde se guardarán los archivos .ts y .m3u8
+        Path outputDir = Paths.get("output/stream");
+
+        List<String> ffmpegCommand = new ArrayList<>();
+        ffmpegCommand.add("ffmpeg");
+        ffmpegCommand.add("-i");
+        ffmpegCommand.add(rtmpUrl); // URL del flujo RTMP entrante
+        ffmpegCommand.add("-c:v");
+        ffmpegCommand.add("libx264");
+        ffmpegCommand.add("-preset");
+        ffmpegCommand.add("fast");
+        ffmpegCommand.add("-f");
+        ffmpegCommand.add("hls");
+        ffmpegCommand.add("-hls_time");
+        ffmpegCommand.add("5");
+        ffmpegCommand.add("-hls_playlist_type");
+        ffmpegCommand.add("event");
+        ffmpegCommand.add("-hls_flags");
+        ffmpegCommand.add("delete_segments");
+        ffmpegCommand.add("-hls_segment_filename");
+        ffmpegCommand.add(outputDir + "/stream_%03d.ts");
+        ffmpegCommand.add(outputDir + "/index.m3u8");
+
+        // Ejecutar el comando FFmpeg
+        ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+
+        int exitCode;
+        try {
+            exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IOException("El proceso de FFmpeg falló con el código de salida " + exitCode);
+            }
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
 }
