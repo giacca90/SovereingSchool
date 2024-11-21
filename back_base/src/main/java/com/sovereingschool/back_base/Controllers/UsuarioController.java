@@ -280,9 +280,16 @@ public class UsuarioController {
 		Object response = new Object();
 
 		for (MultipartFile file : files) {
+			// Obtener el nombre original del archivo o usar un valor predeterminado si es
+			// null
+			String originalFilename = file.getOriginalFilename();
+			if (originalFilename == null) {
+				originalFilename = "unknown_file";
+			}
+
 			// Genera un nombre único para cada archivo para evitar colisiones
 			String fileName = UUID.randomUUID().toString() + "_"
-					+ StringUtils.cleanPath(file.getOriginalFilename()).replaceAll(" ", "_");
+					+ StringUtils.cleanPath(originalFilename).replaceAll(" ", "_");
 			Path filePath = Paths.get(uploadDir, fileName);
 			System.out.println("Foto: " + filePath.toString());
 			if (!fileName.substring(fileName.lastIndexOf(".")).toLowerCase().equals(".svg")) {

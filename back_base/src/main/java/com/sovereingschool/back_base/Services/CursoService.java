@@ -520,12 +520,17 @@ public class CursoService implements ICursoService {
     @Override
     public String subeVideo(MultipartFile file) {
         try {
+            // Obtener el nombre original del archivo o usar un valor predeterminado si es
+            // null
+            String originalFileName = file.getOriginalFilename();
+            if (originalFileName == null) {
+                originalFileName = "unknown_file";
+            }
+
             // Define el path para guardar el archivo subido
-            String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-            Path filePath = baseUploadDir
-                    .resolve(UUID.randomUUID().toString() + "_"
-                            + originalFileName.replaceAll("[^a-zA-Z0-9\\s.]", "")
-                                    .replaceAll("\\s+", "_"));
+            String cleanedFileName = StringUtils.cleanPath(originalFileName);
+            Path filePath = baseUploadDir.resolve(UUID.randomUUID().toString() + "_" + cleanedFileName);
+
             // Guarda el archivo en el servidor
             Files.write(filePath, file.getBytes());
             return filePath.normalize().toString();
