@@ -24,6 +24,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	editado: boolean = false;
 	editar: Clase | null = null;
 	videoPlayer: HTMLVideoElement | null = null;
+	streamWebcam: MediaStream | null = null;
 	tipoClase: number = 0;
 
 	constructor(
@@ -348,13 +349,13 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		if (status && video && audioLevel) {
 			try {
 				// Solicitar acceso a la cámara y micrófono
-				const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+				this.streamWebcam = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
 				// Mostrar el stream de video en el elemento <video>
-				video.srcObject = stream;
+				video.srcObject = this.streamWebcam;
 
 				// Configurar visualización de audio
-				this.visualizeAudio(stream, audioLevel);
+				this.visualizeAudio(this.streamWebcam, audioLevel);
 
 				status.textContent = 'Acceso concedido a la cámara y el micrófono.';
 			} catch (err) {
@@ -387,6 +388,12 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	emiteWebcam() {
-		this.cursoService.sendMediaToServer();
+		if (this.streamWebcam) {
+			this.cursoService.sendMediaToServer(this.streamWebcam);
+		}
+	}
+
+	detenerEmision() {
+		this.cursoService.stopMediaStreaming();
 	}
 }

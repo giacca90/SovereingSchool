@@ -3,6 +3,7 @@ package com.sovereingschool.back_base.Services;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -542,55 +543,52 @@ public class CursoService implements ICursoService {
     }
 
     // TODO: Comprobar
-    public void startLiveStreamingFromWebcam() throws IOException {
+    public void startLiveStreamingFromStream(InputStream inputStream) throws IOException {
         // Definir la ruta de salida para los segmentos de HLS
         Path outputDir = baseUploadDir.resolve(UUID.randomUUID().toString());
         System.out.println("Salida: " + outputDir);
 
-        // Crear un comando ffmpeg para capturar video de la webcam y convertirlo a HLS
-        List<String> ffmpegCommand = new ArrayList<>();
-        ffmpegCommand.add("ffmpeg");
-        ffmpegCommand.add("-f");
-        ffmpegCommand.add("v4l2"); // Para Linux, usa "v4l2" (video4linux2) para acceder a la webcam
-        ffmpegCommand.add("-i");
-        ffmpegCommand.add("/dev/video0"); // Ruta del dispositivo de la webcam
-        ffmpegCommand.add("-c:v");
-        ffmpegCommand.add("libx264");
-        ffmpegCommand.add("-preset");
-        ffmpegCommand.add("fast");
-        ffmpegCommand.add("-f");
-        ffmpegCommand.add("hls");
-        ffmpegCommand.add("-hls_time");
-        ffmpegCommand.add("5");
-        ffmpegCommand.add("-hls_playlist_type");
-        ffmpegCommand.add("event"); // "event" para grabar el evento completo
-        ffmpegCommand.add("-hls_flags");
-        ffmpegCommand.add("delete_segments");
-        ffmpegCommand.add("-hls_segment_filename");
-        ffmpegCommand.add(outputDir + "/stream_%03d.ts");
-        ffmpegCommand.add(outputDir + "/index.m3u8");
+        // Verificar si la carpeta existe, si no, crearla
+        if (!Files.exists(outputDir)) {
+            Files.createDirectories(outputDir);
+            System.out.println("Carpeta creada: " + outputDir);
+        }
 
-        // Ejecutar el comando
+        // Comando de FFmpeg para convertir el flujo a HLS
+        List<String> ffmpegCommand = List.of(
+                "ffmpeg",
+                "-loglevel", "debug", // Mostrar logs detallados
+                "-f", "mpegts", // Especificar que el flujo de entrada es MPEG-TS
+                "-i", "pipe:0", // Leer entrada desde el pipe
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-f", "hls",
+                "-hls_time", "5",
+                "-hls_playlist_type", "event",
+                "-hls_flags", "delete_segments",
+                "-hls_segment_filename", outputDir + "/stream_%03d.ts",
+                outputDir + "/index.m3u8");
+        // Ejecutar el comando FFmpeg
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
-        processBuilder.redirectErrorStream(true);
+        processBuilder.redirectErrorStream(true); // Combina la salida estándar y de error
         Process process = processBuilder.start();
 
+        // Leer la salida de FFmpeg (para depuración)
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                System.out.println("FFmpeg: " + line);
             }
         }
 
-        // Esperar a que termine el proceso
+        // Esperar a que el proceso termine y verificar si ocurrió algún error
         int exitCode;
         try {
             exitCode = process.waitFor();
             if (exitCode != 0) {
-                throw new IOException("El proceso de FFmpeg falló con el código de salida " + exitCode);
+                throw new IOException("FFmpeg terminó con código de salida " + exitCode);
             }
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

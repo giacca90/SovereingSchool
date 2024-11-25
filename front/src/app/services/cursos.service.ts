@@ -13,6 +13,9 @@ export class CursosService {
 	backURLStreaming: string = 'https://localhost:8090';
 	webSocketUrl: string = 'wss://localhost:8080/live-webcam';
 	public cursos: Curso[] = [];
+	public enGrabacion: boolean = false;
+	private ws: WebSocket | null = null;
+	private mediaRecorder: MediaRecorder | null = null;
 
 	constructor(private http: HttpClient) {}
 
@@ -153,7 +156,7 @@ export class CursosService {
 	}
 
 	// TODO: Revisar
-	async sendMediaToServer() {
+	async sendMediaToServer(streamWebcam: MediaStream) {
 		const status = document.getElementById('status') as HTMLParagraphElement;
 
 		if (!window.WebSocket) {
@@ -165,89 +168,84 @@ export class CursosService {
 		}
 
 		// Abrir conexión WebSocket
-		const ws = new WebSocket(this.webSocketUrl);
+		this.ws = new WebSocket(this.webSocketUrl);
+		this.mediaRecorder = new MediaRecorder(streamWebcam, {
+			mimeType: 'video/webm; codecs=vp9',
+		});
 
-		ws.onopen = () => {
+		this.mediaRecorder.onstop = () => {
+			console.log('Grabación detenida.');
+			if (status) {
+				status.textContent = 'Grabación detenida.';
+			}
+		};
+
+		this.mediaRecorder.onerror = (event) => {
+			console.error('Error en MediaRecorder:', event);
+			if (status) {
+				status.textContent = 'Error en MediaRecorder: ' + event;
+			}
+		};
+
+		this.ws.onopen = () => {
 			console.log('Conexión WebSocket establecida.');
 			if (status) {
 				status.textContent = 'Conexión WebSocket establecida. Enviando flujo de medios...';
 			}
+			this.enGrabacion = true;
+
+			// Comenzar a grabar y enviar los datos
+			if (this.mediaRecorder) {
+				this.mediaRecorder.start(200); // Fragmentos de 200 ms
+				console.log('Grabación iniciada.');
+
+				this.mediaRecorder.ondataavailable = (event) => {
+					if (event.data.size > 0) {
+						this.ws?.send(event.data);
+					}
+				};
+			}
 		};
 
-		ws.onerror = (error) => {
+		this.ws.onerror = (error) => {
 			console.error('Error en WebSocket:', error);
 			if (status) {
 				status.textContent = 'Error en WebSocket: ' + error;
 			}
+			this.enGrabacion = false;
 		};
 
-		ws.onclose = () => {
-			console.log('Conexión WebSocket cerrada.');
+		this.ws.onclose = () => {
+			console.log('Cerrando MediaRecorder y WebSocket.');
+			if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+				this.mediaRecorder.stop();
+			}
 			if (status) {
 				status.textContent = 'Conexión WebSocket cerrada.';
 			}
+
+			this.enGrabacion = false;
 		};
+	}
 
-		try {
-			// Obtener el flujo de la webcam y el micrófono
-			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-			const videoTracks = stream.getVideoTracks();
-			const audioTracks = stream.getAudioTracks();
+	// Método para detener la grabación y la conexión
+	stopMediaStreaming() {
+		const status = document.getElementById('status') as HTMLParagraphElement;
 
-			if (videoTracks.length === 0) {
-				console.error('No se encontraron pistas de video.');
-				if (status) {
-					status.textContent = 'No se encontraron pistas de video.';
-				}
-				return;
-			}
-
-			if (audioTracks.length === 0) {
-				console.error('No se encontraron pistas de audio.');
-				if (status) {
-					status.textContent = 'No se encontraron pistas de audio.';
-				}
-				return;
-			}
-
-			const mediaRecorder = new MediaRecorder(stream, {
-				mimeType: 'video/webm; codecs=vp9',
-			});
-
-			mediaRecorder.ondataavailable = (event) => {
-				if (event.data.size > 0) {
-					ws.send(event.data);
-				}
-			};
-
-			mediaRecorder.onstop = () => {
-				console.log('Grabación detenida.');
-				if (status) {
-					status.textContent = 'Grabación detenida.';
-				}
-			};
-
-			mediaRecorder.onerror = (event) => {
-				console.error('Error en MediaRecorder:', event);
-				if (status) {
-					status.textContent = 'Error en MediaRecorder: ' + event;
-				}
-			};
-
-			// Comenzar a grabar y enviar los datos
-			mediaRecorder.start(500); // Fragmentos de 500 ms
-			console.log('Grabación iniciada.');
-
-			// Detener la grabación cuando el WebSocket se cierra
-			ws.onclose = () => {
-				console.log('Cerrando MediaRecorder.');
-				mediaRecorder.stop();
-			};
-		} catch (error) {
-			console.error('Error al capturar medios:', error);
-			if (status) {
-				status.textContent = 'Error al capturar medios: ' + error;
-			}
+		if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+			this.mediaRecorder.stop(); // Detener la grabación
+			console.log('Grabación detenida.');
 		}
+
+		if (this.ws) {
+			this.ws.close(); // Cerrar WebSocket
+			console.log('WebSocket cerrado.');
+		}
+
+		if (status) {
+			status.textContent = 'Transmisión detenida.';
+		}
+
+		this.enGrabacion = false;
 	}
 }

@@ -77,7 +77,11 @@
 							<div id="audio-level"></div>
 						</div>
 						<p id="status"></p>
-						<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteWebcam()" tabindex="0" (keydown.enter)="emiteWebcam()">Emitir Webcam</div>
+						@if (this.cursoService.enGrabacion === true) {
+							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
+						} @else {
+							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteWebcam()" tabindex="0" (keydown.enter)="emiteWebcam()">Emitir Webcam</div>
+						}
 					}
 				</div>
 				<div class="m-2 flex w-3/5 flex-col">
