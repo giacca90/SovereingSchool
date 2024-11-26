@@ -586,7 +586,10 @@ public class CursoService implements ICursoService {
                 "-hls_playlist_type", "event",
                 "-hls_flags", "delete_segments+independent_segments",
                 "-hls_segment_type", "mpegts",
+                // Modificar el nombre de los segmentos .ts con una ruta correcta
                 "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
+                // Especificar una base URL para los fragmentos
+                "-hls_base_url", "http://your-server-url/videos/ts/", // Ajusta la URL base de tu servidor
                 "-master_pl_name", "master.m3u8",
                 "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3",
                 outputDir + "/stream_%v.m3u8",

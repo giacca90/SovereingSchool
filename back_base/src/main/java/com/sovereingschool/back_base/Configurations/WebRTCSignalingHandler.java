@@ -5,6 +5,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.BinaryMessage;
@@ -20,9 +21,12 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     private final Map<String, UserStreams> userSessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
     private final CursoService cursoService;
+    private final Executor executor; // Executor inyectado
 
-    public WebRTCSignalingHandler(CursoService cursoService) throws IOException {
+    // Constructor modificado para aceptar Executor
+    public WebRTCSignalingHandler(CursoService cursoService, Executor executor) {
         this.cursoService = cursoService;
+        this.executor = executor;
     }
 
     @Override
@@ -99,15 +103,13 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             return;
         }
 
-        Thread ffmpegThread = new Thread(() -> {
+        // Usar el Executor para ejecutar el proceso FFmpeg en un hilo separado
+        executor.execute(() -> {
             try {
                 cursoService.startLiveStreamingFromStream(userId, userInputStream);
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }
         });
-
-        ffmpegThreads.put(userId, ffmpegThread);
-        ffmpegThread.start();
     }
 }

@@ -1,6 +1,7 @@
 package com.sovereingschool.back_base.Configurations;
 
-import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,20 +25,29 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
-        try {
-            WebRTCSignalingHandler handler = new WebRTCSignalingHandler(cursoService);
-            registry.addHandler(handler, "/live-webcam")
-                    .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
-        } catch (IOException e) {
-            System.err.println("Error al crear el WebRTCSignalingHandler: " + e.getMessage());
-        }
+        WebRTCSignalingHandler handler = new WebRTCSignalingHandler(cursoService, webSocketTaskExecutor());
+        registry.addHandler(handler, "/live-webcam")
+                .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
     }
 
     @Bean
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-        container.setMaxTextMessageBufferSize(102400); // 100KB para mensajes de texto
-        container.setMaxBinaryMessageBufferSize(102400); // 100KB para mensajes binarios
+
+        // Incrementar tamaño del buffer para manejar mensajes grandes
+        container.setMaxTextMessageBufferSize(512 * 1024); // 512 KB para mensajes de texto
+        container.setMaxBinaryMessageBufferSize(512 * 1024); // 512 KB para mensajes binarios
+
+        // Configurar tiempo de espera en conexiones WebSocket
+        container.setAsyncSendTimeout(30_000L); // 30 segundos
+        container.setMaxSessionIdleTimeout(60_000L); // 60 segundos
+
         return container;
+    }
+
+    @Bean(name = "webSocketTaskExecutor")
+    public Executor webSocketTaskExecutor() {
+        // Crear un pool de hilos para manejar mensajes en paralelo
+        return Executors.newFixedThreadPool(10);
     }
 }
