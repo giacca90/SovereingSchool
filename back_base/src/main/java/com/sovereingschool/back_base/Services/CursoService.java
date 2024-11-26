@@ -1,5 +1,6 @@
 package com.sovereingschool.back_base.Services;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -543,53 +544,93 @@ public class CursoService implements ICursoService {
     }
 
     // TODO: Comprobar
-    public void startLiveStreamingFromStream(InputStream inputStream) throws IOException {
-        // Definir la ruta de salida para los segmentos de HLS
-        Path outputDir = baseUploadDir.resolve(UUID.randomUUID().toString());
+    public void startLiveStreamingFromStream(String userId, InputStream inputStream) throws IOException {
+        Path outputDir = baseUploadDir.resolve(userId);
         System.out.println("Salida: " + outputDir);
 
-        // Verificar si la carpeta existe, si no, crearla
+        // Crear el directorio de salida si no existe
         if (!Files.exists(outputDir)) {
             Files.createDirectories(outputDir);
             System.out.println("Carpeta creada: " + outputDir);
         }
 
-        // Comando de FFmpeg para convertir el flujo a HLS
+        // Comando FFmpeg para procesar el streaming
         List<String> ffmpegCommand = List.of(
                 "ffmpeg",
-                "-loglevel", "debug", // Mostrar logs detallados
-                "-f", "mpegts", // Especificar que el flujo de entrada es MPEG-TS
-                "-i", "pipe:0", // Leer entrada desde el pipe
-                "-c:v", "libx264",
-                "-preset", "fast",
+                "-loglevel", "info",
+                "-re",
+                "-i", "pipe:0",
+                "-filter_complex",
+                "[0:v]split=4[v1][v2][v3][v4];" +
+                        "[v1]copy[v1out];" +
+                        "[v2]scale=w=1280:h=720[v2out];" +
+                        "[v3]scale=w=854:h=480[v3out];" +
+                        "[v4]scale=w=640:h=360[v4out]",
+                // Mapas de video y audio para múltiples resoluciones
+                "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0", "5M",
+                "-bufsize:v:0", "10M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-minrate:v:1", "3M",
+                "-bufsize:v:1", "6M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2", "1M",
+                "-bufsize:v:2", "2M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "512k", "-maxrate:v:3", "512k", "-minrate:v:3",
+                "512k",
+                "-bufsize:v:3", "1M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "128k", "-ac", "2",
+                "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "128k", "-ac", "2",
+                "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "96k", "-ac", "2",
+                "-map", "a:0", "-c:a:3", "aac", "-b:a:3", "64k", "-ac", "2",
+                // Parámetros HLS
                 "-f", "hls",
                 "-hls_time", "5",
                 "-hls_playlist_type", "event",
-                "-hls_flags", "delete_segments",
-                "-hls_segment_filename", outputDir + "/stream_%03d.ts",
-                outputDir + "/index.m3u8");
-        // Ejecutar el comando FFmpeg
+                "-hls_flags", "delete_segments+independent_segments",
+                "-hls_segment_type", "mpegts",
+                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
+                "-master_pl_name", "master.m3u8",
+                "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3",
+                outputDir + "/stream_%v.m3u8",
+                // Guardar en MP4 en la resolución original
+                "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", outputDir + "/original.mp4");
+
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
-        processBuilder.redirectErrorStream(true); // Combina la salida estándar y de error
+        processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
 
-        // Leer la salida de FFmpeg (para depuración)
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("FFmpeg: " + line);
-            }
-        }
+        try (BufferedOutputStream ffmpegInput = new BufferedOutputStream(process.getOutputStream());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 
-        // Esperar a que el proceso termine y verificar si ocurrió algún error
-        int exitCode;
-        try {
-            exitCode = process.waitFor();
+            // Hilo para leer y mostrar los logs de FFmpeg
+            Thread logReader = new Thread(() -> {
+                try {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println("FFmpeg: " + line);
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error leyendo salida de FFmpeg: " + e.getMessage());
+                }
+            });
+            logReader.start();
+
+            // Escribir datos del InputStream en el proceso FFmpeg
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                ffmpegInput.write(buffer, 0, bytesRead);
+                ffmpegInput.flush();
+            }
+
+            ffmpegInput.close(); // Cerrar el flujo hacia FFmpeg
+            logReader.join(); // Esperar a que se terminen de leer los logs
+
+            int exitCode = process.waitFor();
             if (exitCode != 0) {
                 throw new IOException("FFmpeg terminó con código de salida " + exitCode);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (IOException | InterruptedException e) {
+            System.err.println("Error en FFmpeg: " + e.getMessage());
+            throw new IOException(e);
         }
     }
 

@@ -1,5 +1,7 @@
 package com.sovereingschool.back_base.Configurations;
 
+import java.io.IOException;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
@@ -22,18 +24,20 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
-        // Crear WebRTCSignalingHandler como un bean de Spring y pasar CursoService a su
-        // constructor
-        WebRTCSignalingHandler handler = new WebRTCSignalingHandler(cursoService);
-        registry.addHandler(handler, "/live-webcam")
-                .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
+        try {
+            WebRTCSignalingHandler handler = new WebRTCSignalingHandler(cursoService);
+            registry.addHandler(handler, "/live-webcam")
+                    .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
+        } catch (IOException e) {
+            System.err.println("Error al crear el WebRTCSignalingHandler: " + e.getMessage());
+        }
     }
 
     @Bean
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-        container.setMaxTextMessageBufferSize(65536); // Set text message buffer size to 64KB
-        container.setMaxBinaryMessageBufferSize(65536); // Set binary message buffer size to 64KB
+        container.setMaxTextMessageBufferSize(102400); // 100KB para mensajes de texto
+        container.setMaxBinaryMessageBufferSize(102400); // 100KB para mensajes binarios
         return container;
     }
 }
