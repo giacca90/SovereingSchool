@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PipedInputStream;
 import java.math.BigDecimal;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -543,7 +544,7 @@ public class CursoService implements ICursoService {
     }
 
     // TODO: Comprobar
-    public void startLiveStreamingFromStream(String userId, InputStream inputStream) throws IOException {
+    public void startLiveStreamingFromStream(String userId, Object inputStream) throws IOException {
         Path outputDir = baseUploadDir.resolve(userId);
         System.out.println("Salida: " + outputDir);
 
@@ -553,12 +554,22 @@ public class CursoService implements ICursoService {
             System.out.println("Carpeta creada: " + outputDir);
         }
 
+        // Determinar el origen: PipedInputStream o RTMP URL
+        String inputSpecifier;
+        if (inputStream instanceof PipedInputStream) {
+            inputSpecifier = "pipe:0"; // Entrada desde el pipe
+        } else if (inputStream instanceof String) {
+            inputSpecifier = (String) inputStream; // Entrada desde una URL RTMP
+        } else {
+            throw new IllegalArgumentException("Fuente de entrada no soportada");
+        }
+
         // Comando FFmpeg para procesar el streaming
         List<String> ffmpegCommand = List.of(
                 "ffmpeg",
                 "-loglevel", "info",
                 "-re",
-                "-i", "pipe:0",
+                "-i", inputSpecifier,
                 // Parámetros HLS
                 "-f", "hls",
                 "-hls_time", "5",
@@ -628,11 +639,14 @@ public class CursoService implements ICursoService {
             logReader.start();
 
             // Escribir datos del InputStream en el proceso FFmpeg
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                ffmpegInput.write(buffer, 0, bytesRead);
-                ffmpegInput.flush();
+            if (inputStream instanceof PipedInputStream) {
+                InputStream inStream = (InputStream) inputStream; // Cast explícito
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = inStream.read(buffer)) != -1) {
+                    ffmpegInput.write(buffer, 0, bytesRead);
+                    ffmpegInput.flush();
+                }
             }
 
             ffmpegInput.close(); // Cerrar el flujo hacia FFmpeg
@@ -647,54 +661,4 @@ public class CursoService implements ICursoService {
             throw new IOException(e);
         }
     }
-
-    // TODO: Comprobar
-    public void startLiveStreamingFromRTMP(String rtmpUrl) throws IOException {
-        // Define la carpeta de salida donde se guardarán los archivos .ts y .m3u8
-        Path outputDir = Paths.get("output/stream");
-
-        List<String> ffmpegCommand = new ArrayList<>();
-        ffmpegCommand.add("ffmpeg");
-        ffmpegCommand.add("-i");
-        ffmpegCommand.add(rtmpUrl); // URL del flujo RTMP entrante
-        ffmpegCommand.add("-c:v");
-        ffmpegCommand.add("libx264");
-        ffmpegCommand.add("-preset");
-        ffmpegCommand.add("fast");
-        ffmpegCommand.add("-f");
-        ffmpegCommand.add("hls");
-        ffmpegCommand.add("-hls_time");
-        ffmpegCommand.add("5");
-        ffmpegCommand.add("-hls_playlist_type");
-        ffmpegCommand.add("event");
-        ffmpegCommand.add("-hls_flags");
-        ffmpegCommand.add("delete_segments");
-        ffmpegCommand.add("-hls_segment_filename");
-        ffmpegCommand.add(outputDir + "/stream_%03d.ts");
-        ffmpegCommand.add(outputDir + "/index.m3u8");
-
-        // Ejecutar el comando FFmpeg
-        ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
-        processBuilder.redirectErrorStream(true);
-        Process process = processBuilder.start();
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-        }
-
-        int exitCode;
-        try {
-            exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new IOException("El proceso de FFmpeg falló con el código de salida " + exitCode);
-            }
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
 }

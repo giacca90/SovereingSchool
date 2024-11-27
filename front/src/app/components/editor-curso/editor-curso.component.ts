@@ -330,6 +330,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 			case 1: {
 				this.tipoClase = 1;
 				obsButton.classList.add('text-blue-700');
+				this.startOBS();
 				break;
 			}
 			case 2: {
@@ -391,6 +392,16 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		if (this.streamWebcam) {
 			this.cursoService.sendMediaToServer(this.streamWebcam);
 		}
+	}
+
+	startOBS() {
+		if (this.loginService.usuario?.id_usuario) {
+			this.cursoService.startOBS(this.loginService.usuario.id_usuario);
+		}
+	}
+
+	emiteOBS() {
+		this.cursoService.emitirOBS();
 	}
 
 	detenerEmision() {

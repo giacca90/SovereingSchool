@@ -25,9 +25,15 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
+        // Registrar el handler para la webcam
         WebRTCSignalingHandler handler = new WebRTCSignalingHandler(cursoService, webSocketTaskExecutor());
         registry.addHandler(handler, "/live-webcam")
                 .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
+
+        // Registrar el handler para OBS
+        registry.addHandler(new OBSWebSocketHandler(cursoService), "/live-obs")
+                .setAllowedOrigins("*"); // Cambia "*" a los dominios permitidos en producción
+
     }
 
     @Bean

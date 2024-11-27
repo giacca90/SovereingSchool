@@ -68,8 +68,13 @@
 						</div>
 					}
 					@if (this.tipoClase === 1) {
-						<p>Este es tu enlace para OBS</p>
-						<span class="rounded-lg border border-black p-2 text-gray-700">Cargando...</span>
+						<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
+						<p id="statusOBS">Cargando...</p>
+						@if (this.cursoService.enGrabacion === true) {
+							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
+						} @else {
+							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteOBS()" tabindex="0" (keydown.enter)="emiteOBS()">Emitir OBS</div>
+						}
 					}
 					@if (this.tipoClase === 2) {
 						<video id="webcam" autoplay playsinline class="border border-black"></video>

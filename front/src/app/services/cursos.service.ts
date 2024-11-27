@@ -12,6 +12,7 @@ export class CursosService {
 	backURL: string = 'https://localhost:8080';
 	backURLStreaming: string = 'https://localhost:8090';
 	webSocketUrl: string = 'wss://localhost:8080/live-webcam';
+	webSocketUrlOBS: string = 'wss://localhost:8080/live-obs';
 	public cursos: Curso[] = [];
 	public enGrabacion: boolean = false;
 	private ws: WebSocket | null = null;
@@ -247,5 +248,89 @@ export class CursosService {
 		}
 
 		this.enGrabacion = false;
+	}
+
+	async startOBS(userId: number) {
+		let status: HTMLParagraphElement | null = null;
+
+		if (!window.WebSocket) {
+			console.error('WebSocket no es compatible con este navegador.');
+			status = document.getElementById('statusOBS') as HTMLParagraphElement;
+			if (status) {
+				status.textContent = 'WebSocket no es compatible con este navegador.';
+			}
+			return;
+		}
+
+		// Abrir conexión WebSocket
+		this.ws = new WebSocket(this.webSocketUrlOBS);
+
+		this.ws.onopen = () => {
+			console.log('Conexión WebSocket establecida.');
+			status = document.getElementById('statusOBS') as HTMLParagraphElement;
+			if (status) {
+				status.textContent = 'Conexión WebSocket establecida. Enviando ID del usuario...';
+
+				// Enviar el ID del usuario al servidor
+				const message = { type: 'request_rtmp_url', userId: userId.toString() };
+				this.ws?.send(JSON.stringify(message));
+			} else {
+				console.error('status no encontrado');
+			}
+		};
+
+		this.ws.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+
+			if (data.type === 'rtmp_url') {
+				console.log('URL RTMP recibida:', data.rtmpUrl);
+				if (status) {
+					status.textContent = `URL para OBS recibida: ${data.rtmpUrl}`;
+				}
+
+				// Mostrar la URL RTMP al usuario (opcional)
+				const obsUrlField = document.getElementById('obs-url') as HTMLInputElement;
+				if (obsUrlField) {
+					obsUrlField.value = data.rtmpUrl;
+				}
+			} else if (data.type === 'emitiendoOBS') {
+				console.log('Emisión de OBS iniciada.');
+				this.enGrabacion = true;
+				if (status) {
+					status.textContent = 'Emisión de OBS iniciada.';
+				}
+			} else if (data.type === 'error') {
+				console.error('Error recibido del servidor:', data.message);
+				if (status) {
+					status.textContent = `Error: ${data.message}`;
+				}
+			}
+		};
+
+		this.ws.onerror = (error) => {
+			console.error('Error en la conexión WebSocket:', error);
+			if (status) {
+				status.textContent = 'Error en la conexión WebSocket.';
+			}
+		};
+
+		this.ws.onclose = () => {
+			console.log('Conexión WebSocket cerrada.');
+			if (status) {
+				status.textContent = 'Conexión WebSocket cerrada.';
+			}
+		};
+	}
+
+	emitirOBS() {
+		if (this.ws) {
+			this.ws.send(JSON.stringify({ 'event': 'emitirOBS' }));
+			const status = document.getElementById('statusOBD');
+			if (status) {
+				status.textContent = 'Comenzando la emisión...';
+			}
+		} else {
+			console.error('No se pudo emitir OBS');
+		}
 	}
 }
