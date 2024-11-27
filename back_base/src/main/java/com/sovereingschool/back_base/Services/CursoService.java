@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -369,18 +367,30 @@ public class CursoService implements ICursoService {
                             comando.add(
                                     "[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=854:h=480[v3out]; [v4]scale=w=640:h=360[v4out]");
                             maps.addAll(Arrays.asList(
+                                    // Resolución 1080p
                                     "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M",
                                     "-minrate:v:0", "5M", "-bufsize:v:0", "10M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48",
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_0/",
+                                    // Resolución 720p
                                     "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M",
                                     "-minrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48",
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_1/",
+                                    // Resolución 480p
                                     "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M",
                                     "-minrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48",
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_2/",
+                                    // Resolución 360p
                                     "-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "512k", "-maxrate:v:3", "512k",
                                     "-minrate:v:3", "512k", "-bufsize:v:3", "1M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48"));
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_3/"));
                             lista.add("v:0,a:0");
                             lista.add("v:1,a:1");
                             lista.add("v:2,a:2");
@@ -393,15 +403,24 @@ public class CursoService implements ICursoService {
                             comando.add(
                                     "[0:v]split=3[v1][v2][v3]; [v1]copy[v1out]; [v2]scale=w=854:h=480[v2out]; [v3]scale=w=640:h=360[v3out]");
                             maps.addAll(Arrays.asList(
+                                    // Resolución 720p
                                     "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M",
                                     "-minrate:v:0", "5M", "-bufsize:v:0", "10M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48",
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_0/",
+                                    // Resolución 480p
                                     "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M",
                                     "-minrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48",
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_1/",
+                                    // Resolución 360p
                                     "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M",
                                     "-minrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48"));
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_2/"));
                             lista.add("v:0,a:0");
                             lista.add("v:1,a:1");
                             lista.add("v:2,a:2");
@@ -411,12 +430,18 @@ public class CursoService implements ICursoService {
                         } else if (width >= 854 && height >= 480) {
                             comando.add("[0:v]split=2[v1][v2]; [v1]copy[v1out]; [v2]scale=w=640:h=360[v2out]");
                             maps.addAll(Arrays.asList(
+                                    // Resolución 480p
                                     "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "3M", "-maxrate:v:0", "3M",
                                     "-minrate:v:0", "3M", "-bufsize:v:0", "6M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48",
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_0/",
+                                    // Resolución 360p
                                     "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "1M", "-maxrate:v:1", "1M",
                                     "-minrate:v:1", "1M", "-bufsize:v:1", "2M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48"));
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_1/"));
                             lista.add("v:0,a:0");
                             lista.add("v:1,a:1");
                             audio.addAll(Arrays.asList("-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ac", "2"));
@@ -424,9 +449,12 @@ public class CursoService implements ICursoService {
                         } else {
                             comando.add("[0:v]copy[v1out]");
                             maps.addAll(Arrays.asList(
+                                    // Resolución 420p
                                     "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "512k", "-maxrate:v:0", "512k",
                                     "-minrate:v:0", "512k", "-bufsize:v:0", "1M", "-preset", "slow", "-g", "48",
-                                    "-sc_threshold", "0", "-keyint_min", "48"));
+                                    "-sc_threshold", "0", "-keyint_min", "48", "-hls_segment_filename",
+                                    "stream_%v/data%02d.ts",
+                                    "-hls_base_url", "stream_0/"));
                             lista.add("v:0,a:0");
                             audio.addAll(Arrays.asList("-map", "a:0", "-c:a:3", "aac", "-b:a:3", "48k", "-ac", "2"));
                         }
@@ -450,8 +478,6 @@ public class CursoService implements ICursoService {
                                 "-hls_playlist_type", "vod",
                                 "-hls_flags", "independent_segments",
                                 "-hls_segment_type", "mpegts",
-                                "-hls_segment_filename", "stream_%v/data%02d.ts",
-                                "-hls_base_url", "stream_%v/",
                                 "-master_pl_name", "master.m3u8",
                                 "-var_stream_map", String.join(" ", lista),
                                 "stream_%v.m3u8"));
@@ -479,35 +505,8 @@ public class CursoService implements ICursoService {
                             throw new IOException("El proceso de FFmpeg falló con el código de salida " + exitCode);
                         }
 
-                        // Procesamiento del archivo .m3u8
-                        try (DirectoryStream<Path> stream = Files.newDirectoryStream(base, "*.m3u8")) {
-                            List<Path> m3u8Files = new ArrayList<>();
-                            for (Path entry : stream) {
-                                if (!entry.endsWith("master.m3u8")) {
-                                    m3u8Files.add(entry);
-                                }
-                            }
-
-                            for (Path m3u8File : m3u8Files) {
-                                String fileName = m3u8File.getFileName().toString().substring(0,
-                                        m3u8File.getFileName().toString().lastIndexOf("."));
-                                List<String> lines = Files.readAllLines(m3u8File, StandardCharsets.UTF_8);
-                                List<String> modifiedLines = new ArrayList<>();
-
-                                for (String line : lines) {
-                                    // Modifica la línea según tus necesidades
-                                    if (line.startsWith("stream_%v/")) {
-                                        line = line.replace("stream_%v/", fileName + "/");
-                                    }
-                                    modifiedLines.add(line);
-                                }
-
-                                Files.write(m3u8File, modifiedLines, StandardCharsets.UTF_8);
-                            }
-
-                            clase.setDireccion_clase(base.toString() + "/master.m3u8");
-                            this.claseRepo.save(clase);
-                        }
+                        clase.setDireccion_clase(base.toString() + "/master.m3u8");
+                        this.claseRepo.save(clase);
 
                     } catch (IOException e) {
                         System.err.println("Error en la entrada/salida: " + e.getMessage());
@@ -560,6 +559,13 @@ public class CursoService implements ICursoService {
                 "-loglevel", "info",
                 "-re",
                 "-i", "pipe:0",
+                // Parámetros HLS
+                "-f", "hls",
+                "-hls_time", "5",
+                "-hls_playlist_type", "event",
+                "-hls_flags", "delete_segments+independent_segments",
+                "-hls_segment_type", "mpegts",
+                // Crea filtros
                 "-filter_complex",
                 "[0:v]split=4[v1][v2][v3][v4];" +
                         "[v1]copy[v1out];" +
@@ -567,29 +573,34 @@ public class CursoService implements ICursoService {
                         "[v3]scale=w=854:h=480[v3out];" +
                         "[v4]scale=w=640:h=360[v4out]",
                 // Mapas de video y audio para múltiples resoluciones
+                // Resolución 1080p
                 "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0", "5M",
                 "-bufsize:v:0", "10M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
+                "-hls_base_url", "stream_0/",
+                // Resolución 720p
                 "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-minrate:v:1", "3M",
                 "-bufsize:v:1", "6M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
+                "-hls_base_url", "stream_1/",
+                // Resolución 480p
                 "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2", "1M",
                 "-bufsize:v:2", "2M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
+                "-hls_base_url", "stream_2/",
+                // Resolución 360p
                 "-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "512k", "-maxrate:v:3", "512k", "-minrate:v:3",
                 "512k",
                 "-bufsize:v:3", "1M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
+                "-hls_base_url", "stream_3/",
+                // Mapeo de audio
                 "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "128k", "-ac", "2",
                 "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "128k", "-ac", "2",
                 "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "96k", "-ac", "2",
                 "-map", "a:0", "-c:a:3", "aac", "-b:a:3", "64k", "-ac", "2",
-                // Parámetros HLS
-                "-f", "hls",
-                "-hls_time", "5",
-                "-hls_playlist_type", "event",
-                "-hls_flags", "delete_segments+independent_segments",
-                "-hls_segment_type", "mpegts",
-                // Modificar el nombre de los segmentos .ts con una ruta correcta
-                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
-                // Especificar una base URL para los fragmentos
-                "-hls_base_url", "http://your-server-url/videos/ts/", // Ajusta la URL base de tu servidor
+
+                // Comando locales
                 "-master_pl_name", "master.m3u8",
                 "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3",
                 outputDir + "/stream_%v.m3u8",
