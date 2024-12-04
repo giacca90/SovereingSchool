@@ -1,4 +1,4 @@
-package com.sovereingschool.back_base.Configurations;
+package com.sovereingschool.back_streaming.Configurations;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -11,27 +11,22 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
-import com.sovereingschool.back_base.Services.CursoService;
+import com.sovereingschool.back_streaming.Controllers.OBSWebSocketHandler;
+import com.sovereingschool.back_streaming.Controllers.WebRTCSignalingHandler;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final CursoService cursoService;
-
-    public WebSocketConfig(CursoService cursoService) {
-        this.cursoService = cursoService;
-    }
-
     @Override
     public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
         // Registrar el handler para la webcam
-        WebRTCSignalingHandler handler = new WebRTCSignalingHandler(cursoService, webSocketTaskExecutor());
+        WebRTCSignalingHandler handler = new WebRTCSignalingHandler(webSocketTaskExecutor());
         registry.addHandler(handler, "/live-webcam")
                 .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
 
         // Registrar el handler para OBS
-        registry.addHandler(new OBSWebSocketHandler(cursoService), "/live-obs")
+        registry.addHandler(new OBSWebSocketHandler(), "/live-obs")
                 .setAllowedOrigins("*"); // Cambia "*" a los dominios permitidos en producción
 
     }

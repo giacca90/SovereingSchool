@@ -1,21 +1,19 @@
-package com.sovereingschool.back_base.Configurations;
+package com.sovereingschool.back_streaming.Controllers;
 
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import com.sovereingschool.back_base.Services.CursoService;
+import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class OBSWebSocketHandler extends TextWebSocketHandler {
 
-    private final CursoService cursoService;
-
-    public OBSWebSocketHandler(CursoService cursoService) {
-        this.cursoService = cursoService;
-    }
+    @Autowired
+    private StreamingService streamingService;
 
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
@@ -42,7 +40,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"userId no proporcionado\"}"));
             }
         } else if (payload.contains("emitirOBS") && rtmpUrl.length() > 0) {
-            this.cursoService.startLiveStreamingFromStream(randomID, rtmpUrl);
+            this.streamingService.startLiveStreamingFromStream(randomID, rtmpUrl);
 
         } else {
             session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));

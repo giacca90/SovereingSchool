@@ -36,7 +36,5 @@ public interface ICursoService {
 
     public void deleteClase(Clase clase);
 
-    public void convertVideos(Curso curso);
-
     public String subeVideo(MultipartFile file);
 }

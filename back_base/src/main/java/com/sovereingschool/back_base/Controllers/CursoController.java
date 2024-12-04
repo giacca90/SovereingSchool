@@ -176,8 +176,6 @@ public class CursoController {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-			// función asíncrona
-			this.service.convertVideos(result);
 			response = "Curso actualizado con éxito!!!";
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {

@@ -24,7 +24,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back_streaming.Models.Clase;
+import com.sovereingschool.back_streaming.Models.Curso;
 import com.sovereingschool.back_streaming.Models.Usuario;
+import com.sovereingschool.back_streaming.Services.StreamingService;
 import com.sovereingschool.back_streaming.Services.UsuarioCursosService;
 
 @RestController
@@ -52,6 +54,9 @@ public class StreamingController {
 
     @Autowired
     private UsuarioCursosService usuarioCursosService;
+
+    @Autowired
+    private StreamingService streamingService;
 
     @GetMapping("/{id_usuario}/{id_curso}/{id_clase}/{lista}")
     public ResponseEntity<InputStreamResource> getListas(@PathVariable Long id_usuario, @PathVariable Long id_curso,
@@ -195,6 +200,19 @@ public class StreamingController {
             return new ResponseEntity<>(this.usuarioCursosService.addNuevoUsuario(usuario), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/convertir_videos")
+    public ResponseEntity<?> convertirVideos(@RequestBody Curso curso) {
+        try {
+            // System.out.println("Curso recibido: " + curso.toString());
+            this.streamingService.convertVideos(curso);
+            // ResponseEntity
+            return new ResponseEntity<>("Videos convertidos con éxito!!!", HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace(); // Usar un logger como SLF4J en entornos reales
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

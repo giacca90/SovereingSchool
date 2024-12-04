@@ -8,6 +8,7 @@ import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
 import { InitService } from '../../services/init.service';
 import { LoginService } from '../../services/login.service';
+import { StreamingService } from '../../services/streaming.service';
 
 @Component({
 	selector: 'app-editor-curso',
@@ -32,6 +33,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		private router: Router,
 		public cursoService: CursosService,
 		public loginService: LoginService,
+		public streamingService: StreamingService,
 		private initService: InitService,
 	) {
 		this.subscription.add(
@@ -390,21 +392,21 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 	emiteWebcam() {
 		if (this.streamWebcam) {
-			this.cursoService.sendMediaToServer(this.streamWebcam);
+			this.streamingService.sendMediaToServer(this.streamWebcam);
 		}
 	}
 
 	startOBS() {
 		if (this.loginService.usuario?.id_usuario) {
-			this.cursoService.startOBS(this.loginService.usuario.id_usuario);
+			this.streamingService.startOBS(this.loginService.usuario.id_usuario);
 		}
 	}
 
 	emiteOBS() {
-		this.cursoService.emitirOBS();
+		this.streamingService.emitirOBS();
 	}
 
 	detenerEmision() {
-		this.cursoService.stopMediaStreaming();
+		this.streamingService.stopMediaStreaming();
 	}
 }

@@ -1,4 +1,4 @@
-package com.sovereingschool.back_base.Configurations;
+package com.sovereingschool.back_streaming.Controllers;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -7,25 +7,28 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
-import com.sovereingschool.back_base.Services.CursoService;
+import com.sovereingschool.back_streaming.Models.UserStreams;
+import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
 
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, UserStreams> userSessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
-    private final CursoService cursoService;
     private final Executor executor; // Executor inyectado
 
+    @Autowired
+    private StreamingService streamingService;
+
     // Constructor modificado para aceptar Executor
-    public WebRTCSignalingHandler(CursoService cursoService, Executor executor) {
-        this.cursoService = cursoService;
+    public WebRTCSignalingHandler(Executor executor) {
         this.executor = executor;
     }
 
@@ -106,7 +109,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         // Usar el Executor para ejecutar el proceso FFmpeg en un hilo separado
         executor.execute(() -> {
             try {
-                cursoService.startLiveStreamingFromStream(userId, userInputStream);
+                this.streamingService.startLiveStreamingFromStream(userId, userInputStream);
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }

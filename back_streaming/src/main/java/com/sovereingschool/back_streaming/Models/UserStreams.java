@@ -1,4 +1,4 @@
-package com.sovereingschool.back_base.Configurations;
+package com.sovereingschool.back_streaming.Models;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;

@@ -70,7 +70,7 @@
 					@if (this.tipoClase === 1) {
 						<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
 						<p id="statusOBS">Cargando...</p>
-						@if (this.cursoService.enGrabacion === true) {
+						@if (this.streamingService.enGrabacion === true) {
 							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
 						} @else {
 							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteOBS()" tabindex="0" (keydown.enter)="emiteOBS()">Emitir OBS</div>
@@ -82,7 +82,7 @@
 							<div id="audio-level"></div>
 						</div>
 						<p id="status"></p>
-						@if (this.cursoService.enGrabacion === true) {
+						@if (this.streamingService.enGrabacion === true) {
 							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
 						} @else {
 							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteWebcam()" tabindex="0" (keydown.enter)="emiteWebcam()">Emitir Webcam</div>
