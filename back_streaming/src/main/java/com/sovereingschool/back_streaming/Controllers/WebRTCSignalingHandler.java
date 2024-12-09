@@ -108,6 +108,10 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         executor.execute(() -> {
             try {
                 this.streamingService.startLiveStreamingFromStream(userId, userInputStream);
+                // Registrar el hilo en el mapa después de iniciar el proceso FFmpeg
+                Thread currentThread = Thread.currentThread();
+                ffmpegThreads.put(userId, currentThread); // Añadir el hilo al mapa
+
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }

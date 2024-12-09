@@ -31,7 +31,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
 
         // Registrar el handler para OBS
-        registry.addHandler(new OBSWebSocketHandler(streamingService), "/live-obs")
+        registry.addHandler(new OBSWebSocketHandler(webSocketTaskExecutor(), streamingService), "/live-obs")
                 .setAllowedOrigins("*"); // Cambia "*" a los dominios permitidos en producción
 
     }
@@ -54,6 +54,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Bean(name = "webSocketTaskExecutor")
     public Executor webSocketTaskExecutor() {
         // Crear un pool de hilos para manejar mensajes en paralelo
-        return Executors.newFixedThreadPool(10);
+        return Executors.newFixedThreadPool(50);
     }
 }

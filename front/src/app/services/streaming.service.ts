@@ -100,6 +100,8 @@ export class StreamingService {
 		if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
 			this.mediaRecorder.stop(); // Detener la grabación
 			console.log('Grabación detenida.');
+		} else {
+			this.detenerOBS();
 		}
 
 		if (this.ws) {
@@ -202,6 +204,22 @@ export class StreamingService {
 			console.error('No se pudo emitir OBS');
 			if (status) {
 				status.textContent = 'No se pudo emitir OBS';
+			}
+		}
+	}
+
+	detenerOBS() {
+		const status = document.getElementById('statusOBD');
+		if (this.ws) {
+			this.ws.send(JSON.stringify({ 'event': 'detenerStreamOBS', 'rtmpUrl': this.rtmpUrl }));
+			if (status) {
+				status.textContent = 'Deteniendo la emisión...';
+			}
+			this.enGrabacion = true;
+		} else {
+			console.error('No se pudo detener OBS');
+			if (status) {
+				status.textContent = 'No se pudo detener OBS';
 			}
 		}
 	}

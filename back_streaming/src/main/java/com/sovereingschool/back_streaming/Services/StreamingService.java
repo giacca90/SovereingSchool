@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -26,7 +28,6 @@ import com.sovereingschool.back_streaming.Repositories.ClaseRepository;
 @Service
 @Transactional
 public class StreamingService {
-
     private static int[] getVideoResolution(String inputFileName) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder("ffprobe",
                 "-v", "error",
@@ -51,6 +52,8 @@ public class StreamingService {
         process.waitFor();
         return new int[] { width, height };
     }
+
+    private final Map<String, Process> ffmpegProcesses = new ConcurrentHashMap<>();
 
     @Autowired
     private ClaseRepository claseRepo;
@@ -333,6 +336,8 @@ public class StreamingService {
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
+        // Guardar el proceso en el mapa
+        ffmpegProcesses.put(userId, process);
 
         try (BufferedOutputStream ffmpegInput = new BufferedOutputStream(process.getOutputStream());
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -373,4 +378,29 @@ public class StreamingService {
             throw new IOException(e);
         }
     }
+
+    public void stopFFmpegProcessForUser(String userId) throws IOException {
+        Process process = ffmpegProcesses.remove(userId);
+        if (process != null && process.isAlive()) {
+            try {
+                // Enviar una señal de terminación controlada
+                process.destroy(); // Intentar detener el proceso de manera ordenada
+                // Esperar a que el proceso termine de forma controlada
+                int exitCode = process.waitFor();
+
+                // Verificar el código de salida de FFmpeg
+                if (exitCode == 0) {
+                    System.out.println("Proceso FFmpeg detenido correctamente para el usuario " + userId);
+                } else {
+                    System.out.println("FFmpeg terminó con un error. Código de salida: " + exitCode);
+                }
+            } catch (InterruptedException e) {
+                System.err.println("El proceso fue interrumpido: " + e.getMessage());
+                Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
+            }
+        } else {
+            System.out.println("No se encontró un proceso FFmpeg para el usuario " + userId);
+        }
+    }
+
 }
