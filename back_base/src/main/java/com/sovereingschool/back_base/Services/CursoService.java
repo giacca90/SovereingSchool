@@ -152,7 +152,6 @@ public class CursoService implements ICursoService {
                 }
                 try {
                     clase = this.claseRepo.save(clase);
-                    System.out.println("LOG1: " + clase.getId_clase().toString());
                 } catch (Exception e) {
                     System.err.println("Error en guardar la clase: " + e.getMessage());
                     return null;
@@ -173,7 +172,6 @@ public class CursoService implements ICursoService {
                 return null;
             }
         }
-        System.out.println("LOG2: " + curso.getId_curso().toString());
         try {
             WebClient webClient = createSecureWebClient(backStreamURL);
             webClient.post().uri("/convertir_videos")
@@ -186,8 +184,8 @@ public class CursoService implements ICursoService {
                         e.printStackTrace();
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
-                        if (res != null && res.equals("Videos convertidos con exito!!!")) {
-                            System.out.println("Videos convertidos con exito!!!");
+                        if (res != null && res.equals("Videos convertidos con éxito!!!")) {
+                            System.out.println("Videos convertidos con éxito!!!");
                         } else {
                             System.err.println("Error en convertir los videos del curso");
                         }

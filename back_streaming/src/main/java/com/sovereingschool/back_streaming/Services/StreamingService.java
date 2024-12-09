@@ -271,7 +271,7 @@ public class StreamingService {
         if (inputStream instanceof PipedInputStream) {
             inputSpecifier = "pipe:0"; // Entrada desde el pipe
         } else if (inputStream instanceof String) {
-            inputSpecifier = (String) inputStream; // Entrada desde una URL RTMP
+            inputSpecifier = "rtmp://localhost:8060/live/" + userId;// Entrada desde una URL RTMP
         } else {
             throw new IllegalArgumentException("Fuente de entrada no soportada");
         }

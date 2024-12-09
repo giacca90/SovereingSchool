@@ -2,7 +2,6 @@ package com.sovereingschool.back_streaming.Controllers;
 
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -11,9 +10,11 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class OBSWebSocketHandler extends TextWebSocketHandler {
+    private final StreamingService streamingService;
 
-    @Autowired
-    private StreamingService streamingService;
+    public OBSWebSocketHandler(StreamingService streamingService) {
+        this.streamingService = streamingService;
+    }
 
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
@@ -31,7 +32,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
             if (userId != null) {
                 // Generar URL RTMP para OBS
-                rtmpUrl = "rtmp://localhost:8080/live/" + userId + "_" + randomID;
+                rtmpUrl = "rtmp://localhost:8060/live/" + userId + "_" + randomID;
 
                 // Enviar la URL generada al cliente
                 session.sendMessage(new TextMessage("{\"type\":\"rtmp_url\",\"rtmpUrl\":\"" + rtmpUrl + "\"}"));
@@ -39,8 +40,8 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
                 // Enviar error si no se encuentra el userId
                 session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"userId no proporcionado\"}"));
             }
-        } else if (payload.contains("emitirOBS") && rtmpUrl.length() > 0) {
-            this.streamingService.startLiveStreamingFromStream(randomID, rtmpUrl);
+        } else if (payload.contains("emitirOBS") && payload.contains("rtmpUrl")) {
+            this.streamingService.startLiveStreamingFromStream(this.extractStreamId(payload), rtmpUrl);
 
         } else {
             session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));
@@ -56,4 +57,17 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         }
         return null;
     }
+
+    private String extractStreamId(String payload) {
+        // Implementar lógica para extraer el streamId del mensaje
+        // Ejemplo simplista: Si el payload es JSON:
+        // {"event":"emitirOBS","rtmpUrl":"rtmp://localhost:8060/live/1_31973234-fb5c-4140-a9f1-00cac84f3b60"}
+        if (payload.contains("rtmpUrl")) {
+            String streamId = payload.substring(payload.lastIndexOf("/") + 1, payload.length() - 2);
+            System.out.println("Stream ID: " + streamId);
+            return streamId;
+        }
+        return null;
+    }
+
 }

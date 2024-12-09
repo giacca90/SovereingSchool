@@ -7,11 +7,12 @@ import { Observable } from 'rxjs';
 })
 export class StreamingService {
 	private URL: string = 'https://localhost:8090';
-	private webSocketUrlWebcam: string = 'wss://localhost:8080/live-webcam';
-	private webSocketUrlOBS: string = 'wss://localhost:8080/live-obs';
+	private webSocketUrlWebcam: string = 'wss://localhost:8090/live-webcam';
+	private webSocketUrlOBS: string = 'wss://localhost:8090/live-obs';
 	public enGrabacion: boolean = false;
 	private ws: WebSocket | null = null;
 	private mediaRecorder: MediaRecorder | null = null;
+	private rtmpUrl: string | null = null;
 
 	constructor(private http: HttpClient) {}
 
@@ -20,7 +21,7 @@ export class StreamingService {
 	}
 
 	// TODO: Revisar
-	async sendMediaToServer(streamWebcam: MediaStream) {
+	async sendMediaToServer(stream: MediaStream) {
 		const status = document.getElementById('status') as HTMLParagraphElement;
 
 		if (!window.WebSocket) {
@@ -33,7 +34,7 @@ export class StreamingService {
 
 		// Abrir conexión WebSocket
 		this.ws = new WebSocket(this.webSocketUrlWebcam);
-		this.mediaRecorder = new MediaRecorder(streamWebcam, {
+		this.mediaRecorder = new MediaRecorder(stream, {
 			mimeType: 'video/webm; codecs=vp9',
 		});
 
@@ -147,6 +148,7 @@ export class StreamingService {
 
 			if (data.type === 'rtmp_url') {
 				console.log('URL RTMP recibida:', data.rtmpUrl);
+				this.rtmpUrl = data.rtmpUrl;
 				if (status) {
 					status.textContent = `URL para OBS recibida: ${data.rtmpUrl}`;
 				}
@@ -164,6 +166,7 @@ export class StreamingService {
 				}
 			} else if (data.type === 'error') {
 				console.error('Error recibido del servidor:', data.message);
+				this.enGrabacion = false;
 				if (status) {
 					status.textContent = `Error: ${data.message}`;
 				}
@@ -172,6 +175,7 @@ export class StreamingService {
 
 		this.ws.onerror = (error) => {
 			console.error('Error en la conexión WebSocket:', error);
+			this.enGrabacion = false;
 			if (status) {
 				status.textContent = 'Error en la conexión WebSocket.';
 			}
@@ -179,6 +183,7 @@ export class StreamingService {
 
 		this.ws.onclose = () => {
 			console.log('Conexión WebSocket cerrada.');
+			this.enGrabacion = false;
 			if (status) {
 				status.textContent = 'Conexión WebSocket cerrada.';
 			}
@@ -186,14 +191,18 @@ export class StreamingService {
 	}
 
 	emitirOBS() {
+		const status = document.getElementById('statusOBD');
 		if (this.ws) {
-			this.ws.send(JSON.stringify({ 'event': 'emitirOBS' }));
-			const status = document.getElementById('statusOBD');
+			this.ws.send(JSON.stringify({ 'event': 'emitirOBS', 'rtmpUrl': this.rtmpUrl }));
 			if (status) {
 				status.textContent = 'Comenzando la emisión...';
 			}
+			this.enGrabacion = true;
 		} else {
 			console.error('No se pudo emitir OBS');
+			if (status) {
+				status.textContent = 'No se pudo emitir OBS';
+			}
 		}
 	}
 }

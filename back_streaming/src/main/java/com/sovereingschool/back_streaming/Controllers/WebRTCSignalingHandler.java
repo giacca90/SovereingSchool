@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
@@ -23,13 +22,12 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     private final Map<String, UserStreams> userSessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
     private final Executor executor; // Executor inyectado
+    private final StreamingService streamingService;
 
-    @Autowired
-    private StreamingService streamingService;
-
-    // Constructor modificado para aceptar Executor
-    public WebRTCSignalingHandler(Executor executor) {
+    // Constructor modificado para aceptar Executor y StreamingService
+    public WebRTCSignalingHandler(Executor executor, StreamingService streamingService) {
         this.executor = executor;
+        this.streamingService = streamingService;
     }
 
     @Override
