@@ -68,7 +68,7 @@
 						</div>
 					}
 					@if (this.tipoClase === 1) {
-						<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
+						<video id="OBS" src="" class="video-js vjs-default-skin min-h-40 w-full"></video>
 						<p id="statusOBS">Cargando...</p>
 						@if (this.streamingService.enGrabacion === true) {
 							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>

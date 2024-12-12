@@ -235,7 +235,6 @@ public class StreamingController {
             }
 
             Path partPath = previewPath.getParent().resolve(id_preview).resolve(part);
-            System.out.println("Part path: " + partPath.toString());
             // Obtener el tipo MIME del video
             String contentType = Files.probeContentType(partPath);
 

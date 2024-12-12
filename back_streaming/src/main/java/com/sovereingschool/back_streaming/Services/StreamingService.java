@@ -282,7 +282,7 @@ public class StreamingService {
         // Comando FFmpeg para procesar el streaming
         List<String> ffmpegCommand = List.of(
                 "ffmpeg",
-                "-loglevel", "info",
+                "-loglevel", "warning",
                 "-re",
                 "-i", inputSpecifier,
                 // Parámetros HLS
@@ -429,18 +429,31 @@ public class StreamingService {
                 "ffmpeg",
                 "-i", rtmpUrl,
                 "-preset", "veryfast",
-                "-loglevel", "info",
+                "-tune", "zerolatency",
+                "-loglevel", "warning",
                 "-f", "hls",
-                "-hls_time", "2",
+                "-hls_time", "1",
                 "-hls_list_size", "2",
-                "-hls_flags", "delete_segments+append_list",
+                "-hls_flags", "delete_segments+independent_segments",
                 "-hls_segment_filename", outputDir + "/%03d.ts",
                 "-hls_base_url", previewId + "/",
                 previewDir + "/" + previewId + ".m3u8");
 
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
         processBuilder.redirectErrorStream(true);
-        processBuilder.start();
+        Process process = processBuilder.start();
+
+        // Capturar logs del proceso FFmpeg
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println("FFmpeg preview: " + line); // Mostrar logs en la consola
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public Path getPreview(String id_preview) throws IOException {

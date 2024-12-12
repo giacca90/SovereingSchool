@@ -2,7 +2,6 @@ package com.sovereingschool.back_streaming.Controllers;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
@@ -36,16 +35,31 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         String userId = session.getId();
+        System.out.println("Se cierra la conexión " + userId);
         sessions.remove(userId);
+
+        System.out.println("Tamaño mapa: " + ffmpegThreads.size());
+        for (String key : ffmpegThreads.keySet()) {
+            System.out.println("Key: " + key);
+        }
+
+        System.out.println("Tamaño mapa previews: " + previews.size());
+        for (String key : previews.keySet()) {
+            System.out.println("Key_preview: " + key);
+        }
 
         Thread ffmpegThread = ffmpegThreads.remove(userId);
         if (ffmpegThread != null && ffmpegThread.isAlive()) {
             ffmpegThread.join();
+        } else {
+            System.out.println("Hilo no encontrado");
         }
 
         Thread previewThread = previews.remove(userId);
         if (previewThread != null && previewThread.isAlive()) {
-            previewThread.join();
+            previewThread.interrupt();
+        } else {
+            System.err.println("Hilo de previsualización no encontrado");
         }
     }
 
@@ -56,22 +70,20 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         System.out.println("Mensaje recibido en OBS handler: " + payload);
 
         // Suponiendo que el mensaje incluye un userId
-        // Puedes usar una biblioteca como Jackson para manejar JSON si es necesario
         if (payload.contains("request_rtmp_url")) {
             // Extraer userId (puedes usar un parser real en producción)
             String userId = extractUserId(payload);
 
             if (userId != null) {
                 // Generar URL RTMP para OBS
-                String randomID = UUID.randomUUID().toString();
-                String rtmpUrl = RTMS_URL + userId + "_" + randomID;
+                String rtmpUrl = RTMS_URL + userId + "_" + session.getId();
 
                 // Preparar la previsualización de la transmisión
                 executor.execute(() -> {
                     try {
                         this.streamingService.startPreview(rtmpUrl);
                         Thread currentThread = Thread.currentThread();
-                        previews.put(userId, currentThread); // Añadir el hilo al mapa
+                        previews.put(session.getId(), currentThread); // Añadir el hilo al mapa
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -85,8 +97,8 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         } else if (payload.contains("emitirOBS") && payload.contains("rtmpUrl")) {
             this.startFFmpegProcessForUser(this.extractStreamId(payload), RTMS_URL + this.extractStreamId(payload));
 
-        } else if (payload.contains("detenerStreamOBS") && payload.contains("rtmpUrl")) {
-            this.streamingService.stopFFmpegProcessForUser(this.extractStreamId(payload));
+        } else if (payload.contains("detenerStreamOBS")) {
+            this.streamingService.stopFFmpegProcessForUser(session.getId());
         } else {
             session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));
         }
@@ -100,11 +112,11 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
         // Usar el Executor para ejecutar el proceso FFmpeg en un hilo separado
         executor.execute(() -> {
+            Thread currentThread = Thread.currentThread();
+            ffmpegThreads.put(userId.substring(userId.lastIndexOf("_") + 1), currentThread); // Añadir el hilo al mapa
             try {
                 this.streamingService.startLiveStreamingFromStream(userId, rtmpUrl);
                 // Registrar el hilo en el mapa después de iniciar el proceso FFmpeg
-                Thread currentThread = Thread.currentThread();
-                ffmpegThreads.put(userId, currentThread); // Añadir el hilo al mapa
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }

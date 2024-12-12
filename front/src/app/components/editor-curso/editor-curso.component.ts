@@ -407,11 +407,18 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 						controls: false,
 						autoplay: true,
 						preload: 'auto',
+						html5: {
+							hls: {
+								enableLowLatency: true,
+							},
+						},
+						liveui: true, // Activa la interfaz de usuario para transmisiones en vivo
 					});
 					player.src({
 						src: this.streamingService.UrlPreview,
 						type: 'application/x-mpegURL',
 					});
+					videoOBS.style.height = 'content'; // Esto asegura que el video mantenga su proporción de aspecto
 				} else {
 					console.error('No se pudo obtener video.js');
 				}
