@@ -98,7 +98,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
             this.startFFmpegProcessForUser(this.extractStreamId(payload), RTMS_URL + this.extractStreamId(payload));
 
         } else if (payload.contains("detenerStreamOBS")) {
-            this.streamingService.stopFFmpegProcessForUser(session.getId());
+            this.streamingService.stopFFmpegProcessForUser(this.extractStreamId(payload));
         } else {
             session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));
         }
