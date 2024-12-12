@@ -399,6 +399,23 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	startOBS() {
 		if (this.loginService.usuario?.id_usuario) {
 			this.streamingService.startOBS(this.loginService.usuario.id_usuario);
+
+			setTimeout(() => {
+				const videoOBS = document.getElementById('OBS') as HTMLInputElement;
+				if (videoOBS) {
+					const player = videojs(videoOBS, {
+						controls: false,
+						autoplay: true,
+						preload: 'auto',
+					});
+					player.src({
+						src: this.streamingService.UrlPreview,
+						type: 'application/x-mpegURL',
+					});
+				} else {
+					console.error('No se pudo obtener video.js');
+				}
+			}, 1000);
 		}
 	}
 

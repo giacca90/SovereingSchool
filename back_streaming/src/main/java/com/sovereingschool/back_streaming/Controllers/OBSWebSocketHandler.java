@@ -18,6 +18,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     private final String RTMS_URL = "rtmp://localhost:8060/live/";
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
+    private final Map<String, Thread> previews = new ConcurrentHashMap<>();
     private final StreamingService streamingService;
     private final Executor executor;
 
@@ -41,6 +42,11 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         if (ffmpegThread != null && ffmpegThread.isAlive()) {
             ffmpegThread.join();
         }
+
+        Thread previewThread = previews.remove(userId);
+        if (previewThread != null && previewThread.isAlive()) {
+            previewThread.join();
+        }
     }
 
     @Override
@@ -60,6 +66,16 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
                 String randomID = UUID.randomUUID().toString();
                 String rtmpUrl = RTMS_URL + userId + "_" + randomID;
 
+                // Preparar la previsualización de la transmisión
+                executor.execute(() -> {
+                    try {
+                        this.streamingService.startPreview(rtmpUrl);
+                        Thread currentThread = Thread.currentThread();
+                        previews.put(userId, currentThread); // Añadir el hilo al mapa
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
                 // Enviar la URL generada al cliente
                 session.sendMessage(new TextMessage("{\"type\":\"rtmp_url\",\"rtmpUrl\":\"" + rtmpUrl + "\"}"));
             } else {

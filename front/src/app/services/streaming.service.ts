@@ -13,6 +13,7 @@ export class StreamingService {
 	private ws: WebSocket | null = null;
 	private mediaRecorder: MediaRecorder | null = null;
 	private rtmpUrl: string | null = null;
+	public UrlPreview: string = '';
 
 	constructor(private http: HttpClient) {}
 
@@ -160,6 +161,8 @@ export class StreamingService {
 				if (obsUrlField) {
 					obsUrlField.value = data.rtmpUrl;
 				}
+				// Devuelve la URL para la preview
+				this.UrlPreview = this.URL + '/getPreview/' + data.rtmpUrl.split('/').pop();
 			} else if (data.type === 'emitiendoOBS') {
 				console.log('Emisión de OBS iniciada.');
 				this.enGrabacion = true;

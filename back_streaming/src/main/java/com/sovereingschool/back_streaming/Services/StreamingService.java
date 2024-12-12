@@ -403,4 +403,53 @@ public class StreamingService {
         }
     }
 
+    public void startPreview(String rtmpUrl) throws IOException {
+        String previewId = rtmpUrl.substring(rtmpUrl.lastIndexOf("/") + 1);
+        Path previewDir = baseUploadDir.resolve("previews");
+        // Crear el directorio de salida si no existe
+        if (!Files.exists(previewDir)) {
+            Files.createDirectories(previewDir);
+            System.out.println("Carpeta creada: " + previewDir);
+        }
+
+        Path outputDir = previewDir.resolve(previewId);
+        if (!Files.exists(outputDir)) {
+            Files.createDirectories(outputDir);
+            System.out.println("Carpeta creada: " + outputDir);
+        }
+
+        // Crear un archivo master.m3u8 vacío para evitar errores en el frontend
+        Path m3u8File = previewDir.resolve(previewId + ".m3u8");
+        if (!Files.exists(m3u8File)) {
+            Files.writeString(m3u8File, "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-ENDLIST");
+        }
+
+        // preparar comando FFmpeg
+        List<String> ffmpegCommand = List.of(
+                "ffmpeg",
+                "-i", rtmpUrl,
+                "-preset", "veryfast",
+                "-loglevel", "info",
+                "-f", "hls",
+                "-hls_time", "2",
+                "-hls_list_size", "2",
+                "-hls_flags", "delete_segments+append_list",
+                "-hls_segment_filename", outputDir + "/%03d.ts",
+                "-hls_base_url", previewId + "/",
+                previewDir + "/" + previewId + ".m3u8");
+
+        ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
+        processBuilder.redirectErrorStream(true);
+        processBuilder.start();
+    }
+
+    public Path getPreview(String id_preview) throws IOException {
+        Path previewDir = baseUploadDir.resolve("previews");
+        Path outputDir = previewDir.resolve(id_preview);
+        if (!Files.exists(outputDir) || !Files.isDirectory(outputDir)
+                || !Files.exists(previewDir.resolve(id_preview + ".m3u8"))) {
+            return null;
+        }
+        return previewDir.resolve(id_preview + ".m3u8");
+    }
 }

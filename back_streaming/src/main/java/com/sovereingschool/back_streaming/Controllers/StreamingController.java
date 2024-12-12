@@ -194,6 +194,67 @@ public class StreamingController {
         }
     }
 
+    // Obtener lista para la previsualización
+    @GetMapping("/getPreview/{id_preview}")
+    public ResponseEntity<?> getPreviewList(@PathVariable String id_preview) {
+        try {
+            Path previewPath = this.streamingService.getPreview(id_preview);
+            if (previewPath == null || !Files.exists(previewPath)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Esperar hasta que el archivo m3u8 esté listo
+            waitUntilM3u8Ready(previewPath);
+
+            // Obtener el tipo MIME del video
+            String contentType = Files.probeContentType(previewPath);
+
+            // Configurar las cabeceras de la respuesta
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.parseMediaType(contentType));
+            responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline");
+            responseHeaders.add(HttpHeaders.CACHE_CONTROL, "no-store");
+            responseHeaders.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .headers(responseHeaders)
+                    .body(new InputStreamResource(Files.newInputStream(previewPath)));
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Obtener partes de la previsualización
+    @GetMapping("/getPreview/{id_preview}/{part}")
+    public ResponseEntity<?> getPreviewParts(@PathVariable String id_preview, @PathVariable String part) {
+        try {
+            Path previewPath = this.streamingService.getPreview(id_preview);
+            if (previewPath == null || !Files.exists(previewPath)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            Path partPath = previewPath.getParent().resolve(id_preview).resolve(part);
+            System.out.println("Part path: " + partPath.toString());
+            // Obtener el tipo MIME del video
+            String contentType = Files.probeContentType(partPath);
+
+            // Configurar las cabeceras de la respuesta
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.parseMediaType(contentType));
+            responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline");
+            responseHeaders.add(HttpHeaders.CACHE_CONTROL, "no-store");
+            responseHeaders.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .headers(responseHeaders)
+                    .body(new InputStreamResource(Files.newInputStream(partPath)));
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping("/nuevoUsuario")
     public ResponseEntity<?> create(@RequestBody Usuario usuario) {
         try {
@@ -251,4 +312,18 @@ public class StreamingController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // Metodo para verificar si el archivo m3u8 existe y tiene al menos un segmento
+    private void waitUntilM3u8Ready(Path m3u8Path) throws InterruptedException, IOException {
+        while (true) { // Bucle infinito
+            if (Files.exists(m3u8Path)) { // Verificar si el archivo existe
+                String content = Files.readString(m3u8Path);
+                if (content.contains("#EXTINF")) { // Verificar si tiene al menos un segmento
+                    return; // Archivo listo, salir del método
+                }
+            }
+            Thread.sleep(500); // Esperar 500 ms antes de volver a verificar
+        }
+    }
+
 }
