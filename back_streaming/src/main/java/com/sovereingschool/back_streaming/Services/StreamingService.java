@@ -54,6 +54,7 @@ public class StreamingService {
     }
 
     private final Map<String, Process> ffmpegProcesses = new ConcurrentHashMap<>();
+    private final Map<String, Process> previewProcesses = new ConcurrentHashMap<>();
 
     @Autowired
     private ClaseRepository claseRepo;
@@ -355,7 +356,7 @@ public class StreamingService {
             });
             logReader.start();
 
-            // Escribir datos del InputStream en el proceso FFmpeg
+            // Escribir datos del InputStream en el proceso FFmpeg (solo WebCam)
             if (inputStream instanceof PipedInputStream) {
                 InputStream inStream = (InputStream) inputStream; // Cast explícito
                 byte[] buffer = new byte[8192];
@@ -399,11 +400,34 @@ public class StreamingService {
                 Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
             }
         } else {
-            System.out.println("No se encontró un proceso FFmpeg para el usuario " + userId);
+            System.err.println("No se encontró un proceso FFmpeg para el usuario " + userId);
+        }
+
+        Process preProcess = previewProcesses.remove(userId);
+        if (preProcess != null && preProcess.isAlive()) {
+            try {
+                // Enviar una señal de terminación controlada
+                preProcess.destroy(); // Intentar detener el proceso de manera ordenada
+                // Esperar a que el proceso termine de forma controlada
+                int exitCode = preProcess.waitFor();
+
+                // Verificar el código de salida de FFmpeg
+                if (exitCode == 0) {
+                    System.out.println("Proceso FFmpeg detenido correctamente para el usuario " + userId);
+                } else {
+                    System.out.println("FFmpeg terminó con un error. Código de salida: " + exitCode);
+                }
+            } catch (InterruptedException e) {
+                System.err.println("El proceso fue interrumpido: " + e.getMessage());
+                Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
+            }
+        } else {
+            System.err.println("No se encontró un proceso de previsualizació  para el usuario " + userId);
         }
     }
 
-    public void startPreview(String rtmpUrl) throws IOException {
+    @Async
+    public void startPreview(String rtmpUrl) throws IOException, InterruptedException {
         String previewId = rtmpUrl.substring(rtmpUrl.lastIndexOf("/") + 1);
         Path previewDir = baseUploadDir.resolve("previews");
         // Crear el directorio de salida si no existe
@@ -442,18 +466,27 @@ public class StreamingService {
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
+        this.previewProcesses.put(previewId, process);
 
         // Capturar logs del proceso FFmpeg
-        new Thread(() -> {
+        Thread logReader = new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     System.out.println("FFmpeg preview: " + line); // Mostrar logs en la consola
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("Error leyendo salida de FFmpeg preview: " + e.getMessage());
             }
-        }).start();
+        });
+        logReader.start();
+
+        logReader.join(); // Esperar a que se terminen de leer los logs
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            System.err.print("FFmpeg preview terminó con código de salida " + exitCode);
+        }
     }
 
     public Path getPreview(String id_preview) throws IOException {

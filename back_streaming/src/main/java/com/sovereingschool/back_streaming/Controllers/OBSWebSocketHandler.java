@@ -38,26 +38,16 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         System.out.println("Se cierra la conexión " + userId);
         sessions.remove(userId);
 
-        System.out.println("Tamaño mapa: " + ffmpegThreads.size());
-        for (String key : ffmpegThreads.keySet()) {
-            System.out.println("Key: " + key);
-        }
-
-        System.out.println("Tamaño mapa previews: " + previews.size());
-        for (String key : previews.keySet()) {
-            System.out.println("Key_preview: " + key);
-        }
-
         Thread ffmpegThread = ffmpegThreads.remove(userId);
         if (ffmpegThread != null && ffmpegThread.isAlive()) {
             ffmpegThread.join();
         } else {
-            System.out.println("Hilo no encontrado");
+            System.err.println("Hilo no encontrado");
         }
 
         Thread previewThread = previews.remove(userId);
         if (previewThread != null && previewThread.isAlive()) {
-            previewThread.interrupt();
+            previewThread.join();
         } else {
             System.err.println("Hilo de previsualización no encontrado");
         }
@@ -80,11 +70,13 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
                 // Preparar la previsualización de la transmisión
                 executor.execute(() -> {
+                    Thread currentThread = Thread.currentThread();
+                    previews.put(session.getId(), currentThread); // Añadir el hilo al mapa
                     try {
                         this.streamingService.startPreview(rtmpUrl);
-                        Thread currentThread = Thread.currentThread();
-                        previews.put(session.getId(), currentThread); // Añadir el hilo al mapa
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 });
@@ -99,6 +91,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
         } else if (payload.contains("detenerStreamOBS")) {
             this.streamingService.stopFFmpegProcessForUser(this.extractStreamId(payload));
+
         } else {
             session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));
         }
@@ -116,7 +109,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
             ffmpegThreads.put(userId.substring(userId.lastIndexOf("_") + 1), currentThread); // Añadir el hilo al mapa
             try {
                 this.streamingService.startLiveStreamingFromStream(userId, rtmpUrl);
-                // Registrar el hilo en el mapa después de iniciar el proceso FFmpeg
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }
