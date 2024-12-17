@@ -454,6 +454,7 @@ public class StreamingService {
                 "-i", rtmpUrl,
                 "-preset", "veryfast",
                 "-tune", "zerolatency",
+                "-fflags", "nobuffer",
                 "-loglevel", "warning",
                 "-f", "hls",
                 "-hls_time", "1",

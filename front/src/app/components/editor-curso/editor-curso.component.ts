@@ -404,12 +404,17 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				const videoOBS = document.getElementById('OBS') as HTMLInputElement;
 				if (videoOBS) {
 					const player = videojs(videoOBS, {
+						aspectRatio: '16:9',
 						controls: false,
 						autoplay: true,
 						preload: 'auto',
 						html5: {
 							hls: {
+								overrideNative: true,
 								enableLowLatency: true,
+								maxBufferLength: 30, // Reduce el buffer a 30 segundos (ajustar según sea necesario)
+								maxBufferSize: 60 * 1000 * 1000, // 60MB (ajustar según sea necesario)
+								liveSyncDurationCount: 3, // Número de segmentos en vivo para sincronizar
 							},
 						},
 						liveui: true, // Activa la interfaz de usuario para transmisiones en vivo
