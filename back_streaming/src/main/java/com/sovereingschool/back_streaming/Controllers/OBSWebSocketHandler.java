@@ -37,6 +37,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         String userId = session.getId();
         System.out.println("Se cierra la conexión " + userId);
         sessions.remove(userId);
+        streamingService.stopFFmpegProcessForUser(userId);
     }
 
     @Override

@@ -384,8 +384,8 @@ public class StreamingService {
                 // Enviar una señal de terminación controlada
                 OutputStream os = process.getOutputStream();
                 os.write('q'); // Enviar la letra 'q'
-                os.flush(); // Asegurarse de que se envíe // Esperar a que el proceso termine de forma
-                            // controlada
+                os.flush(); // Asegurarse de que se envíe
+                // Esperar a que el proceso termine de forma controlada
                 int exitCode = process.waitFor();
 
                 // Verificar el código de salida de FFmpeg
@@ -460,12 +460,6 @@ public class StreamingService {
             System.out.println("Carpeta creada: " + outputDir);
         }
 
-        // Crear un archivo master.m3u8 vacío para evitar errores en el frontend
-        Path m3u8File = previewDir.resolve(previewId + ".m3u8");
-        if (!Files.exists(m3u8File)) {
-            Files.writeString(m3u8File, "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-ENDLIST");
-        }
-
         // preparar comando FFmpeg preview
         List<String> ffmpegCommand = List.of(
                 "ffmpeg",
@@ -506,10 +500,8 @@ public class StreamingService {
 
     public Path getPreview(String id_preview) throws IOException {
         Path previewDir = baseUploadDir.resolve("previews");
-        Path outputDir = previewDir.resolve(id_preview);
-        if (!Files.exists(outputDir) || !Files.isDirectory(outputDir)
-                || !Files.exists(previewDir.resolve(id_preview + ".m3u8"))) {
-            return null;
+        while (!Files.exists(previewDir.resolve(id_preview + ".m3u8"))) {
+            // Espera a que se genere el preview
         }
         return previewDir.resolve(id_preview + ".m3u8");
     }

@@ -203,9 +203,6 @@ public class StreamingController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            // Esperar hasta que el archivo m3u8 esté listo
-            waitUntilM3u8Ready(previewPath);
-
             // Obtener el tipo MIME del video
             String contentType = Files.probeContentType(previewPath);
 
@@ -311,18 +308,4 @@ public class StreamingController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    // Metodo para verificar si el archivo m3u8 existe y tiene al menos un segmento
-    private void waitUntilM3u8Ready(Path m3u8Path) throws InterruptedException, IOException {
-        while (true) { // Bucle infinito
-            if (Files.exists(m3u8Path)) { // Verificar si el archivo existe
-                String content = Files.readString(m3u8Path);
-                if (content.contains("#EXTINF")) { // Verificar si tiene al menos un segmento
-                    return; // Archivo listo, salir del método
-                }
-            }
-            Thread.sleep(500); // Esperar 500 ms antes de volver a verificar
-        }
-    }
-
 }

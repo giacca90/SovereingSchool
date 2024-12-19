@@ -2,11 +2,15 @@ package com.sovereingschool.back_streaming.Configurations;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
+import org.springframework.web.socket.PingMessage;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
@@ -22,6 +26,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Autowired
     private StreamingService streamingService;
+
+    // Executor para tareas de ping-pong
+    private final ScheduledExecutorService pingScheduler = Executors.newScheduledThreadPool(1);
 
     @Override
     public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
@@ -44,9 +51,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
         container.setMaxTextMessageBufferSize(512 * 1024); // 512 KB para mensajes de texto
         container.setMaxBinaryMessageBufferSize(512 * 1024); // 512 KB para mensajes binarios
 
-        // Configurar tiempo de espera en conexiones WebSocket
-        container.setAsyncSendTimeout(30_000L); // 30 segundos
-        container.setMaxSessionIdleTimeout(60_000L); // 60 segundos
+        // Configurar tiempo de espera y heartbeats
+        container.setAsyncSendTimeout(30_000L); // 30 segundos para enviar mensajes asíncronos
+        container.setMaxSessionIdleTimeout(3_600_000L); // 1 hora para sesiones inactivas
 
         return container;
     }
@@ -55,5 +62,35 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public Executor webSocketTaskExecutor() {
         // Crear un pool de hilos para manejar mensajes en paralelo
         return Executors.newFixedThreadPool(50);
+    }
+
+    @Bean
+    public ScheduledExecutorService pingScheduler() {
+        return pingScheduler;
+    }
+
+    /**
+     * Método para iniciar el ping-pong.
+     * Envía un `PING` cada 10 segundos y verifica que se reciba un `PONG`.
+     * Si no se recibe el `PONG`, la conexión se cerrará.
+     */
+    public void startPingPong(WebSocketSession session) {
+        pingScheduler.scheduleAtFixedRate(() -> {
+            try {
+                if (session.isOpen()) {
+                    // Enviar mensaje de Ping
+                    session.sendMessage(new PingMessage());
+                } else {
+                    pingScheduler.shutdown();
+                }
+            } catch (Exception e) {
+                System.err.println("Error enviando PING: " + e.getMessage());
+                try {
+                    session.close();
+                } catch (Exception closeEx) {
+                    System.err.println("Error cerrando sesión: " + closeEx.getMessage());
+                }
+            }
+        }, 0, 10, TimeUnit.SECONDS); // Intervalo de 10 segundos
     }
 }

@@ -427,7 +427,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				} else {
 					console.error('No se pudo obtener video.js');
 				}
-			}, 1000);
+			}, 100);
 		}
 	}
 
