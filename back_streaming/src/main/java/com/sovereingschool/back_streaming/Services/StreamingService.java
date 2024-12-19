@@ -6,12 +6,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -338,7 +340,7 @@ public class StreamingService {
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
         // Guardar el proceso en el mapa
-        ffmpegProcesses.put(userId, process);
+        ffmpegProcesses.put(userId.substring(userId.lastIndexOf("_") + 1), process);
 
         try (BufferedOutputStream ffmpegInput = new BufferedOutputStream(process.getOutputStream());
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -366,14 +368,8 @@ public class StreamingService {
                     ffmpegInput.flush();
                 }
             }
-
-            ffmpegInput.close(); // Cerrar el flujo hacia FFmpeg
             logReader.join(); // Esperar a que se terminen de leer los logs
 
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new IOException("FFmpeg terminó con código de salida " + exitCode);
-            }
         } catch (IOException | InterruptedException e) {
             System.err.println("Error en FFmpeg: " + e.getMessage());
             throw new IOException(e);
@@ -381,12 +377,15 @@ public class StreamingService {
     }
 
     public void stopFFmpegProcessForUser(String userId) throws IOException {
-        Process process = ffmpegProcesses.remove(userId);
+        String sessionId = userId.substring(userId.lastIndexOf('_') + 1);
+        Process process = ffmpegProcesses.remove(sessionId);
         if (process != null && process.isAlive()) {
             try {
                 // Enviar una señal de terminación controlada
-                process.destroy(); // Intentar detener el proceso de manera ordenada
-                // Esperar a que el proceso termine de forma controlada
+                OutputStream os = process.getOutputStream();
+                os.write('q'); // Enviar la letra 'q'
+                os.flush(); // Asegurarse de que se envíe // Esperar a que el proceso termine de forma
+                            // controlada
                 int exitCode = process.waitFor();
 
                 // Verificar el código de salida de FFmpeg
@@ -403,23 +402,42 @@ public class StreamingService {
             System.err.println("No se encontró un proceso FFmpeg para el usuario " + userId);
         }
 
-        Process preProcess = previewProcesses.remove(userId);
+        Process preProcess = previewProcesses.remove(sessionId);
         if (preProcess != null && preProcess.isAlive()) {
             try {
                 // Enviar una señal de terminación controlada
-                preProcess.destroy(); // Intentar detener el proceso de manera ordenada
+                OutputStream os = preProcess.getOutputStream();
+                os.write('q'); // Enviar la letra 'q'
+                os.flush(); // Asegurarse de que se envíe
                 // Esperar a que el proceso termine de forma controlada
                 int exitCode = preProcess.waitFor();
 
                 // Verificar el código de salida de FFmpeg
                 if (exitCode == 0) {
-                    System.out.println("Proceso FFmpeg detenido correctamente para el usuario " + userId);
+                    System.out.println("Proceso FFmpeg preview detenido correctamente para el usuario " + userId);
                 } else {
-                    System.out.println("FFmpeg terminó con un error. Código de salida: " + exitCode);
+                    System.out.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
                 }
             } catch (InterruptedException e) {
                 System.err.println("El proceso fue interrumpido: " + e.getMessage());
                 Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
+            }
+
+            // Elimina la carpeta de la preview
+            Path previewDir = baseUploadDir.resolve("previews").resolve(userId);
+            if (Files.exists(previewDir) && Files.isDirectory(previewDir)) {
+                try {
+                    Files.walk(previewDir)
+                            .sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete);
+                } catch (IOException e) {
+                    System.err.println("Error al eliminar la carpeta de la previsualización: " + e.getMessage());
+                }
+            }
+            Path m3u8 = baseUploadDir.resolve("previews").resolve(userId + ".m3u8");
+            if (Files.exists(m3u8)) {
+                Files.delete(m3u8);
             }
         } else {
             System.err.println("No se encontró un proceso de previsualizació  para el usuario " + userId);
@@ -448,9 +466,10 @@ public class StreamingService {
             Files.writeString(m3u8File, "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-ENDLIST");
         }
 
-        // preparar comando FFmpeg
+        // preparar comando FFmpeg preview
         List<String> ffmpegCommand = List.of(
                 "ffmpeg",
+                "-re",
                 "-i", rtmpUrl,
                 "-preset", "veryfast",
                 "-tune", "zerolatency",
@@ -467,7 +486,7 @@ public class StreamingService {
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
-        this.previewProcesses.put(previewId, process);
+        this.previewProcesses.put(previewId.substring(previewId.lastIndexOf("_") + 1), process);
 
         // Capturar logs del proceso FFmpeg
         Thread logReader = new Thread(() -> {
@@ -483,11 +502,6 @@ public class StreamingService {
         logReader.start();
 
         logReader.join(); // Esperar a que se terminen de leer los logs
-
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            System.err.print("FFmpeg preview terminó con código de salida " + exitCode);
-        }
     }
 
     public Path getPreview(String id_preview) throws IOException {

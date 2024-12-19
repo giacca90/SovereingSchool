@@ -37,20 +37,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         String userId = session.getId();
         System.out.println("Se cierra la conexión " + userId);
         sessions.remove(userId);
-
-        Thread ffmpegThread = ffmpegThreads.remove(userId);
-        if (ffmpegThread != null && ffmpegThread.isAlive()) {
-            ffmpegThread.join();
-        } else {
-            System.err.println("Hilo no encontrado");
-        }
-
-        Thread previewThread = previews.remove(userId);
-        if (previewThread != null && previewThread.isAlive()) {
-            previewThread.join();
-        } else {
-            System.err.println("Hilo de previsualización no encontrado");
-        }
     }
 
     @Override
@@ -91,7 +77,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
         } else if (payload.contains("detenerStreamOBS")) {
             this.streamingService.stopFFmpegProcessForUser(this.extractStreamId(payload));
-
         } else {
             session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));
         }
@@ -116,8 +101,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     }
 
     private String extractUserId(String payload) {
-        // Implementar lógica para extraer el userId del mensaje
-        // Ejemplo simplista: Si el payload es JSON:
         // {"type":"request_rtmp_url","userId":"123"}
         if (payload.contains("userId")) {
             return payload.replaceAll("[^0-9]", ""); // Extraer números como un ejemplo simple
@@ -126,12 +109,9 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     }
 
     private String extractStreamId(String payload) {
-        // Implementar lógica para extraer el streamId del mensaje
-        // Ejemplo simplista: Si el payload es JSON:
         // {"event":"emitirOBS","rtmpUrl":"rtmp://localhost:8060/live/1_31973234-fb5c-4140-a9f1-00cac84f3b60"}
         if (payload.contains("rtmpUrl")) {
             String streamId = payload.substring(payload.lastIndexOf("/") + 1, payload.length() - 2);
-            System.out.println("Stream ID: " + streamId);
             return streamId;
         }
         return null;
