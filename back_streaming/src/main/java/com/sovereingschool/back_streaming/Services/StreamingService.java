@@ -470,11 +470,13 @@ public class StreamingService {
                 "-fflags", "nobuffer",
                 "-loglevel", "warning",
                 "-f", "hls",
-                "-hls_time", "1",
+                "-hls_time", "0.5",
                 "-hls_list_size", "2",
-                "-hls_flags", "delete_segments+independent_segments",
+                "-hls_flags", "delete_segments+independent_segments+program_date_time",
+                "-hls_segment_type", "mpegts",
                 "-hls_segment_filename", outputDir + "/%03d.ts",
                 "-hls_base_url", previewId + "/",
+                "-force_key_frames", "expr:gte(t,n_forced*0.5)", // Asegura un keyframe por segundo
                 previewDir + "/" + previewId + ".m3u8");
 
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);

@@ -226,4 +226,10 @@ export class StreamingService {
 			}
 		}
 	}
+
+	closeConnections() {
+		if (this.ws?.OPEN) {
+			this.ws.close();
+		}
+	}
 }

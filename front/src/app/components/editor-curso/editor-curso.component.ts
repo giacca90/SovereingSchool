@@ -317,6 +317,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	cambiaTipoClase(tipo: number) {
+		this.streamingService.closeConnections();
 		const videoButton: HTMLButtonElement = document.getElementById('claseVideo') as HTMLButtonElement;
 		const obsButton: HTMLButtonElement = document.getElementById('claseOBS') as HTMLButtonElement;
 		const webcamButton: HTMLButtonElement = document.getElementById('claseWebCam') as HTMLButtonElement;
@@ -412,9 +413,9 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 							hls: {
 								overrideNative: true,
 								enableLowLatency: true,
-								maxBufferLength: 30, // Reduce el buffer a 30 segundos (ajustar según sea necesario)
-								maxBufferSize: 60 * 1000 * 1000, // 60MB (ajustar según sea necesario)
-								liveSyncDurationCount: 3, // Número de segmentos en vivo para sincronizar
+							},
+							vhs: {
+								lowLatencyMode: true, // Activa LL-HLS
 							},
 						},
 						liveui: true, // Activa la interfaz de usuario para transmisiones en vivo
