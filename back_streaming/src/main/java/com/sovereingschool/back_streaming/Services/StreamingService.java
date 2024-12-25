@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -292,7 +293,7 @@ public class StreamingService {
                 "-f", "hls",
                 "-hls_time", "5",
                 "-hls_playlist_type", "event",
-                "-hls_flags", "delete_segments+independent_segments",
+                "-hls_flags", "delete_segments+independent_segments+append_list", // Asegura continuidad
                 "-hls_segment_type", "mpegts",
                 // Crea filtros
                 "-filter_complex",
@@ -410,13 +411,25 @@ public class StreamingService {
                 os.write('q'); // Enviar la letra 'q'
                 os.flush(); // Asegurarse de que se envíe
                 // Esperar a que el proceso termine de forma controlada
-                int exitCode = preProcess.waitFor();
+                // Esperar un segundo para que termine de manera controlada
+                boolean finished = preProcess.waitFor(1, TimeUnit.SECONDS);
 
-                // Verificar el código de salida de FFmpeg
-                if (exitCode == 0) {
-                    System.out.println("Proceso FFmpeg preview detenido correctamente para el usuario " + userId);
+                if (finished) {
+                    // El proceso terminó correctamente
+                    int exitCode = preProcess.exitValue();
+                    if (exitCode == 0) {
+                        System.out.println("Proceso FFmpeg preview detenido correctamente para el usuario " + userId);
+                    } else {
+                        System.out.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
+                    }
                 } else {
-                    System.out.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
+                    // Si no terminó en 1 segundo, forzar la terminación
+                    System.err.println(
+                            "El proceso FFmpeg preview no respondió en el tiempo esperado. Terminando de forma forzada...");
+                    preProcess.destroy(); // Intentar una terminación limpia
+                    if (preProcess.isAlive()) {
+                        preProcess.destroyForcibly(); // Forzar si sigue vivo
+                    }
                 }
             } catch (InterruptedException e) {
                 System.err.println("El proceso fue interrumpido: " + e.getMessage());
@@ -425,15 +438,24 @@ public class StreamingService {
 
             // Elimina la carpeta de la preview
             Path previewDir = baseUploadDir.resolve("previews").resolve(userId);
-            if (Files.exists(previewDir) && Files.isDirectory(previewDir)) {
-                try {
-                    Files.walk(previewDir)
-                            .sorted(Comparator.reverseOrder())
-                            .map(Path::toFile)
-                            .forEach(File::delete);
-                } catch (IOException e) {
-                    System.err.println("Error al eliminar la carpeta de la previsualización: " + e.getMessage());
-                }
+            if (!Files.exists(previewDir) || !Files.isDirectory(previewDir)) {
+                // Si la carpeta no existe, buscar la carpeta con el mismo nombre
+                String temp = userId;
+                userId = Files.walk(previewDir.getParent())
+                        .sorted(Comparator.reverseOrder())
+                        .filter(path -> path.getFileName().toString().contains(temp))
+                        .findFirst().get().toString();
+                System.out.println("Nuevo userId: " + userId);
+                previewDir = baseUploadDir.resolve("previews").resolve(userId);
+                System.out.println("Nuevo previewDir: " + previewDir);
+            }
+            try {
+                Files.walk(previewDir)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } catch (IOException e) {
+                System.err.println("Error al eliminar la carpeta de la previsualización: " + e.getMessage());
             }
             Path m3u8 = baseUploadDir.resolve("previews").resolve(userId + ".m3u8");
             if (Files.exists(m3u8)) {
@@ -476,7 +498,7 @@ public class StreamingService {
                 "-hls_segment_type", "mpegts",
                 "-hls_segment_filename", outputDir + "/%03d.ts",
                 "-hls_base_url", previewId + "/",
-                "-force_key_frames", "expr:gte(t,n_forced*0.5)", // Asegura un keyframe por segundo
+                "-force_key_frames", "expr:gte(t,n_forced*0.5)", // Crear un segmento de vídeo cada 0.5 segundos
                 previewDir + "/" + previewId + ".m3u8");
 
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);

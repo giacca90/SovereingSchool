@@ -15,7 +15,6 @@ import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class OBSWebSocketHandler extends TextWebSocketHandler {
     private final String RTMS_URL = "rtmp://localhost:8060/live/";
-    private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
     private final Map<String, Thread> previews = new ConcurrentHashMap<>();
     private final StreamingService streamingService;
@@ -28,7 +27,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        sessions.put(session.getId(), session);
         System.out.println("Nueva conexión: " + session.getId());
     }
 
@@ -36,7 +34,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         String userId = session.getId();
         System.out.println("Se cierra la conexión " + userId);
-        sessions.remove(userId);
         streamingService.stopFFmpegProcessForUser(userId);
     }
 
