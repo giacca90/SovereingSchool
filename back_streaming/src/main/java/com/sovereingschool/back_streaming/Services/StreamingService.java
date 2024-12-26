@@ -263,7 +263,7 @@ public class StreamingService {
     }
 
     // TODO: Comprobar
-    public void startLiveStreamingFromStream(String userId, Object inputStream) throws IOException {
+    public void startLiveStreamingFromStream(String userId, Object inputStream) throws Exception {
         Path outputDir = baseUploadDir.resolve(userId);
         System.out.println("Salida: " + outputDir);
 
@@ -346,7 +346,7 @@ public class StreamingService {
         try (BufferedOutputStream ffmpegInput = new BufferedOutputStream(process.getOutputStream());
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 
-            // Hilo para leer y mostrar los logs de FFmpeg
+            // Hilo para leer los logs de FFmpeg
             Thread logReader = new Thread(() -> {
                 try {
                     String line;
@@ -359,21 +359,23 @@ public class StreamingService {
             });
             logReader.start();
 
-            // Escribir datos del InputStream en el proceso FFmpeg (solo WebCam)
+            // Escribir datos en el proceso (solo WebCam)
             if (inputStream instanceof PipedInputStream) {
-                InputStream inStream = (InputStream) inputStream; // Cast explícito
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = inStream.read(buffer)) != -1) {
-                    ffmpegInput.write(buffer, 0, bytesRead);
-                    ffmpegInput.flush();
+                try (InputStream inStream = (InputStream) inputStream) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = inStream.read(buffer)) != -1) {
+                        ffmpegInput.write(buffer, 0, bytesRead);
+                        ffmpegInput.flush();
+                    }
                 }
             }
-            logReader.join(); // Esperar a que se terminen de leer los logs
 
+            logReader.join(); // Esperar a que se terminen de leer los logs
         } catch (IOException | InterruptedException e) {
             System.err.println("Error en FFmpeg: " + e.getMessage());
-            throw new IOException(e);
+            process.destroy(); // Forzar cierre del proceso en caso de error
+            throw e;
         }
     }
 
@@ -382,22 +384,32 @@ public class StreamingService {
         Process process = ffmpegProcesses.remove(sessionId);
         if (process != null && process.isAlive()) {
             try {
-                // Enviar una señal de terminación controlada
                 OutputStream os = process.getOutputStream();
-                os.write('q'); // Enviar la letra 'q'
-                os.flush(); // Asegurarse de que se envíe
-                // Esperar a que el proceso termine de forma controlada
-                int exitCode = process.waitFor();
+                os.write('q'); // Señal de terminación
+                os.flush();
+                os.close();
 
-                // Verificar el código de salida de FFmpeg
-                if (exitCode == 0) {
-                    System.out.println("Proceso FFmpeg detenido correctamente para el usuario " + userId);
+                boolean finished = process.waitFor(1, TimeUnit.SECONDS); // Esperar 5 segundos
+                if (finished) {
+                    // El proceso terminó correctamente
+                    int exitCode = process.exitValue();
+                    if (exitCode == 0) {
+                        System.out.println("Proceso FFmpeg preview detenido correctamente para el usuario " + userId);
+                    } else {
+                        System.out.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
+                    }
                 } else {
-                    System.out.println("FFmpeg terminó con un error. Código de salida: " + exitCode);
+                    // Si no terminó en 1 segundo, forzar la terminación
+                    System.err.println(
+                            "El proceso FFmpeg preview no respondió en el tiempo esperado. Terminando de forma forzada...");
+                    process.destroy(); // Intentar una terminación limpia
+                    if (process.isAlive()) {
+                        process.destroyForcibly(); // Forzar si sigue vivo
+                    }
                 }
             } catch (InterruptedException e) {
                 System.err.println("El proceso fue interrumpido: " + e.getMessage());
-                Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
+                Thread.currentThread().interrupt();
             }
         } else {
             System.err.println("No se encontró un proceso FFmpeg para el usuario " + userId);
@@ -410,6 +422,7 @@ public class StreamingService {
                 OutputStream os = preProcess.getOutputStream();
                 os.write('q'); // Enviar la letra 'q'
                 os.flush(); // Asegurarse de que se envíe
+                os.close();
                 // Esperar a que el proceso termine de forma controlada
                 // Esperar un segundo para que termine de manera controlada
                 boolean finished = preProcess.waitFor(1, TimeUnit.SECONDS);
@@ -445,9 +458,7 @@ public class StreamingService {
                         .sorted(Comparator.reverseOrder())
                         .filter(path -> path.getFileName().toString().contains(temp))
                         .findFirst().get().toString();
-                System.out.println("Nuevo userId: " + userId);
                 previewDir = baseUploadDir.resolve("previews").resolve(userId);
-                System.out.println("Nuevo previewDir: " + previewDir);
             }
             try {
                 Files.walk(previewDir)
@@ -498,7 +509,7 @@ public class StreamingService {
                 "-hls_segment_type", "mpegts",
                 "-hls_segment_filename", outputDir + "/%03d.ts",
                 "-hls_base_url", previewId + "/",
-                "-force_key_frames", "expr:gte(t,n_forced*0.5)", // Crear un segmento de vídeo cada 0.5 segundos
+                "-g", "10",
                 previewDir + "/" + previewId + ".m3u8");
 
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);

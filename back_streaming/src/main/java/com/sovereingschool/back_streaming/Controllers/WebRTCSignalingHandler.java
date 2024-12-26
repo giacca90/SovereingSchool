@@ -114,6 +114,9 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
 
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         });
     }
