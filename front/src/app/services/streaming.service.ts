@@ -153,14 +153,97 @@ export class StreamingService {
 				console.log('URL RTMP recibida:', data.rtmpUrl);
 				this.rtmpUrl = data.rtmpUrl;
 				if (status) {
-					status.textContent = `URL para OBS recibida: ${data.rtmpUrl}`;
+					status.textContent = `URL para OBS recibida:`;
 				}
 
-				// Mostrar la URL RTMP al usuario (opcional)
-				const obsUrlField = document.getElementById('obs-url') as HTMLInputElement;
-				if (obsUrlField) {
-					obsUrlField.value = data.rtmpUrl;
+				// Mostrar la URL RTMP al usuario
+				const enlaces: HTMLDivElement = document.getElementById('enlaces') as HTMLDivElement;
+				if (enlaces) {
+					const server: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+					server.textContent = 'URL del servidor';
+					const lServer: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+					lServer.classList.add('p-2', 'cursor-pointer', 'rounded-lg', 'border', 'border-black', 'text-blue-700');
+					lServer.textContent = (data.rtmpUrl as string).substring(0, (data.rtmpUrl as string).lastIndexOf('/'));
+					lServer.onclick = () =>
+						navigator.clipboard.writeText(lServer.textContent || '').then(() => {
+							const tooltip = document.getElementById('tooltip') as HTMLDivElement;
+							if (tooltip) {
+								tooltip.textContent = 'Copiado al portapapeles';
+								setTimeout(() => {
+									tooltip.textContent = 'Haz click para copiar';
+								}, 3000);
+							}
+						});
+					// Crear tooltip dinámico para lServer
+					lServer.addEventListener('mouseover', (event: MouseEvent) => {
+						const tooltip = document.createElement('div');
+						tooltip.id = 'tooltip';
+						tooltip.textContent = 'Haz click para copiar';
+						tooltip.classList.add('absolute', 'bg-black', 'text-white', 'text-xs', 'p-1', 'rounded', 'tooltip');
+						// Posicionar el tooltip basado en la posición del ratón
+						tooltip.style.position = 'fixed'; // Usamos 'fixed' para que funcione con las coordenadas del mouse
+						tooltip.style.top = `${event.clientY - 30}px`; // Ajustar posición encima del ratón
+						tooltip.style.left = `${event.clientX}px`; // Alinear con el puntero del ratón
+						enlaces.appendChild(tooltip);
+					});
+
+					lServer.addEventListener('mousemove', (event: MouseEvent) => moveTooltip(event));
+
+					lServer.addEventListener('mouseleave', () => {
+						const tooltip = document.getElementById('tooltip') as HTMLDivElement;
+						if (tooltip) {
+							tooltip.remove();
+						}
+					});
+
+					const key: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+					key.textContent = 'Clave del stream';
+					const lKey: HTMLParagraphElement = document.createElement('p') as HTMLParagraphElement;
+					lKey.classList.add('p-2', 'cursor-pointer', 'rounded-lg', 'border', 'border-black', 'text-blue-700');
+					lKey.textContent = (data.rtmpUrl as string).substring((data.rtmpUrl as string).lastIndexOf('/') + 1);
+					lKey.onclick = () =>
+						navigator.clipboard.writeText(lKey.textContent || '').then(() => {
+							const tooltip = document.getElementById('tooltip') as HTMLDivElement;
+							if (tooltip) {
+								tooltip.textContent = 'Copiado al portapapeles';
+								setTimeout(() => {
+									tooltip.textContent = 'Haz click para copiar';
+								}, 3000);
+							}
+						});
+					lKey.addEventListener('mouseover', (event: MouseEvent) => {
+						const tooltip = document.createElement('div');
+						tooltip.id = 'tooltip';
+						tooltip.textContent = 'Haz click para copiar';
+						tooltip.classList.add('absolute', 'bg-black', 'text-white', 'text-xs', 'p-1', 'rounded', 'tooltip');
+						// Posicionar el tooltip basado en la posición del ratón
+						tooltip.style.position = 'fixed'; // Usamos 'fixed' para que funcione con las coordenadas del mouse
+						tooltip.style.top = `${event.clientY - 40}px`; // Ajustar posición encima del ratón
+						tooltip.style.left = `${event.clientX}px`; // Alinear con el puntero del ratón
+						enlaces.appendChild(tooltip);
+					});
+
+					lKey.addEventListener('mousemove', (event: MouseEvent) => moveTooltip(event));
+
+					lKey.addEventListener('mouseleave', () => {
+						const tooltip = document.getElementById('tooltip') as HTMLDivElement;
+						if (tooltip) {
+							tooltip.remove();
+						}
+					});
+
+					// Mover el tooltip con el ratón mientras esté en el elemento
+					const moveTooltip = (moveEvent: MouseEvent) => {
+						const tooltip = document.getElementById('tooltip') as HTMLDivElement;
+						tooltip.style.top = `${moveEvent.clientY - 30}px`;
+						tooltip.style.left = `${moveEvent.clientX}px`;
+					};
+					enlaces.appendChild(server);
+					enlaces.appendChild(lServer);
+					enlaces.appendChild(key);
+					enlaces.appendChild(lKey);
 				}
+
 				// Devuelve la URL para la preview
 				this.UrlPreview = this.URL + '/getPreview/' + data.rtmpUrl.split('/').pop();
 			} else if (data.type === 'emitiendoOBS') {

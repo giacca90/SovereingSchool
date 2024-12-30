@@ -533,11 +533,14 @@ public class StreamingService {
         logReader.join(); // Esperar a que se terminen de leer los logs
     }
 
-    public Path getPreview(String id_preview) throws IOException {
+    public Path getPreview(String id_preview) {
         Path previewDir = baseUploadDir.resolve("previews");
-        while (!Files.exists(previewDir.resolve(id_preview + ".m3u8"))) {
+        while (previewProcesses.containsKey(id_preview.substring(id_preview.lastIndexOf("_") + 1))) {
             // Espera a que se genere el preview
+            if (Files.exists(previewDir.resolve(id_preview + ".m3u8"))) {
+                return previewDir.resolve(id_preview + ".m3u8");
+            }
         }
-        return previewDir.resolve(id_preview + ".m3u8");
+        return null;
     }
 }
