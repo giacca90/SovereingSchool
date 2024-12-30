@@ -69,6 +69,9 @@
 					}
 					@if (this.tipoClase === 1) {
 						<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
+						<div id="audio-bar">
+							<div id="audio-level"></div>
+						</div>
 						<p id="statusOBS">Cargando...</p>
 						<div id="enlaces"></div>
 						@if (this.streamingService.enGrabacion === true) {

@@ -27,6 +27,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	videoPlayer: HTMLVideoElement | null = null;
 	streamWebcam: MediaStream | null = null;
 	tipoClase: number = 0;
+	m3u8Loaded: boolean = false;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -171,7 +172,9 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	nuevaClase() {
-		if (this.curso && this.curso.clases_curso) this.editar = new Clase(0, '', '', '', 0, '', this.curso.clases_curso?.length + 1, this.curso.id_curso);
+		if (this.curso && this.curso.clases_curso) {
+			this.editar = new Clase(0, '', '', '', 0, '', this.curso.clases_curso?.length + 1, this.curso.id_curso);
+		}
 	}
 
 	guardarCambiosClase() {
@@ -261,7 +264,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				this.cursoService.addImagenCurso(formData).subscribe({
 					next: (response) => {
 						if (this.curso && response) this.curso.imagen_curso = response;
-						//						this.cursoService.updateCurso(this.curso);
 						this.compruebaCambios();
 					},
 					error: (e: Error) => {
@@ -392,8 +394,24 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	emiteWebcam() {
-		if (this.streamWebcam) {
-			this.streamingService.sendMediaToServer(this.streamWebcam);
+		if (this.editar) {
+			if (this.editar.nombre_clase == null || this.editar.nombre_clase == '') {
+				alert('Debes poner un nombre para la clase');
+				return;
+			}
+			if (this.editar.descriccion_clase == null || this.editar.descriccion_clase == '') {
+				alert('Debes poner una descripción para la clase');
+				return;
+			}
+			if (this.editar.contenido_clase == null || this.editar.contenido_clase == '') {
+				alert('Debes poner contenido para la clase');
+				return;
+			}
+			if (!this.streamWebcam) {
+				alert('Debes conectarte primero con la webcam');
+			} else {
+				this.streamingService.sendMediaToServer(this.streamWebcam);
+			}
 		}
 	}
 
@@ -424,6 +442,15 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 						src: this.streamingService.UrlPreview,
 						type: 'application/x-mpegURL',
 					});
+					// Escucha eventos del reproductor
+					player.on('loadeddata', () => {
+						console.log('Archivo .m3u8 cargado correctamente');
+						this.m3u8Loaded = true;
+						// Capturar el MediaStream
+						const mediaStream = (player.tech(true).el() as HTMLVideoElement & { captureStream(): MediaStream }).captureStream();
+						const audioLevel = document.getElementById('audio-level') as HTMLDivElement;
+						this.visualizeAudio(mediaStream, audioLevel);
+					});
 					videoOBS.style.height = 'content'; // Esto asegura que el video mantenga su proporción de aspecto
 				} else {
 					console.error('No se pudo obtener video.js');
@@ -433,6 +460,25 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	emiteOBS() {
+		if (this.editar) {
+			if (this.editar.nombre_clase == null || this.editar.nombre_clase == '') {
+				alert('Debes poner un nombre para la clase');
+				return;
+			}
+			if (this.editar.descriccion_clase == null || this.editar.descriccion_clase == '') {
+				alert('Debes poner una descripción para la clase');
+				return;
+			}
+			if (this.editar.contenido_clase == null || this.editar.contenido_clase == '') {
+				alert('Debes poner contenido para la clase');
+				return;
+			}
+			if (!this.m3u8Loaded) {
+				alert('Debes conectarte primero con OBS');
+				return;
+			}
+		}
+		this.editado = true;
 		this.streamingService.emitirOBS();
 	}
 
