@@ -17,6 +17,7 @@ export class StreamingService {
 	private mediaRecorder: MediaRecorder | null = null;
 	private rtmpUrl: string | null = null;
 	public UrlPreview: string = '';
+	private streanId: string | null = null;
 
 	constructor(
 		private http: HttpClient,
@@ -50,6 +51,7 @@ export class StreamingService {
 			const data = JSON.parse(event.data);
 			if (data.type === 'streamId') {
 				console.log('ID del stream recibido:', data.streamId);
+				this.streanId = data.streamId;
 				this.enGrabacion = true;
 
 				// Comenzar a grabar y enviar los datos
@@ -136,6 +138,7 @@ export class StreamingService {
 	// Método para detener la grabación y la conexión
 	stopMediaStreaming() {
 		const status = document.getElementById('status') as HTMLParagraphElement;
+		this.detenerWebcam();
 
 		if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
 			this.mediaRecorder.stop(); // Detener la grabación
@@ -367,6 +370,22 @@ export class StreamingService {
 			console.error('No se pudo detener OBS');
 			if (status) {
 				status.textContent = 'No se pudo detener OBS';
+			}
+		}
+	}
+
+	detenerWebcam() {
+		const status = document.getElementById('status') as HTMLParagraphElement;
+		if (this.ws) {
+			this.ws.send(JSON.stringify({ 'event': 'detenerStreamWebcam', 'streamId': this.streanId }));
+			if (status) {
+				status.textContent = 'Deteniendo la emisión...';
+			}
+			this.enGrabacion = true;
+		} else {
+			console.error('No se pudo detener WenRTC');
+			if (status) {
+				status.textContent = 'No se pudo detener WenRTC';
 			}
 		}
 	}

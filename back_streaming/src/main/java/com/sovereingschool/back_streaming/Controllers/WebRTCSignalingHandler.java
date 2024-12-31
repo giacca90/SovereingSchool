@@ -54,11 +54,8 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 userStreams.getOutputStream().close();
                 userStreams.getInputStream().close();
             }
+            this.streamingService.stopFFmpegProcessForUser(userId);
 
-            Thread ffmpegThread = ffmpegThreads.remove(userId);
-            if (ffmpegThread != null && ffmpegThread.isAlive()) {
-                ffmpegThread.join();
-            }
         } catch (Exception e) {
             System.err.println("Error al cerrar recursos para el usuario: " + e.getMessage());
         }
@@ -80,6 +77,14 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             this.sessionIdToStreamId.put(session.getId(), streamId);
             try {
                 session.sendMessage(new TextMessage("{\"type\":\"streamId\",\"streamId\":\"" + streamId + "\"}"));
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else if (payload.contains("detenerStreamWebcam")) {
+            String streamId = this.extractStreamId(payload);
+            try {
+                this.streamingService.stopFFmpegProcessForUser(streamId);
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -158,6 +163,22 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             try {
                 jsonNode = objectMapper.readTree(payload);
                 return jsonNode.get("userId").asText();
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    private String extractStreamId(String payload) {
+        if (payload.contains("streamId")) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode;
+            try {
+                jsonNode = objectMapper.readTree(payload);
+                return jsonNode.get("streamId").asText();
             } catch (JsonMappingException e) {
                 e.printStackTrace();
             } catch (JsonProcessingException e) {
