@@ -410,7 +410,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 			if (!this.streamWebcam) {
 				alert('Debes conectarte primero con la webcam');
 			} else {
-				this.streamingService.emitirWebcam(this.streamWebcam);
+				this.streamingService.emitirWebcam(this.streamWebcam, this.editar);
 			}
 		}
 	}

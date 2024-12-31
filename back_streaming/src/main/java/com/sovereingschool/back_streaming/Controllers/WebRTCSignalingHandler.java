@@ -10,9 +10,14 @@ import java.util.concurrent.Executor;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sovereingschool.back_streaming.Models.UserStreams;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 
@@ -21,6 +26,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, UserStreams> userSessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
+    private final Map<String, String> sessionIdToStreamId = new ConcurrentHashMap<>();
     private final Executor executor; // Executor inyectado
     private final StreamingService streamingService;
 
@@ -60,6 +66,28 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         System.out.println("Conexión cerrada: " + userId + " Razón: " + status.getReason());
     }
 
+    protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) {
+        // Parsear el mensaje recibido
+        String payload = message.getPayload();
+        System.out.println("Mensaje recibido en WebRTC handler: " + payload);
+
+        if (payload.contains("userId")) {
+            // Extraer userId
+            String userId = extractUserId(payload);
+            System.out.println("userId: " + userId);
+            // Generar streamId
+            String streamId = userId + "_" + session.getId();
+            this.sessionIdToStreamId.put(session.getId(), streamId);
+            try {
+                session.sendMessage(new TextMessage("{\"type\":\"streamId\",\"streamId\":\"" + streamId + "\"}"));
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+    }
+
     @Override
     protected void handleBinaryMessage(@NonNull WebSocketSession session, @NonNull BinaryMessage message) {
         byte[] payload = message.getPayload().array();
@@ -69,7 +97,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             try {
                 PipedInputStream userInputStream = new PipedInputStream();
                 PipedOutputStream userOutputStream = new PipedOutputStream(userInputStream);
-                startFFmpegProcessForUser(session.getId(), userInputStream);
+                startFFmpegProcessForUser(this.sessionIdToStreamId.remove(session.getId()), userInputStream);
                 return new UserStreams(userInputStream, userOutputStream);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -120,5 +148,22 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 e.printStackTrace();
             }
         });
+    }
+
+    private String extractUserId(String payload) {
+        // {"type":"request_rtmp_url","userId":"123"}
+        if (payload.contains("userId")) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode;
+            try {
+                jsonNode = objectMapper.readTree(payload);
+                return jsonNode.get("userId").asText();
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 }

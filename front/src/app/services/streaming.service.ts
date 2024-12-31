@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Clase } from '../models/Clase';
 import { CursosService } from './cursos.service';
+import { LoginService } from './login.service';
 
 @Injectable({
 	providedIn: 'root',
@@ -20,6 +21,7 @@ export class StreamingService {
 	constructor(
 		private http: HttpClient,
 		private cursoService: CursosService,
+		private loginService: LoginService,
 	) {}
 
 	getVideo(id_usuario: number, id_curso: number, id_clase: number): Observable<Blob> {
@@ -27,7 +29,7 @@ export class StreamingService {
 	}
 
 	// TODO: Revisar
-	async emitirWebcam(stream: MediaStream) {
+	async emitirWebcam(stream: MediaStream, clase: Clase | null) {
 		const status = document.getElementById('status') as HTMLParagraphElement;
 
 		if (!window.WebSocket) {
@@ -43,6 +45,48 @@ export class StreamingService {
 		this.mediaRecorder = new MediaRecorder(stream, {
 			mimeType: 'video/webm; codecs=vp9',
 		});
+
+		this.ws.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+			if (data.type === 'streamId') {
+				console.log('ID del stream recibido:', data.streamId);
+				this.enGrabacion = true;
+
+				// Comenzar a grabar y enviar los datos
+				if (this.mediaRecorder) {
+					this.mediaRecorder.start(200); // Fragmentos de 200 ms
+					console.log('Grabación iniciada.');
+
+					this.mediaRecorder.ondataavailable = (event) => {
+						if (event.data.size > 0) {
+							this.ws?.send(event.data);
+						}
+					};
+				}
+
+				// Actualizar el curso
+				if (clase && clase.curso_clase) {
+					this.cursoService.getCurso(clase.curso_clase).then((curso) => {
+						if (curso) {
+							clase.direccion_clase = data.streamId;
+							curso.clases_curso?.push(clase);
+							this.cursoService.updateCurso(curso).subscribe({
+								next: (success: boolean) => {
+									if (success) {
+										console.log('Curso actualizado con éxito');
+									} else {
+										console.error('Falló la actualización del curso');
+									}
+								},
+								error: (error) => {
+									console.error('Error al actualizar el curso: ' + error);
+								},
+							});
+						}
+					});
+				}
+			}
+		};
 
 		this.mediaRecorder.onstop = () => {
 			console.log('Grabación detenida.');
@@ -61,21 +105,11 @@ export class StreamingService {
 		this.ws.onopen = () => {
 			console.log('Conexión WebSocket establecida.');
 			if (status) {
-				status.textContent = 'Conexión WebSocket establecida. Enviando flujo de medios...';
+				status.textContent = 'Conexión WebSocket establecida. Enviando id del usuario...';
 			}
-			this.enGrabacion = true;
-
-			// Comenzar a grabar y enviar los datos
-			if (this.mediaRecorder) {
-				this.mediaRecorder.start(200); // Fragmentos de 200 ms
-				console.log('Grabación iniciada.');
-
-				this.mediaRecorder.ondataavailable = (event) => {
-					if (event.data.size > 0) {
-						this.ws?.send(event.data);
-					}
-				};
-			}
+			// Enviar el ID del usuario al servidor
+			const message = { type: 'userId', userId: this.loginService.usuario?.id_usuario };
+			this.ws?.send(JSON.stringify(message));
 		};
 
 		this.ws.onerror = (error) => {
