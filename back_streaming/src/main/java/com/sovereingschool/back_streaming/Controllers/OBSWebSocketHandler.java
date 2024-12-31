@@ -11,10 +11,14 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class OBSWebSocketHandler extends TextWebSocketHandler {
-    private final String RTMS_URL = "rtmp://localhost:8060/live/";
+    private final String RTMP_URL = "rtmp://localhost:8060/live/";
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
     private final Map<String, Thread> previews = new ConcurrentHashMap<>();
     private final StreamingService streamingService;
@@ -43,14 +47,13 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         System.out.println("Mensaje recibido en OBS handler: " + payload);
 
-        // Suponiendo que el mensaje incluye un userId
         if (payload.contains("request_rtmp_url")) {
-            // Extraer userId (puedes usar un parser real en producción)
+            // Extraer userId
             String userId = extractUserId(payload);
 
             if (userId != null) {
                 // Generar URL RTMP para OBS
-                String rtmpUrl = RTMS_URL + userId + "_" + session.getId();
+                String rtmpUrl = RTMP_URL + userId + "_" + session.getId();
 
                 // Preparar la previsualización de la transmisión
                 executor.execute(() -> {
@@ -71,8 +74,8 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"userId no proporcionado\"}"));
             }
         } else if (payload.contains("emitirOBS") && payload.contains("rtmpUrl")) {
-            this.startFFmpegProcessForUser(this.extractStreamId(payload), RTMS_URL + this.extractStreamId(payload));
-
+            String streamId = this.extractStreamId(payload);
+            this.startFFmpegProcessForUser(streamId, RTMP_URL + streamId);
         } else if (payload.contains("detenerStreamOBS")) {
             this.streamingService.stopFFmpegProcessForUser(this.extractStreamId(payload));
         } else {
@@ -104,7 +107,16 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     private String extractUserId(String payload) {
         // {"type":"request_rtmp_url","userId":"123"}
         if (payload.contains("userId")) {
-            return payload.replaceAll("[^0-9]", ""); // Extraer números como un ejemplo simple
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode;
+            try {
+                jsonNode = objectMapper.readTree(payload);
+                return jsonNode.get("userId").asText();
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
@@ -112,10 +124,18 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     private String extractStreamId(String payload) {
         // {"event":"emitirOBS","rtmpUrl":"rtmp://localhost:8060/live/1_31973234-fb5c-4140-a9f1-00cac84f3b60"}
         if (payload.contains("rtmpUrl")) {
-            String streamId = payload.substring(payload.lastIndexOf("/") + 1, payload.length() - 2);
-            return streamId;
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode;
+            try {
+                jsonNode = objectMapper.readTree(payload);
+                String streamURL = jsonNode.get("rtmpUrl").asText();
+                return streamURL.substring(streamURL.lastIndexOf("/") + 1);
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
-
 }

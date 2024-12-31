@@ -263,7 +263,6 @@ public class StreamingController {
     @PostMapping("/convertir_videos")
     public ResponseEntity<?> convertirVideos(@RequestBody Curso curso) {
         try {
-            // System.out.println("Curso recibido: " + curso.toString());
             this.streamingService.convertVideos(curso);
             // ResponseEntity
             return new ResponseEntity<>("Videos convertidos con éxito!!!", HttpStatus.OK);

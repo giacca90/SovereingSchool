@@ -34,6 +34,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         sessions.put(session.getId(), session);
         System.out.println("Nueva conexión: " + session.getId());
+
     }
 
     @Override

@@ -66,6 +66,11 @@ public class StreamingService {
 
     private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
 
+    /**
+     * Función para convertir los videos de un curso
+     * 
+     * @param curso
+     */
     @Async
     public void convertVideos(Curso curso) {
         if (curso.getClases_curso() != null && !curso.getClases_curso().isEmpty()) {
@@ -88,7 +93,7 @@ public class StreamingService {
                     // Mover el archivo de entrada a la carpeta de destino
                     if (!inputFile.renameTo(destino)) {
                         System.err.println("Error al mover el video a la carpeta de destino");
-                        continue; // Cambiar a continue para no romper el bucle
+                        continue;
                     }
 
                     String inputFileName = destino.getName();
@@ -262,7 +267,13 @@ public class StreamingService {
         }
     }
 
-    // TODO: Comprobar
+    /**
+     * Función para iniciar la transmisión en vivo
+     * 
+     * @param userId
+     * @param inputStream
+     * @throws Exception
+     */
     public void startLiveStreamingFromStream(String userId, Object inputStream) throws Exception {
         Path outputDir = baseUploadDir.resolve(userId);
         System.out.println("Salida: " + outputDir);
@@ -477,6 +488,13 @@ public class StreamingService {
         }
     }
 
+    /**
+     * Función para iniciar la previsualización del flujo de RTMP
+     * 
+     * @param rtmpUrl
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Async
     public void startPreview(String rtmpUrl) throws IOException, InterruptedException {
         String previewId = rtmpUrl.substring(rtmpUrl.lastIndexOf("/") + 1);
@@ -535,10 +553,11 @@ public class StreamingService {
 
     public Path getPreview(String id_preview) {
         Path previewDir = baseUploadDir.resolve("previews");
+        Path m3u8 = previewDir.resolve(id_preview + ".m3u8");
         while (previewProcesses.containsKey(id_preview.substring(id_preview.lastIndexOf("_") + 1))) {
             // Espera a que se genere el preview
-            if (Files.exists(previewDir.resolve(id_preview + ".m3u8"))) {
-                return previewDir.resolve(id_preview + ".m3u8");
+            if (Files.exists(m3u8)) {
+                return m3u8;
             }
         }
         return null;

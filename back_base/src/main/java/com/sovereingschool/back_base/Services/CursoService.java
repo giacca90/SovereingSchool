@@ -105,14 +105,18 @@ public class CursoService implements ICursoService {
         return this.repo.findPrecioCursoById(id_curso);
     }
 
+    /**
+     * Función para actualizar o crear un nuevo curso
+     */
     @Override
     public Curso updateCurso(Curso curso) {
         List<Clase> clases = curso.getClases_curso();
         curso.setClases_curso(null);
+        // Si el curso no existe, crear un nuevo
         if (curso.getId_curso().equals(0L)) {
             curso.setId_curso(null);
             curso = this.repo.save(curso);
-
+            // Crea el chat del nuevo curso
             try {
                 WebClient webClient = WebClient.create(backChatURL);
                 webClient.post().uri("/crea_curso_chat")
@@ -136,6 +140,7 @@ public class CursoService implements ICursoService {
                 return null;
             }
         }
+        // Crear la carpeta del curso si no existe
         Path cursoPath = baseUploadDir.resolve(curso.getId_curso().toString());
         File cursoFile = new File(cursoPath.toString());
         if (!cursoFile.exists() || !cursoFile.isDirectory()) {
@@ -144,11 +149,16 @@ public class CursoService implements ICursoService {
                 return null;
             }
         }
+        // Crear las clases del curso si no existen
         if (clases.size() > 0) {
             for (Clase clase : clases) {
                 clase.setCurso_clase(curso);
                 if (clase.getId_clase().equals(0L)) {
                     clase.setId_clase(null);
+                }
+                // Comprueba si la clase es una emisión en directo
+                if (clase.getDireccion_clase() != null && !clase.getDireccion_clase().contains("/")) {
+                    clase.setDireccion_clase(this.uploadDir + "/" + clase.getDireccion_clase() + "/master.m3u8");
                 }
                 try {
                     clase = this.claseRepo.save(clase);
@@ -172,6 +182,7 @@ public class CursoService implements ICursoService {
                 return null;
             }
         }
+        // Convertir los videos del curso
         try {
             WebClient webClient = createSecureWebClient(backStreamURL);
             webClient.post().uri("/convertir_videos")

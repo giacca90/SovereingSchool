@@ -410,7 +410,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 			if (!this.streamWebcam) {
 				alert('Debes conectarte primero con la webcam');
 			} else {
-				this.streamingService.sendMediaToServer(this.streamWebcam);
+				this.streamingService.emitirWebcam(this.streamWebcam);
 			}
 		}
 	}
@@ -479,7 +479,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 			}
 		}
 		this.editado = true;
-		this.streamingService.emitirOBS();
+		this.streamingService.emitirOBS(this.editar);
 	}
 
 	detenerEmision() {

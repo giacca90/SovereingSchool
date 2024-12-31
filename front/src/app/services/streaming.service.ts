@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { Clase } from '../models/Clase';
+import { CursosService } from './cursos.service';
 
 @Injectable({
 	providedIn: 'root',
@@ -15,14 +17,17 @@ export class StreamingService {
 	private rtmpUrl: string | null = null;
 	public UrlPreview: string = '';
 
-	constructor(private http: HttpClient) {}
+	constructor(
+		private http: HttpClient,
+		private cursoService: CursosService,
+	) {}
 
 	getVideo(id_usuario: number, id_curso: number, id_clase: number): Observable<Blob> {
 		return this.http.get(`${this.URL}/${id_usuario}/${id_curso}/${id_clase}`, { responseType: 'blob' });
 	}
 
 	// TODO: Revisar
-	async sendMediaToServer(stream: MediaStream) {
+	async emitirWebcam(stream: MediaStream) {
 		const status = document.getElementById('status') as HTMLParagraphElement;
 
 		if (!window.WebSocket) {
@@ -278,7 +283,7 @@ export class StreamingService {
 		};
 	}
 
-	emitirOBS() {
+	emitirOBS(clase: Clase | null) {
 		const status = document.getElementById('statusOBD');
 		if (this.ws) {
 			this.ws.send(JSON.stringify({ 'event': 'emitirOBS', 'rtmpUrl': this.rtmpUrl }));
@@ -286,6 +291,28 @@ export class StreamingService {
 				status.textContent = 'Comenzando la emisión...';
 			}
 			this.enGrabacion = true;
+			if (clase && this.rtmpUrl) {
+				clase.direccion_clase = this.rtmpUrl.substring(this.rtmpUrl.lastIndexOf('/') + 1);
+				if (clase?.curso_clase) {
+					this.cursoService.getCurso(clase?.curso_clase).then((curso) => {
+						if (curso) {
+							curso.clases_curso?.push(clase);
+							this.cursoService.updateCurso(curso).subscribe({
+								next: (success: boolean) => {
+									if (success) {
+										console.log('Curso actualizado con éxito');
+									} else {
+										console.error('Falló la actualización del curso');
+									}
+								},
+								error: (error) => {
+									console.error('Error al actualizar el curso: ' + error);
+								},
+							});
+						}
+					});
+				}
+			}
 		} else {
 			console.error('No se pudo emitir OBS');
 			if (status) {
