@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.List;
@@ -159,6 +160,12 @@ public class CursoService implements ICursoService {
                 // Comprueba si la clase es una emisión en directo
                 if (clase.getDireccion_clase() != null && !clase.getDireccion_clase().contains("/")) {
                     clase.setDireccion_clase(this.uploadDir + "/" + clase.getDireccion_clase() + "/master.m3u8");
+                } else if (clase.getDireccion_clase() != null && !clase.getDireccion_clase()
+                        .contains("/" + curso.getId_curso() + "/" + clase.getId_clase() + "/")) {
+                    this.moverCarpeta(clase.getDireccion_clase(),
+                            this.uploadDir + "/" + curso.getId_curso() + "/" + clase.getId_clase());
+                    clase.setDireccion_clase(
+                            this.uploadDir + "/" + curso.getId_curso() + "/" + clase.getId_clase() + "/master.m3u8");
                 }
                 try {
                     clase = this.claseRepo.save(clase);
@@ -367,5 +374,50 @@ public class CursoService implements ICursoService {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .baseUrl(baseUrl) // Establecer URL base
                 .build();
+    }
+
+    /**
+     * Función para mover una carpeta y todas sus subcarpetas y archivos
+     * 
+     * @param origen  origen de la carpeta
+     * @param destino destino de la carpeta
+     */
+    private void moverCarpeta(String origen, String destino) {
+        System.out.println("SE MUEVE LA CARPETA " + origen + " A " + destino);
+        Path origenPath = Paths.get(origen).getParent();
+        Path destinoPath = Paths.get(destino);
+        if (!Files.exists(origenPath)) {
+            System.err.println("La carpeta origen no existe");
+            return;
+        }
+        if (!Files.isDirectory(origenPath)) {
+            System.err.println("El origen no es una carpeta");
+            return;
+        }
+        try {
+            Files.walkFileTree(origenPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Path targetFile = destinoPath.resolve(origenPath.relativize(file));
+                    Files.createDirectories(targetFile.getParent()); // Crea los directorios necesarios
+                    Files.move(file, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Path targetDir = destinoPath.resolve(origenPath.relativize(dir));
+                    Files.createDirectories(targetDir); // Crea el directorio si no existe
+                    Files.delete(dir); // Opcional: elimina el directorio vacío en el origen
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+
+        } catch (IOException e) {
+            System.err.println("Error en mover la carpeta: ");
+            System.err.println("Origen: " + origen);
+            System.err.println("Destino: " + destino);
+            System.err.println(e.getMessage());
+        }
     }
 }

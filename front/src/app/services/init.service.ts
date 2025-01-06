@@ -1,5 +1,6 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { of } from 'rxjs';
 import { Curso } from '../models/Curso';
 import { Estadistica } from '../models/Estadistica';
 import { Init } from '../models/Init';
@@ -21,7 +22,7 @@ export class InitService {
 		this.carga();
 	}
 
-	carga() {
+	async carga() {
 		this.usuarioService.profes = [];
 		this.cursoService.cursos = [];
 		const sub = this.http.get<Init>(this.apiUrl, { observe: 'response' }).subscribe({
@@ -42,10 +43,12 @@ export class InitService {
 					});
 					this.estadistica = response.body.estadistica;
 				}
+				return true;
 			},
 			error(e: Error) {
 				console.error('Error en init: ' + e.message);
 				sub.unsubscribe();
+				return of(false);
 			},
 		});
 	}

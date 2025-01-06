@@ -30,6 +30,11 @@ export class StreamingService {
 	}
 
 	// TODO: Revisar
+	/**
+	 * Función para emitir un video a través de WebRTC
+	 * @param stream MediaStream
+	 * @param clase Objeto Clase
+	 */
 	async emitirWebcam(stream: MediaStream, clase: Clase | null) {
 		const status = document.getElementById('status') as HTMLParagraphElement;
 
@@ -383,7 +388,7 @@ export class StreamingService {
 			}
 			this.enGrabacion = true;
 		} else {
-			console.error('No se pudo detener WenRTC');
+			console.error('No se pudo detener WebRTC');
 			if (status) {
 				status.textContent = 'No se pudo detener WenRTC';
 			}

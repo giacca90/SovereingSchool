@@ -80,7 +80,8 @@ public class StreamingService {
 
                 // Verificar que la dirección de la clase no esté vacía y que sea diferente de
                 // la base
-                if (!clase.getDireccion_clase().isEmpty() && !clase.getDireccion_clase().equals(base.toString())) {
+                if (!clase.getDireccion_clase().isEmpty() && !clase.getDireccion_clase().equals(base.toString())
+                        && !clase.getDireccion_clase().endsWith(".m3u8")) {
 
                     // Extraer el directorio y el nombre del archivo de entrada
                     Path inputPath = Paths.get(clase.getDireccion_clase());

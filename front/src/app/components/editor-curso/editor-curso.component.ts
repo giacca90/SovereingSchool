@@ -69,6 +69,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 	ngOnDestroy(): void {
 		this.subscription.unsubscribe();
+		this.streamWebcam?.getTracks().forEach((track) => track.stop());
+		this.streamWebcam = null;
 	}
 
 	@HostListener('window:beforeunload', ['$event'])
@@ -179,11 +181,21 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 	guardarCambiosClase() {
 		if (this.curso && this.editar) {
-			if (this.editar.id_clase === 0) {
+			console.log('Tipo de clase: ' + this.tipoClase);
+			if (this.tipoClase === 2) {
+				this.cursoService.getCurso(this.curso.id_curso, true).then((curso) => {
+					this.curso = curso;
+					this.editar = null;
+				});
+			} else if (this.editar.id_clase === 0) {
 				this.curso.clases_curso?.push(this.editar);
+				this.editar = null;
+			} else {
+				this.editar = null;
 			}
-			this.editar = null;
 		}
+		this.streamWebcam?.getTracks().forEach((track) => track.stop());
+		this.streamWebcam = null;
 	}
 
 	eliminaClase(clase: Clase) {
@@ -330,17 +342,23 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 			case 0: {
 				this.tipoClase = 0;
 				videoButton.classList.add('text-blue-700');
+				this.streamWebcam?.getTracks().forEach((track) => track.stop());
+				this.streamWebcam = null;
 				break;
 			}
 			case 1: {
 				this.tipoClase = 1;
 				obsButton.classList.add('text-blue-700');
+				this.streamWebcam?.getTracks().forEach((track) => track.stop());
+				this.streamWebcam = null;
 				this.startOBS();
 				break;
 			}
 			case 2: {
 				this.tipoClase = 2;
 				webcamButton.classList.add('text-blue-700');
+				this.streamWebcam?.getTracks().forEach((track) => track.stop());
+				this.streamWebcam = null;
 				setTimeout(() => this.startMedia(), 300);
 				break;
 			}
@@ -411,6 +429,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				alert('Debes conectarte primero con la webcam');
 			} else {
 				this.streamingService.emitirWebcam(this.streamWebcam, this.editar);
+				this.editado = true;
 			}
 		}
 	}

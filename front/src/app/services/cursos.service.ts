@@ -15,10 +15,10 @@ export class CursosService {
 
 	constructor(private http: HttpClient) {}
 
-	async getCurso(id_curso: number) {
+	async getCurso(id_curso: number, fromServer?: boolean): Promise<Curso | null> {
 		for (let i = 0; i < this.cursos.length; i++) {
 			if (this.cursos[i].id_curso == id_curso) {
-				if (this.cursos[i].clases_curso === undefined) {
+				if (this.cursos[i].clases_curso === undefined || fromServer) {
 					try {
 						const response = await firstValueFrom(this.http.get<Curso>(`${this.backURL}/cursos/getCurso/${id_curso}`));
 						this.cursos[i].clases_curso = response.clases_curso?.sort((a, b) => a.posicion_clase - b.posicion_clase);
