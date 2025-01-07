@@ -61,7 +61,7 @@
 			<div class="flex">
 				<div class="m-2 flex w-2/5 flex-col">
 					@if (this.tipoClase === 0 || this.editar.id_clase !== 0) {
-						<video id="videoPlayer" src="" class="video-js vjs-default-skin w-full"></video>
+						<video id="videoPlayer" src="" class="video-js vjs-default-skin aspect-video w-full"></video>
 						<div class="flex">
 							<label for="video-upload" id="video-upload-button" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
 							<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />

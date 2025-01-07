@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import videojs from 'video.js';
+import Player from 'video.js/dist/types/player';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
@@ -24,10 +25,10 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	draggedElementId: number | null = null;
 	editado: boolean = false;
 	editar: Clase | null = null;
-	videoPlayer: HTMLVideoElement | null = null;
 	streamWebcam: MediaStream | null = null;
 	tipoClase: number = 0;
 	m3u8Loaded: boolean = false;
+	player: Player | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -182,7 +183,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	guardarCambiosClase() {
 		if (this.curso && this.editar) {
 			console.log('Tipo de clase: ' + this.tipoClase);
-			if (this.tipoClase === 2) {
+			if (this.tipoClase > 0) {
 				this.cursoService.getCurso(this.curso.id_curso, true).then((curso) => {
 					this.curso = curso;
 					this.editar = null;
@@ -196,6 +197,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		}
 		this.streamWebcam?.getTracks().forEach((track) => track.stop());
 		this.streamWebcam = null;
+		this.player?.dispose();
 	}
 
 	eliminaClase(clase: Clase) {
@@ -314,15 +316,16 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	ngAfterViewChecked(): void {
-		if (this.editar && !this.videoPlayer) {
-			this.videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
-			if (this.videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0) {
-				const player = videojs(this.videoPlayer, {
+		if (this.editar) {
+			const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
+			if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0) {
+				this.player = videojs(videoPlayer, {
+					aspectRatio: '16:9',
 					controls: true,
 					autoplay: false,
 					preload: 'auto',
 				});
-				player.src({
+				this.player.src({
 					src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
 				});
@@ -338,6 +341,10 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		videoButton.classList.remove('text-blue-700');
 		obsButton.classList.remove('text-blue-700');
 		webcamButton.classList.remove('text-blue-700');
+
+		this.player?.dispose();
+		this.player = null;
+
 		switch (tipo) {
 			case 0: {
 				this.tipoClase = 0;
@@ -441,7 +448,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 			setTimeout(() => {
 				const videoOBS = document.getElementById('OBS') as HTMLInputElement;
 				if (videoOBS) {
-					const player = videojs(videoOBS, {
+					this.player = videojs(videoOBS, {
 						aspectRatio: '16:9',
 						controls: false,
 						autoplay: true,
@@ -457,16 +464,16 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 						},
 						liveui: true, // Activa la interfaz de usuario para transmisiones en vivo
 					});
-					player.src({
+					this.player.src({
 						src: this.streamingService.UrlPreview,
 						type: 'application/x-mpegURL',
 					});
 					// Escucha eventos del reproductor
-					player.on('loadeddata', () => {
+					this.player.on('loadeddata', () => {
 						console.log('Archivo .m3u8 cargado correctamente');
 						this.m3u8Loaded = true;
 						// Capturar el MediaStream
-						const mediaStream = (player.tech(true).el() as HTMLVideoElement & { captureStream(): MediaStream }).captureStream();
+						const mediaStream = (this.player?.tech(true).el() as HTMLVideoElement & { captureStream(): MediaStream }).captureStream();
 						const audioLevel = document.getElementById('audio-level') as HTMLDivElement;
 						this.visualizeAudio(mediaStream, audioLevel);
 					});
