@@ -109,7 +109,7 @@ public class StreamingService {
 
                     // TODO: prueba la generación del comando FFMPEG
                     try {
-                        this.creaComandoFFmpeg(destino.getAbsolutePath(), baseUploadDir.toString(), false);
+                        this.creaComandoFFmpeg(destino.getAbsolutePath(), false);
                     } catch (IOException | InterruptedException e) {
                         // TODO Auto-generated catch block
                         System.err.println("Error al generar el comando FFmpeg: " + e.getMessage());
@@ -583,19 +583,18 @@ public class StreamingService {
     }
 
     /**
-     * Función para generar el comando ffmpeg
+     * Función para generar el comando ffmpeg.
+     * El comando debe ser ejecutado en la carpeta de salida.
      * 
-     * @param inputFileName String: dirección del video original
-     * @param outputDir     String: dirección de la carpeta de salida
+     * @param inputFilePath String: dirección del video original
      * @param live          Boolean: bandera para eventos en vivo
      * @return List<String>: el comando generado
      * @throws IOException
      * @throws InterruptedException
      */
-    private List<String> creaComandoFFmpeg(String inputFileName, String outputDir, Boolean live)
+    private List<String> creaComandoFFmpeg(String inputFilePath, Boolean live)
             throws IOException, InterruptedException {
-        System.out.println("Generando comando FFmpeg para " + inputFileName);
-        System.out.println("Salida: " + outputDir);
+        System.out.println("Generando comando FFmpeg para " + inputFilePath);
         System.out.println("Live: " + live);
         String hls_playlist_type = live ? "event" : "vod";
         String hls_flags = live ? "independent_segments+append_list+program_date_time" : "independent_segments";
@@ -605,7 +604,7 @@ public class StreamingService {
                 "-v", "error",
                 "-select_streams", "v:0",
                 "-show_entries", "stream=width,height,r_frame_rate",
-                "-of", "csv=p=0", inputFileName);
+                "-of", "csv=p=0", inputFilePath);
         Process process = processBuilder.start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
@@ -630,6 +629,10 @@ public class StreamingService {
         }
         process.waitFor();
         System.out.println("Resolución: " + width + "x" + height + ", FPS: " + fps);
+        if (width == 0 || height == 0 || fps == 0) {
+            System.err.println("La resolución es 0");
+            return null;
+        }
 
         // Calcular las partes necesarias según la resolución
         List<Map.Entry<Integer, Integer>> resolutionPairs = new ArrayList<>();
@@ -649,13 +652,13 @@ public class StreamingService {
         for (int i = 0; i < resolutionPairs.size(); i++) {
             filtro += "[v" + (i + 1) + "]";
         }
-        filtro += "; ";
+        filtro += ";";
         for (int i = 0; i < resolutionPairs.size(); i++) {
             if (i == 0) {
-                filtro += "[v1]copy[v1out]; ";
+                filtro += " [v1]copy[v1out]";
             } else {
-                filtro += "[v" + (i + 1) + "]scale=w=" + resolutionPairs.get(i).getKey() + ":h="
-                        + resolutionPairs.get(i).getValue() + "[v" + (i + 1) + "out]; ";
+                filtro += "; [v" + (i + 1) + "]scale=w=" + resolutionPairs.get(i).getKey() + ":h="
+                        + resolutionPairs.get(i).getValue() + "[v" + (i + 1) + "out]";
             }
         }
         System.out.println("Filtro: " + filtro);
@@ -679,7 +682,7 @@ public class StreamingService {
                     "-g", String.valueOf(fps), // Conversión explícita de fps a String
                     "-sc_threshold", "0",
                     "-keyint_min", String.valueOf(fps),
-                    "-hls_segment_filename", "stream_" + i + "/data%02d.ts",
+                    "-hls_segment_filename", "stream_%v/data%02d.ts",
                     "-hls_base_url", "stream_" + i + "/"));
         }
 
@@ -690,7 +693,7 @@ public class StreamingService {
                     : (Width * Height >= 1280 * 720) ? "64k" : "48k";
 
             filters.addAll(Arrays.asList(
-                    "-map", "a:0", "-c:a:" + i, "aac", "-b:a:0", audioBitrate, "-ac", "2"));
+                    "-map", "a:0", "-c:a:" + i, "aac", "-b:a:" + i, audioBitrate, "-ac", "2"));
         }
 
         System.out.println("Filtros: " + String.join(" ", filters));
@@ -698,7 +701,7 @@ public class StreamingService {
         // Crea el comando FFmpeg
         List<String> ffmpegCommand = new ArrayList<>();
         ffmpegCommand = new ArrayList<>(List.of(
-                "ffmpeg", "-loglevel", "warning", "-re", "-i", inputFileName,
+                "ffmpeg", "-loglevel", "warning", "-re", "-i", inputFilePath,
                 "-f", "hls",
                 "-hls_time", "5",
                 "-hls_playlist_type", hls_playlist_type,
@@ -709,12 +712,14 @@ public class StreamingService {
         ffmpegCommand.addAll(List.of("-master_pl_name", "master.m3u8", "-var_stream_map"));
         String streamMap = "";
         for (int i = 0; i < resolutionPairs.size(); i++) {
-            streamMap += "v:" + i + ",a:" + i + " ";
+            streamMap += " v:" + i + ",a:" + i;
         }
         ffmpegCommand.add(streamMap);
         ffmpegCommand.addAll(List.of(
-                outputDir + "/stream_%v.m3u8",
-                "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", outputDir + "/original.mp4"));
+                "stream_%v.m3u8"));
+        if (live) {
+            ffmpegCommand.addAll(List.of("-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", "original.mp4"));
+        }
 
         System.out.println("Comando FFmpeg: " + String.join(" ", ffmpegCommand));
 
