@@ -11,6 +11,7 @@ import java.io.PipedInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -31,17 +32,18 @@ import com.sovereingschool.back_streaming.Repositories.ClaseRepository;
 @Service
 @Transactional
 public class StreamingService {
-    private static int[] getVideoResolution(String inputFileName) throws Exception {
+    private static int[] getVideoResolutionAndFps(String inputFileName) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder("ffprobe",
                 "-v", "error",
                 "-select_streams", "v:0",
-                "-show_entries", "stream=width,height",
+                "-show_entries", "stream=width,height,r_frame_rate",
                 "-of", "csv=p=0", inputFileName);
         Process process = processBuilder.start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
         int width = 0;
         int height = 0;
+        int fps = 0;
 
         while ((line = reader.readLine()) != null) {
             System.out.println("line: " + line);
@@ -49,11 +51,17 @@ public class StreamingService {
             String[] parts = line.split(",");
             width = Integer.parseInt(parts[0]);
             height = Integer.parseInt(parts[1]);
-            break;
 
+            // Para calcular los fps, "r_frame_rate" devuelve un formato como "30000/1001"
+            String[] frameRateParts = parts[2].split("/");
+            if (frameRateParts.length == 2) {
+                // Redondear el fps a entero
+                fps = (int) Math.round(Double.parseDouble(frameRateParts[0]) / Double.parseDouble(frameRateParts[1]));
+            }
+            break;
         }
         process.waitFor();
-        return new int[] { width, height };
+        return new int[] { width, height, fps };
     }
 
     private final Map<String, Process> ffmpegProcesses = new ConcurrentHashMap<>();
@@ -99,11 +107,20 @@ public class StreamingService {
 
                     String inputFileName = destino.getName();
 
+                    // TODO: prueba la generación del comando FFMPEG
+                    try {
+                        this.creaComandoFFmpeg(destino.getAbsolutePath(), baseUploadDir.toString(), false);
+                    } catch (IOException | InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        System.err.println("Error al generar el comando FFmpeg: " + e.getMessage());
+                    }
+
                     try {
                         // Obtener la resolución del video
-                        int[] resolution = getVideoResolution(destino.toString());
+                        int[] resolution = getVideoResolutionAndFps(destino.toString());
                         int width = resolution[0];
                         int height = resolution[1];
+                        int fps = resolution[2];
                         System.out.println("Resolución: " + width + "x" + height);
 
                         // Construcción del comando dependiendo de la resolución
@@ -225,6 +242,7 @@ public class StreamingService {
                         ffmpegCommand.addAll(Arrays.asList(
                                 "-f", "hls",
                                 "-hls_time", "5",
+                                "-g", String.valueOf(fps * 5),
                                 "-hls_playlist_type", "vod",
                                 "-hls_flags", "independent_segments",
                                 "-hls_segment_type", "mpegts",
@@ -562,5 +580,144 @@ public class StreamingService {
             }
         }
         return null;
+    }
+
+    /**
+     * Función para generar el comando ffmpeg
+     * 
+     * @param inputFileName String: dirección del video original
+     * @param outputDir     String: dirección de la carpeta de salida
+     * @param live          Boolean: bandera para eventos en vivo
+     * @return List<String>: el comando generado
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private List<String> creaComandoFFmpeg(String inputFileName, String outputDir, Boolean live)
+            throws IOException, InterruptedException {
+        System.out.println("Generando comando FFmpeg para " + inputFileName);
+        System.out.println("Salida: " + outputDir);
+        System.out.println("Live: " + live);
+        String hls_playlist_type = live ? "event" : "vod";
+        String hls_flags = live ? "independent_segments+append_list+program_date_time" : "independent_segments";
+        String preset = live ? "veryfast" : "fast";
+        // Obtener la resolución del video
+        ProcessBuilder processBuilder = new ProcessBuilder("ffprobe",
+                "-v", "error",
+                "-select_streams", "v:0",
+                "-show_entries", "stream=width,height,r_frame_rate",
+                "-of", "csv=p=0", inputFileName);
+        Process process = processBuilder.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        int width = 0;
+        int height = 0;
+        int fps = 0;
+
+        while ((line = reader.readLine()) != null) {
+            System.out.println("line: " + line);
+
+            String[] parts = line.split(",");
+            width = Integer.parseInt(parts[0]);
+            height = Integer.parseInt(parts[1]);
+
+            // Para calcular los fps, "r_frame_rate" devuelve un formato como "30000/1001"
+            String[] frameRateParts = parts[2].split("/");
+            if (frameRateParts.length == 2) {
+                // Redondear el fps a entero
+                fps = (int) Math.round(Double.parseDouble(frameRateParts[0]) / Double.parseDouble(frameRateParts[1]));
+            }
+            break;
+        }
+        process.waitFor();
+        System.out.println("Resolución: " + width + "x" + height + ", FPS: " + fps);
+
+        // Calcular las partes necesarias según la resolución
+        List<Map.Entry<Integer, Integer>> resolutionPairs = new ArrayList<>();
+        resolutionPairs.add(new AbstractMap.SimpleEntry<>(width, height));
+        int tempWidth = width;
+        int tempHeight = height;
+        while (tempWidth / 2 >= 320 && tempHeight / 2 >= 180) {
+            tempWidth /= 2;
+            tempHeight /= 2;
+            resolutionPairs.add(new AbstractMap.SimpleEntry<>(tempWidth, tempHeight));
+        }
+
+        // Crear los filtros
+        List<String> filters = new ArrayList<>();
+
+        String filtro = "[0:v]split=" + resolutionPairs.size();
+        for (int i = 0; i < resolutionPairs.size(); i++) {
+            filtro += "[v" + (i + 1) + "]";
+        }
+        filtro += "; ";
+        for (int i = 0; i < resolutionPairs.size(); i++) {
+            if (i == 0) {
+                filtro += "[v1]copy[v1out]; ";
+            } else {
+                filtro += "[v" + (i + 1) + "]scale=w=" + resolutionPairs.get(i).getKey() + ":h="
+                        + resolutionPairs.get(i).getValue() + "[v" + (i + 1) + "out]; ";
+            }
+        }
+        System.out.println("Filtro: " + filtro);
+        filters.add(filtro);
+
+        for (int i = 0; i < resolutionPairs.size(); i++) {
+            int Width = resolutionPairs.get(i).getKey();
+            int Height = resolutionPairs.get(i).getValue();
+            String videoBitrate = (Width * Height >= 1920 * 1080) ? "10M"
+                    : (Width * Height >= 1280 * 720) ? "5M"
+                            : (Width * Height >= 854 * 480) ? "3M" : "1M";
+
+            filters.addAll(Arrays.asList(
+                    "-map", "[v" + (i + 1) + "out]",
+                    "-c:v:" + i, "libx264",
+                    "-b:v:" + i, videoBitrate,
+                    "-maxrate:v:" + i, videoBitrate,
+                    "-minrate:v:" + i, videoBitrate,
+                    "-bufsize:v:" + i, videoBitrate,
+                    "-preset", preset,
+                    "-g", String.valueOf(fps), // Conversión explícita de fps a String
+                    "-sc_threshold", "0",
+                    "-keyint_min", String.valueOf(fps),
+                    "-hls_segment_filename", "stream_" + i + "/data%02d.ts",
+                    "-hls_base_url", "stream_" + i + "/"));
+        }
+
+        for (int i = 0; i < resolutionPairs.size(); i++) {
+            int Width = resolutionPairs.get(i).getKey();
+            int Height = resolutionPairs.get(i).getValue();
+            String audioBitrate = (Width * Height >= 1920 * 1080) ? "96k"
+                    : (Width * Height >= 1280 * 720) ? "64k" : "48k";
+
+            filters.addAll(Arrays.asList(
+                    "-map", "a:0", "-c:a:" + i, "aac", "-b:a:0", audioBitrate, "-ac", "2"));
+        }
+
+        System.out.println("Filtros: " + String.join(" ", filters));
+
+        // Crea el comando FFmpeg
+        List<String> ffmpegCommand = new ArrayList<>();
+        ffmpegCommand = new ArrayList<>(List.of(
+                "ffmpeg", "-loglevel", "warning", "-re", "-i", inputFileName,
+                "-f", "hls",
+                "-hls_time", "5",
+                "-hls_playlist_type", hls_playlist_type,
+                "-hls_flags", hls_flags, // Asegura continuidad
+                "-hls_segment_type", "mpegts",
+                "-filter_complex"));
+        ffmpegCommand.addAll(filters);
+        ffmpegCommand.addAll(List.of("-master_pl_name", "master.m3u8", "-var_stream_map"));
+        String streamMap = "";
+        for (int i = 0; i < resolutionPairs.size(); i++) {
+            streamMap += "v:" + i + ",a:" + i + " ";
+        }
+        ffmpegCommand.add(streamMap);
+        ffmpegCommand.addAll(List.of(
+                outputDir + "/stream_%v.m3u8",
+                "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", outputDir + "/original.mp4"));
+
+        System.out.println("Comando FFmpeg: " + String.join(" ", ffmpegCommand));
+
+        return ffmpegCommand;
     }
 }
