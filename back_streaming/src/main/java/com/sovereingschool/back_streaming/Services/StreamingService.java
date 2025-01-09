@@ -142,99 +142,42 @@ public class StreamingService {
         }
 
         // Comando FFmpeg para procesar el streaming
-        List<String> ffmpegCommand = List.of(
-                "ffmpeg",
-                "-loglevel", "warning",
-                "-re",
-                "-i", inputSpecifier,
-                // Parámetros HLS
-                "-f", "hls",
-                "-hls_time", "5",
-                "-hls_playlist_type", "event",
-                "-hls_flags", "delete_segments+independent_segments+append_list", // Asegura continuidad
-                "-hls_segment_type", "mpegts",
-                // Crea filtros
-                "-filter_complex",
-                "[0:v]split=4[v1][v2][v3][v4];" +
-                        "[v1]copy[v1out];" +
-                        "[v2]scale=w=1280:h=720[v2out];" +
-                        "[v3]scale=w=854:h=480[v3out];" +
-                        "[v4]scale=w=640:h=360[v4out]",
-                // Mapas de video y audio para múltiples resoluciones
-                // Resolución 1080p
-                "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0", "5M",
-                "-bufsize:v:0", "10M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
-                "-hls_base_url", "stream_0/",
-                // Resolución 720p
-                "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-minrate:v:1", "3M",
-                "-bufsize:v:1", "6M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
-                "-hls_base_url", "stream_1/",
-                // Resolución 480p
-                "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2", "1M",
-                "-bufsize:v:2", "2M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
-                "-hls_base_url", "stream_2/",
-                // Resolución 360p
-                "-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "512k", "-maxrate:v:3", "512k", "-minrate:v:3",
-                "512k",
-                "-bufsize:v:3", "1M", "-preset", "veryfast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-                "-hls_segment_filename", outputDir + "/stream_%v/data%03d.ts",
-                "-hls_base_url", "stream_3/",
-                // Mapeo de audio
-                "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "128k", "-ac", "2",
-                "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "128k", "-ac", "2",
-                "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "96k", "-ac", "2",
-                "-map", "a:0", "-c:a:3", "aac", "-b:a:3", "64k", "-ac", "2",
-
-                // Comando locales
-                "-master_pl_name", "master.m3u8",
-                "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3",
-                outputDir + "/stream_%v.m3u8",
-                // Guardar en MP4 en la resolución original
-                "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", outputDir + "/original.mp4");
-
+        List<String> ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true);
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
         processBuilder.redirectErrorStream(true);
+        processBuilder.directory(outputDir.toFile());
         Process process = processBuilder.start();
         // Guardar el proceso en el mapa
         ffmpegProcesses.put(userId.substring(userId.lastIndexOf("_") + 1), process);
 
-        try (BufferedOutputStream ffmpegInput = new BufferedOutputStream(process.getOutputStream());
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        BufferedOutputStream ffmpegInput = new BufferedOutputStream(process.getOutputStream());
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-            // Hilo para leer los logs de FFmpeg
-            Thread logReader = new Thread(() -> {
-                try {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        System.out.println("FFmpeg: " + line);
-                    }
-                } catch (IOException e) {
-                    System.err.println("Error leyendo salida de FFmpeg: " + e.getMessage());
+        // Hilo para leer los logs de FFmpeg
+        Thread logReader = new Thread(() -> {
+            try {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println("FFmpeg: " + line);
                 }
-            });
-            logReader.start();
+            } catch (IOException e) {
+                System.err.println("Error leyendo salida de FFmpeg: " + e.getMessage());
+            }
+        });
+        logReader.start();
 
-            // Escribir datos en el proceso (solo WebCam)
-            if (inputStream instanceof PipedInputStream) {
-                try (InputStream inStream = (InputStream) inputStream) {
-                    byte[] buffer = new byte[8192];
-                    int bytesRead;
-                    while ((bytesRead = inStream.read(buffer)) != -1) {
-                        ffmpegInput.write(buffer, 0, bytesRead);
-                        ffmpegInput.flush();
-                    }
+        // Escribir datos en el proceso (solo WebCam)
+        if (inputStream instanceof PipedInputStream) {
+            try (InputStream inStream = (InputStream) inputStream) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = inStream.read(buffer)) != -1) {
+                    ffmpegInput.write(buffer, 0, bytesRead);
+                    ffmpegInput.flush();
                 }
             }
-
-            logReader.join(); // Esperar a que se terminen de leer los logs
-        } catch (IOException | InterruptedException e) {
-            System.err.println("Error en FFmpeg: " + e.getMessage());
-            process.destroy(); // Forzar cierre del proceso en caso de error
-            throw e;
         }
+        logReader.join(); // Esperar a que se terminen de leer los logs
     }
 
     public void stopFFmpegProcessForUser(String userId) throws IOException {
@@ -433,6 +376,7 @@ public class StreamingService {
                 "-select_streams", "v:0",
                 "-show_entries", "stream=width,height,r_frame_rate",
                 "-of", "csv=p=0", inputFilePath);
+        processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
@@ -441,19 +385,20 @@ public class StreamingService {
         int fps = 0;
 
         while ((line = reader.readLine()) != null) {
-            System.out.println("line: " + line);
-
+            System.out.println("ffprobe: " + line);
             String[] parts = line.split(",");
             width = Integer.parseInt(parts[0]);
             height = Integer.parseInt(parts[1]);
 
-            // Para calcular los fps, "r_frame_rate" devuelve un formato como "30000/1001"
+            // Para calcular los fps, "r_frame_rate" devuelve un formato como"30000/1001"
             String[] frameRateParts = parts[2].split("/");
             if (frameRateParts.length == 2) {
                 // Redondear el fps a entero
-                fps = (int) Math.round(Double.parseDouble(frameRateParts[0]) / Double.parseDouble(frameRateParts[1]));
+                fps = (int) Math.round(Double.parseDouble(frameRateParts[0]) /
+                        Double.parseDouble(frameRateParts[1]));
             }
             break;
+
         }
         process.waitFor();
         System.out.println("Resolución: " + width + "x" + height + ", FPS: " + fps);

@@ -96,7 +96,8 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     @Override
     protected void handleBinaryMessage(@NonNull WebSocketSession session, @NonNull BinaryMessage message) {
         byte[] payload = message.getPayload().array();
-        System.out.println("Mensaje recibido desde WebSocket, tamaño de payload: " + payload.length);
+        // System.out.println("Mensaje recibido desde WebSocket, tamaño de payload: " +
+        // payload.length);
 
         UserStreams userStreams = userSessions.computeIfAbsent(session.getId(), key -> {
             try {
@@ -105,7 +106,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 startFFmpegProcessForUser(this.sessionIdToStreamId.remove(session.getId()), userInputStream);
                 return new UserStreams(userInputStream, userOutputStream);
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("Error al iniciar FFmpeg para usuario " + session.getId() + ": " + e.getMessage());
                 return null;
             }
         });
