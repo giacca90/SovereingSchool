@@ -51,8 +51,10 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         try {
             UserStreams userStreams = userSessions.remove(userId);
             if (userStreams != null) {
-                userStreams.getOutputStream().close();
-                userStreams.getInputStream().close();
+                userStreams.getFFprobeOutputStream().close();
+                userStreams.getFFprobeInputStream().close();
+                userStreams.getFFmpegOutputStream().close();
+                userStreams.getFFmpegInputStream().close();
             }
             this.streamingService.stopFFmpegProcessForUser(userId);
 
@@ -96,15 +98,17 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     @Override
     protected void handleBinaryMessage(@NonNull WebSocketSession session, @NonNull BinaryMessage message) {
         byte[] payload = message.getPayload().array();
-        // System.out.println("Mensaje recibido desde WebSocket, tamaño de payload: " +
-        // payload.length);
+        System.out.println("Mensaje recibido desde WebSocket, tamaño de payload: " + payload.length);
 
         UserStreams userStreams = userSessions.computeIfAbsent(session.getId(), key -> {
             try {
-                PipedInputStream userInputStream = new PipedInputStream();
-                PipedOutputStream userOutputStream = new PipedOutputStream(userInputStream);
-                startFFmpegProcessForUser(this.sessionIdToStreamId.remove(session.getId()), userInputStream);
-                return new UserStreams(userInputStream, userOutputStream);
+                PipedInputStream ffprobeInputStream = new PipedInputStream(payload.length * 100);
+                PipedOutputStream ffprobeOutputStream = new PipedOutputStream(ffprobeInputStream);
+                PipedInputStream ffmpegInputStream = new PipedInputStream(payload.length * 100);
+                PipedOutputStream ffmpegOutputStream = new PipedOutputStream(ffmpegInputStream);
+                startFFmpegProcessForUser(this.sessionIdToStreamId.remove(session.getId()), ffprobeInputStream,
+                        ffmpegInputStream);
+                return new UserStreams(ffprobeInputStream, ffprobeOutputStream, ffmpegInputStream, ffmpegOutputStream);
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + session.getId() + ": " + e.getMessage());
                 return null;
@@ -121,10 +125,21 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         }
 
         try {
-            userStreams.getOutputStream().write(payload);
-            userStreams.getOutputStream().flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+            // Escribir en el flujo de FFprobe
+            try {
+                userStreams.getFFprobeOutputStream().write(payload.clone());
+                userStreams.getFFprobeOutputStream().flush();
+            } catch (IOException e) {
+            }
+
+            // Escribir en el flujo de FFmpeg
+            try {
+                userStreams.getFFmpegOutputStream().write(payload.clone());
+                userStreams.getFFmpegOutputStream().flush();
+            } catch (IOException e) {
+            }
+        } catch (Exception e) {
+            System.err.println("Error general al escribir en los flujos: " + e.getMessage());
             try {
                 session.close(CloseStatus.SERVER_ERROR);
             } catch (IOException ex) {
@@ -133,7 +148,8 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         }
     }
 
-    private void startFFmpegProcessForUser(String userId, PipedInputStream userInputStream) {
+    private void startFFmpegProcessForUser(String userId, PipedInputStream ffprobeInputStream,
+            PipedInputStream ffmpegInputStream) {
         if (ffmpegThreads.containsKey(userId)) {
             System.out.println("El proceso FFmpeg ya está corriendo para el usuario " + userId);
             return;
@@ -142,7 +158,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         // Usar el Executor para ejecutar el proceso FFmpeg en un hilo separado
         executor.execute(() -> {
             try {
-                this.streamingService.startLiveStreamingFromStream(userId, userInputStream);
+                this.streamingService.startLiveStreamingFromStream(userId, ffprobeInputStream, ffmpegInputStream);
                 // Registrar el hilo en el mapa después de iniciar el proceso FFmpeg
                 Thread currentThread = Thread.currentThread();
                 ffmpegThreads.put(userId, currentThread); // Añadir el hilo al mapa
@@ -150,8 +166,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }
         });
     }

@@ -119,7 +119,8 @@ public class StreamingService {
      * @param inputStream
      * @throws Exception
      */
-    public void startLiveStreamingFromStream(String userId, Object inputStream) throws Exception {
+    public void startLiveStreamingFromStream(String userId, Object inputStream, PipedInputStream ffmpegInputStream)
+            throws Exception {
         Path outputDir = baseUploadDir.resolve(userId);
         System.out.println("Salida: " + outputDir);
 
@@ -167,11 +168,12 @@ public class StreamingService {
         logReader.start();
 
         // Escribir datos en el proceso (solo WebCam)
-        if (inputStream instanceof PipedInputStream) {
-            InputStream inStream = (InputStream) inputStream;
-            byte[] buffer = new byte[8192];
+        if (inputStream instanceof PipedInputStream && ffmpegInputStream != null) {
+            InputStream inStream = (InputStream) ffmpegInputStream;
+            byte[] buffer = new byte[inStream.available() * 100];
             int bytesRead;
             while ((bytesRead = inStream.read(buffer)) != -1) {
+                System.out.println("Escribiendo en FFmpeg: " + bytesRead);
                 ffmpegInput.write(buffer, 0, bytesRead);
                 ffmpegInput.flush();
             }
@@ -383,17 +385,17 @@ public class StreamingService {
         if (inputFilePath.contains("pipe:0")) {
             ffprobeThread = new Thread(() -> {
                 BufferedOutputStream ffprobeInput = new BufferedOutputStream(process.getOutputStream());
-
-                byte[] buffer = new byte[1024];
-                int bytesRead;
                 try {
+                    byte[] buffer = new byte[inputStream.available() * 100];
+                    int bytesRead;
                     while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        System.out.println("Escribiendo en FFprobe: " + bytesRead);
                         ffprobeInput.write(buffer, 0, bytesRead);
                         ffprobeInput.flush();
                     }
                     ffprobeInput.close();
                 } catch (IOException e) {
-                    System.err.println("Errorn en escribir datos a ffprobe: " + e.getMessage());
+                    System.err.println("Error en escribir datos a ffprobe: " + e.getMessage());
                     try {
                         ffprobeInput.close();
                     } catch (IOException e1) {

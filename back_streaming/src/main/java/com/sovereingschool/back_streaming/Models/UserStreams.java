@@ -8,19 +8,33 @@ import java.io.PipedOutputStream;
  * 
  */
 public class UserStreams {
-    private PipedInputStream inputStream;
-    private PipedOutputStream outputStream;
 
-    public UserStreams(PipedInputStream inputStream, PipedOutputStream outputStream) {
-        this.inputStream = inputStream;
-        this.outputStream = outputStream;
+    private PipedInputStream ffprobeInputStream;
+    private PipedOutputStream ffprobeOutputStream;
+    private PipedInputStream ffmpegInputStream;
+    private PipedOutputStream ffmpegOutputStream;
+
+    public UserStreams(PipedInputStream ffprobeinputStream, PipedOutputStream ffprobeoutputStream,
+            PipedInputStream ffmpeginputStream, PipedOutputStream ffmpegoutputStream) {
+        this.ffprobeInputStream = ffprobeinputStream;
+        this.ffprobeOutputStream = ffprobeoutputStream;
+        this.ffmpegInputStream = ffmpeginputStream;
+        this.ffmpegOutputStream = ffmpegoutputStream;
     }
 
-    public PipedInputStream getInputStream() {
-        return inputStream;
+    public PipedInputStream getFFprobeInputStream() {
+        return ffprobeInputStream;
     }
 
-    public PipedOutputStream getOutputStream() {
-        return outputStream;
+    public PipedOutputStream getFFprobeOutputStream() {
+        return ffprobeOutputStream;
+    }
+
+    public PipedInputStream getFFmpegInputStream() {
+        return ffmpegInputStream;
+    }
+
+    public PipedOutputStream getFFmpegOutputStream() {
+        return ffmpegOutputStream;
     }
 }
