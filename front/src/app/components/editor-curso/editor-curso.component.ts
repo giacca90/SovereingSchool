@@ -189,6 +189,20 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 					this.editar = null;
 				});
 			} else if (this.editar.id_clase === 0) {
+				if (this.editar) {
+					if (this.editar.nombre_clase == null || this.editar.nombre_clase == '') {
+						alert('Debes poner un nombre para la clase');
+						return;
+					}
+					if (this.editar.descriccion_clase == null || this.editar.descriccion_clase == '') {
+						alert('Debes poner una descripción para la clase');
+						return;
+					}
+					if (this.editar.contenido_clase == null || this.editar.contenido_clase == '') {
+						alert('Debes poner contenido para la clase');
+						return;
+					}
+				}
 				this.curso.clases_curso?.push(this.editar);
 				this.editar = null;
 			} else {

@@ -3,6 +3,10 @@ package com.sovereingschool.back_streaming.Models;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
+/**
+ * Clase para almacenar los flujos de entrada y salida de un usuario
+ * 
+ */
 public class UserStreams {
     private PipedInputStream inputStream;
     private PipedOutputStream outputStream;

@@ -56,8 +56,8 @@ public class StreamingService {
                 Path base = Paths.get(baseUploadDir.toString(), curso.getId_curso().toString(),
                         clase.getId_clase().toString());
 
-                // Verificar que la dirección de la clase no esté vacía y que sea diferente de
-                // la base
+                // Verificar que la dirección de la clase no esté vacía y que sea diferente dela
+                // base
                 if (!clase.getDireccion_clase().isEmpty() && !clase.getDireccion_clase().equals(base.toString())
                         && !clase.getDireccion_clase().endsWith(".m3u8")) {
 
@@ -74,12 +74,10 @@ public class StreamingService {
                         System.err.println("Error al mover el video a la carpeta de destino");
                         continue;
                     }
-                    // TODO: prueba la generación del comando FFMPEG
                     List<String> ffmpegCommand = null;
                     try {
-                        ffmpegCommand = this.creaComandoFFmpeg(destino.getAbsolutePath(), false);
+                        ffmpegCommand = this.creaComandoFFmpeg(destino.getAbsolutePath(), false, null);
                     } catch (IOException | InterruptedException e) {
-                        // TODO Auto-generated catch block
                         System.err.println("Error al generar el comando FFmpeg: " + e.getMessage());
                     }
                     if (ffmpegCommand != null) {
@@ -133,16 +131,18 @@ public class StreamingService {
 
         // Determinar el origen: PipedInputStream o RTMP URL
         String inputSpecifier;
+        List<String> ffmpegCommand = null;
         if (inputStream instanceof PipedInputStream) {
             inputSpecifier = "pipe:0"; // Entrada desde el pipe
+            ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, (InputStream) inputStream);
         } else if (inputStream instanceof String) {
             inputSpecifier = "rtmp://localhost:8060/live/" + userId;// Entrada desde una URL RTMP
+            ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, null);
         } else {
             throw new IllegalArgumentException("Fuente de entrada no soportada");
         }
 
         // Comando FFmpeg para procesar el streaming
-        List<String> ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true);
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
         processBuilder.redirectErrorStream(true);
         processBuilder.directory(outputDir.toFile());
@@ -168,13 +168,12 @@ public class StreamingService {
 
         // Escribir datos en el proceso (solo WebCam)
         if (inputStream instanceof PipedInputStream) {
-            try (InputStream inStream = (InputStream) inputStream) {
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = inStream.read(buffer)) != -1) {
-                    ffmpegInput.write(buffer, 0, bytesRead);
-                    ffmpegInput.flush();
-                }
+            InputStream inStream = (InputStream) inputStream;
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = inStream.read(buffer)) != -1) {
+                ffmpegInput.write(buffer, 0, bytesRead);
+                ffmpegInput.flush();
             }
         }
         logReader.join(); // Esperar a que se terminen de leer los logs
@@ -274,7 +273,7 @@ public class StreamingService {
                 Files.delete(m3u8);
             }
         } else {
-            System.err.println("No se encontró un proceso de previsualizació  para el usuario " + userId);
+            System.err.println("No se encontró un proceso de previsualización  para el usuario " + userId);
         }
     }
 
@@ -363,7 +362,7 @@ public class StreamingService {
      * @throws IOException
      * @throws InterruptedException
      */
-    private List<String> creaComandoFFmpeg(String inputFilePath, Boolean live)
+    private List<String> creaComandoFFmpeg(String inputFilePath, Boolean live, InputStream inputStream)
             throws IOException, InterruptedException {
         System.out.println("Generando comando FFmpeg para " + inputFilePath);
         System.out.println("Live: " + live);
@@ -378,6 +377,33 @@ public class StreamingService {
                 "-of", "csv=p=0", inputFilePath);
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
+        Thread ffprobeThread = null;
+
+        // Escribe datos en el proceso (solo webcam)
+        if (inputFilePath.contains("pipe:0")) {
+            ffprobeThread = new Thread(() -> {
+                BufferedOutputStream ffprobeInput = new BufferedOutputStream(process.getOutputStream());
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                try {
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        ffprobeInput.write(buffer, 0, bytesRead);
+                        ffprobeInput.flush();
+                    }
+                    ffprobeInput.close();
+                } catch (IOException e) {
+                    System.err.println("Errorn en escribir datos a ffprobe: " + e.getMessage());
+                    try {
+                        ffprobeInput.close();
+                    } catch (IOException e1) {
+                        System.err.println("Error en cerrar flujo de escritura: " + e1.getMessage());
+                    }
+                }
+            });
+            ffprobeThread.start();
+        }
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
         int width = 0;
@@ -398,7 +424,9 @@ public class StreamingService {
                         Double.parseDouble(frameRateParts[1]));
             }
             break;
-
+        }
+        if (ffprobeThread != null) {
+            ffprobeThread.join();
         }
         process.waitFor();
         System.out.println("Resolución: " + width + "x" + height + ", FPS: " + fps);
