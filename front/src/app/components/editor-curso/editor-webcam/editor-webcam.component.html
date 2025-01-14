@@ -1,0 +1,33 @@
+<div class="relative m-2 flex h-full w-full flex-col rounded-lg border border-black">
+	<video id="salida" autoplay playsinline class="m-2 border border-black"></video>
+	<br />
+	<div class="flex">
+		@for (device of this.devices; track device.deviceId) {
+			@if (device.kind === 'videoinput') {
+				<div class="relative m-2 flex w-1/6 cursor-grab justify-center bg-transparent">
+					<p class="absolute m-2">{{ device.label || 'Cámara sin nombre' }}</p>
+					<video #videoElement [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
+				</div>
+			}
+			@if (device.kind === 'audioinput') {
+				<div class="audio-bar m-2 flex h-full w-1/6 cursor-grab justify-center rounded-lg border border-black bg-transparent">
+					<p class="m-2">{{ device.label || 'Micrófono sin nombre' }}</p>
+					<div [id]="device.deviceId" class="audio-level"></div>
+				</div>
+			}
+			<!-- @if (device.kind === 'audiooutput') {
+				<div class="m-2 flex w-1/6 rounded-lg border border-black bg-transparent p-2">
+					<p>{{ device.label || 'Altavoz sin nombre' }}</p>
+				</div>
+			} -->
+		}
+		@for (captura of this.capturas; track captura.id) {
+			<div class="relative m-2 flex w-1/6 cursor-grab justify-center bg-transparent">
+				<video #videoElement [id]="captura.id" autoplay playsinline muted class="rounded-lg border border-black" [srcObject]="captura"></video>
+			</div>
+		}
+		<div class="m-2 w-1/6 justify-center rounded-lg border border-black bg-gray-500" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
+			<p class="p-2">Añadir pantalla</p>
+		</div>
+	</div>
+</div>
