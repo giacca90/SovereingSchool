@@ -1,19 +1,18 @@
-<div class="relative m-2 flex h-full w-full flex-col rounded-lg border border-black">
-	<div class="relative aspect-video w-full pr-4">
-		<canvas id="salida" width="1280" height="720" (wheel)="wheel($event)" (dragover)="dragOver($event)" (drop)="drop($event)" autoplay playsinline class="m-2 h-full w-full border border-black bg-white"></canvas>
+<div class="relative m-2 flex h-screen w-screen flex-col rounded-lg border border-black p-2 pb-4">
+	<div class="relative flex h-3/4 pr-4">
+		<canvas id="salida" width="1280" height="720" (wheel)="wheel($event)" (dragover)="dragOver($event)" (drop)="drop($event)" autoplay playsinline class="aspect-video h-full border border-black bg-white"></canvas>
 	</div>
 	<br />
-	<div class="flex">
+	<div class="relative flex h-1/4 pb-4">
 		@for (device of this.devices; track device.deviceId) {
 			@if (device.kind === 'videoinput') {
-				<div draggable="true" (dragstart)="dragStart($event, device.deviceId)" class="relative m-2 flex w-1/6 justify-center bg-transparent">
-					<p class="absolute m-2">{{ device.label || 'Cámara sin nombre' }}</p>
+				<div draggable="true" (dragstart)="dragStart($event, device.deviceId)" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
 					<video #videoElement [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
 				</div>
 			}
 			@if (device.kind === 'audioinput') {
-				<div draggable="true" class="audio-bar m-2 flex h-full w-1/6 justify-center rounded-lg border border-black bg-transparent">
-					<p class="m-2">{{ device.label || 'Micrófono sin nombre' }}</p>
+				<div draggable="true" class="audio-bar m-2 flex h-8 w-1/6 items-center justify-center rounded-lg border border-black bg-transparent text-center">
+					<p class="m-2 w-full overflow-hidden truncate text-ellipsis whitespace-nowrap">{{ device.label || 'Micrófono sin nombre' }}</p>
 					<div [id]="device.deviceId" class="audio-level"></div>
 				</div>
 			}
