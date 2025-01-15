@@ -4,18 +4,19 @@
 	</div>
 	<br />
 	<div class="relative flex h-1/4 pb-4">
-		@for (device of this.devices; track device.deviceId) {
-			@if (device.kind === 'videoinput') {
-				<div draggable="true" (dragstart)="dragStart($event, device.deviceId)" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
-					<video #videoElement [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
-				</div>
-			}
-			@if (device.kind === 'audioinput') {
-				<div draggable="true" class="audio-bar m-2 flex h-8 w-1/6 items-center justify-center rounded-lg border border-black bg-transparent text-center">
+		<div class="relative flex w-1/6 flex-col">
+			@for (device of this.audioDevices; track device.deviceId) {
+				<div draggable="true" class="audio-bar m-2 flex h-8 items-center justify-center rounded-lg border border-black bg-transparent text-center">
 					<p class="m-2 w-full overflow-hidden truncate text-ellipsis whitespace-nowrap">{{ device.label || 'Micrófono sin nombre' }}</p>
 					<div [id]="device.deviceId" class="audio-level"></div>
 				</div>
 			}
+		</div>
+		@for (device of this.videoDevices; track device.deviceId) {
+			<div draggable="true" (dragstart)="dragStart($event, device.deviceId)" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
+				<video #videoElement [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
+			</div>
+
 			<!-- @if (device.kind === 'audiooutput') {
 				<div class="m-2 flex w-1/6 rounded-lg border border-black bg-transparent p-2">
 					<p>{{ device.label || 'Altavoz sin nombre' }}</p>

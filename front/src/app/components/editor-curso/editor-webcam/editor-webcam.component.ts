@@ -8,15 +8,12 @@ import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular
 	styleUrls: ['./editor-webcam.component.css'],
 })
 export class EditorWebcamComponent implements OnInit {
-	devices: MediaDeviceInfo[] = []; // Lista de dispositivos
+	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
+	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	capturas: MediaStream[] = []; // Lista de capturas
 
 	// Variables para manejar la posición, escala y estado del video
-	private dragging = false; // Indica si un video está siendo arrastrado
-	private mouseX = 0; // Posición X del ratón sobre el canvas
-	private mouseY = 0; // Posición Y del ratón sobre el canvas
 	private videoScale = 1; // Escala inicial del video
-	private currentVideoElement: HTMLVideoElement | null = null; // Video actual que se está arrastrando
 	dragVideo: HTMLVideoElement | null = null; // Video que se está arrastrando
 	dragPosition = { x: 0, y: 0 }; // Posición del ratón mientras se arrastra
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
@@ -27,10 +24,10 @@ export class EditorWebcamComponent implements OnInit {
 			await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
 			// Listar todos los dispositivos multimedia
-			this.devices = await navigator.mediaDevices.enumerateDevices();
+			const devices = await navigator.mediaDevices.enumerateDevices();
 
 			// Iniciar la configuración de medios
-			this.startMedias();
+			this.startMedias(devices);
 
 			// Escuchar cambios en los dispositivos multimedia
 			navigator.mediaDevices.ondevicechange = async () => {
@@ -42,13 +39,15 @@ export class EditorWebcamComponent implements OnInit {
 		}
 	}
 
-	startMedias() {
+	startMedias(devices: MediaDeviceInfo[]) {
 		// Asignar el video stream a cada dispositivo de video
-		this.devices.forEach((device) => {
+		devices.forEach((device) => {
 			console.log('Device: ' + device.label);
 			if (device.kind === 'videoinput') {
+				this.videoDevices.push(device);
 				this.getVideoStream(device.deviceId);
 			} else if (device.kind === 'audioinput') {
+				this.audioDevices.push(device);
 				this.getAudioStream(device.deviceId);
 			}
 		});
@@ -61,24 +60,50 @@ export class EditorWebcamComponent implements OnInit {
 
 			// Identificar dispositivos nuevos y agregarlos
 			allDevices.forEach((device) => {
-				const exists = this.devices.some((d) => d.deviceId === device.deviceId);
-				if (!exists) {
-					console.log('Dispositivo nuevo detectado:', device.label || 'Sin nombre');
-
-					// Agregar el dispositivo a la lista
-					this.devices.push(device);
-
-					// Configurar el flujo para el nuevo dispositivo
-					if (device.kind === 'videoinput') {
+				if (device.kind === 'videoinput') {
+					const exists = this.videoDevices.some((d) => d.deviceId === device.deviceId);
+					if (!exists) {
+						console.log('Dispositivo nuevo detectado:', device.label || 'Sin nombre');
+						// Agregar el dispositivo a la lista
+						this.videoDevices.push(device);
 						this.getVideoStream(device.deviceId);
-					} else if (device.kind === 'audioinput') {
+					}
+				}
+
+				if (device.kind === 'audioinput') {
+					const exists = this.audioDevices.some((d) => d.deviceId === device.deviceId);
+					if (!exists) {
+						console.log('Dispositivo nuevo detectado:', device.label || 'Sin nombre');
+						// Agregar el dispositivo a la lista
+						this.audioDevices.push(device);
 						this.getAudioStream(device.deviceId);
 					}
 				}
 			});
 
-			// Identificar dispositivos desconectados y eliminarlos
-			const disconnectedDevices = this.devices.filter((device) => !allDevices.some((d) => d.deviceId === device.deviceId));
+			// Identificar dispositivos de video desconectados y eliminarlos
+			const disconnectedVideoDevices = this.videoDevices.filter((device) => !allDevices.some((d) => d.deviceId === device.deviceId));
+
+			if (disconnectedVideoDevices.length > 0) {
+				console.log('Dispositivos desconectados:', disconnectedVideoDevices);
+				// Limpiar recursos de dispositivos desconectados
+				disconnectedVideoDevices.forEach((device) => {
+					console.log('Dispositivo desconectado:', device.label || 'Sin nombre');
+
+					// Detener flujos activos asociados al dispositivo
+					if (device.kind === 'videoinput' || device.kind === 'audioinput') {
+						const element = document.getElementById(device.deviceId) as HTMLVideoElement | HTMLAudioElement;
+						if (element && element.srcObject) {
+							const stream = element.srcObject as MediaStream;
+							stream.getTracks().forEach((track) => track.stop()); // Detener cada pista del flujo
+							element.srcObject = null; // Limpiar la referencia al flujo
+						}
+					}
+				});
+			}
+
+			// Identificar dispositivos de audio desconectados y eliminarlos
+			const disconnectedDevices = this.audioDevices.filter((device) => !allDevices.some((d) => d.deviceId === device.deviceId));
 
 			if (disconnectedDevices.length > 0) {
 				console.log('Dispositivos desconectados:', disconnectedDevices);
@@ -98,7 +123,7 @@ export class EditorWebcamComponent implements OnInit {
 				});
 			}
 
-			console.log('Dispositivos actualizados:', this.devices);
+			console.log('Dispositivos actualizados:', this.videoDevices + '\n' + this.audioDevices);
 		} catch (error) {
 			console.error('Error al actualizar dispositivos:', error);
 		}
