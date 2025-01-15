@@ -10,6 +10,15 @@ import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular
 export class EditorWebcamComponent implements OnInit {
 	devices: MediaDeviceInfo[] = []; // Lista de dispositivos
 	capturas: MediaStream[] = []; // Lista de capturas
+
+	// Variables para manejar la posición, escala y estado del video
+	private dragging = false; // Indica si un video está siendo arrastrado
+	private mouseX = 0; // Posición X del ratón sobre el canvas
+	private mouseY = 0; // Posición Y del ratón sobre el canvas
+	private videoScale = 1; // Escala inicial del video
+	private currentVideoElement: HTMLVideoElement | null = null; // Video actual que se está arrastrando
+	dragVideo: HTMLVideoElement | null = null; // Video que se está arrastrando
+	dragPosition = { x: 0, y: 0 }; // Posición del ratón mientras se arrastra
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 
 	async ngOnInit() {
@@ -166,9 +175,6 @@ export class EditorWebcamComponent implements OnInit {
 			// Añadir el elemento al DOM para mostrar el stream
 			document.getElementById('capturas')?.appendChild(videoElement);
 			videoElement.classList.add('m-2', 'rounded-lg', 'border', 'border-black', 'w-1/6');
-			/* 			videoElement.style.width = '300px'; // Ajusta el tamaño según sea necesario
-			videoElement.style.border = '1px solid black';
-			videoElement.style.margin = '10px'; */
 
 			// Manejar el fin de la captura
 			stream.getVideoTracks()[0].onended = () => {
@@ -178,5 +184,139 @@ export class EditorWebcamComponent implements OnInit {
 		} catch (error) {
 			console.error('Error al capturar ventana o pantalla:', error);
 		}
+	}
+
+	dragStart(event: DragEvent, deviceId: string): void {
+		event.dataTransfer?.setData('deviceId', deviceId);
+		const videoElement = document.getElementById(deviceId) as HTMLVideoElement;
+
+		if (videoElement) {
+			this.dragVideo = videoElement; // Guarda el video en el estado
+		} else {
+			console.log('No hay videoElement');
+		}
+
+		// Elimina el efecto visual del ghosting
+		const img = new Image(); // Crea una imagen vacía
+		img.src = ''; // No asignamos ninguna fuente
+		event.dataTransfer?.setDragImage(img, 0, 0); // Aplica la imagen vacía
+	}
+
+	dragOver(event: DragEvent) {
+		event.preventDefault();
+		if (!this.dragVideo) return; // Solo continua si hay un video en arrastre
+
+		const canvas = document.getElementById('salida') as HTMLCanvasElement;
+		const rect = canvas.getBoundingClientRect();
+
+		//console.log('Posición: ', rect);
+
+		// Actualiza la posición del ratón en el canvas
+		this.dragPosition.x = event.clientX - rect.left;
+		this.dragPosition.y = event.clientY - rect.top;
+
+		// Dibuja una cruz y el marco del video mientras se arrastra
+		const context = canvas.getContext('2d');
+		if (context) {
+			context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+
+			// Dibujar cruz en el centro del ratón, extendida hasta los bordes del canvas
+			context.strokeStyle = 'blue';
+			context.lineWidth = 3;
+			context.beginPath();
+
+			// Línea horizontal (extendida hasta los bordes)
+			context.moveTo(0, this.dragPosition.y); // Comienza desde el borde izquierdo
+			context.lineTo(canvas.width, this.dragPosition.y); // Termina en el borde derecho
+
+			// Línea vertical (extendida hasta los bordes)
+			context.moveTo(this.dragPosition.x, 0); // Comienza desde el borde superior
+			context.lineTo(this.dragPosition.x, canvas.height); // Termina en el borde inferior
+
+			// Dibuja la cruz
+			context.stroke();
+
+			// Dibuja el video en su escala actual
+			const videoWidth = (this.dragVideo.videoWidth * this.videoScale) / 5;
+			const videoHeight = (this.dragVideo.videoHeight * this.videoScale) / 5;
+			const drawX = this.dragPosition.x - videoWidth / 2;
+			const drawY = this.dragPosition.y - videoHeight / 2;
+
+			context.drawImage(this.dragVideo, drawX, drawY, videoWidth, videoHeight);
+
+			// Dibuja un marco azul alrededor del video
+			context.strokeStyle = 'blue'; // Color azul para el marco
+			context.lineWidth = 3; // Grosor del marco
+			context.strokeRect(drawX, drawY, videoWidth, videoHeight); // Dibuja el rectángulo
+		} else {
+			console.log('No hay contexto');
+		}
+	}
+
+	drop(event: DragEvent): void {
+		event.preventDefault();
+		if (!this.dragVideo) return; // Solo continua si hay un video en arrastre
+
+		const paintedVideo: HTMLVideoElement = this.dragVideo;
+		const canvas = document.getElementById('salida') as HTMLCanvasElement;
+		const context = canvas.getContext('2d');
+		if (context) {
+			// Inicia el bucle para mantener el video en movimiento en el canvas
+			const videoWidth = (paintedVideo.videoWidth * this.videoScale) / 5;
+			const videoHeight = (paintedVideo.videoHeight * this.videoScale) / 5;
+			const drawX = this.dragPosition.x - videoWidth / 2;
+			const drawY = this.dragPosition.y - videoHeight / 2;
+
+			const drawFrame = () => {
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				context.drawImage(paintedVideo!, drawX, drawY, videoWidth, videoHeight);
+				requestAnimationFrame(drawFrame);
+			};
+
+			drawFrame(); // Comienza el bucle de renderizado
+			this.dragVideo = null; // Limpia el estado del video arrastrado
+		}
+	}
+
+	drawCross(context: CanvasRenderingContext2D, x: number, y: number): void {
+		context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Limpiar el canvas
+
+		// Dibujar la cruz
+		context.beginPath();
+		context.strokeStyle = 'red';
+		context.lineWidth = 2;
+
+		context.moveTo(x - 10, y);
+		context.lineTo(x + 10, y);
+		context.moveTo(x, y - 10);
+		context.lineTo(x, y + 10);
+
+		context.stroke();
+	}
+
+	drawVideo(context: CanvasRenderingContext2D, video: HTMLVideoElement, x: number, y: number): void {
+		const canvasWidth = context.canvas.width;
+		const canvasHeight = context.canvas.height;
+
+		const videoWidth = (video.videoWidth * this.videoScale) / 5; // Tamaño proporcional
+		const videoHeight = (video.videoHeight * this.videoScale) / 5;
+
+		// Limitar el video al tamaño del canvas
+		const drawX = Math.max(0, Math.min(x - videoWidth / 2, canvasWidth - videoWidth));
+		const drawY = Math.max(0, Math.min(y - videoHeight / 2, canvasHeight - videoHeight));
+
+		// Dibujar el video dentro del canvas
+		context.clearRect(0, 0, canvasWidth, canvasHeight); // Limpiar el canvas
+		context.drawImage(video, drawX, drawY, videoWidth, videoHeight);
+	}
+
+	wheel(event: WheelEvent): void {
+		console.log('Evento Scroll: ', event.deltaY);
+		if (!this.dragVideo) return; // Solo ajusta si hay un video en arrastre
+
+		event.preventDefault();
+		this.videoScale += event.deltaY < 0 ? 0.05 : -0.05; // Cambia el tamaño
+		this.videoScale = Math.max(0.1, this.videoScale); // Escala mínima
+		console.log('Escala: ', this.videoScale);
 	}
 }

@@ -1,16 +1,18 @@
 <div class="relative m-2 flex h-full w-full flex-col rounded-lg border border-black">
-	<video id="salida" autoplay playsinline class="m-2 border border-black"></video>
+	<div class="relative aspect-video w-full pr-4">
+		<canvas id="salida" width="1280" height="720" (wheel)="wheel($event)" (dragover)="dragOver($event)" (drop)="drop($event)" autoplay playsinline class="m-2 h-full w-full border border-black bg-white"></canvas>
+	</div>
 	<br />
 	<div class="flex">
 		@for (device of this.devices; track device.deviceId) {
 			@if (device.kind === 'videoinput') {
-				<div class="relative m-2 flex w-1/6 cursor-grab justify-center bg-transparent">
+				<div draggable="true" (dragstart)="dragStart($event, device.deviceId)" class="relative m-2 flex w-1/6 justify-center bg-transparent">
 					<p class="absolute m-2">{{ device.label || 'Cámara sin nombre' }}</p>
 					<video #videoElement [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
 				</div>
 			}
 			@if (device.kind === 'audioinput') {
-				<div class="audio-bar m-2 flex h-full w-1/6 cursor-grab justify-center rounded-lg border border-black bg-transparent">
+				<div draggable="true" class="audio-bar m-2 flex h-full w-1/6 justify-center rounded-lg border border-black bg-transparent">
 					<p class="m-2">{{ device.label || 'Micrófono sin nombre' }}</p>
 					<div [id]="device.deviceId" class="audio-level"></div>
 				</div>
@@ -22,11 +24,17 @@
 			} -->
 		}
 		@for (captura of this.capturas; track captura.id) {
-			<div class="relative m-2 flex w-1/6 cursor-grab justify-center bg-transparent">
+			<div draggable="true" (dragstart)="dragStart($event, captura.id)" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent">
 				<video #videoElement [id]="captura.id" autoplay playsinline muted class="rounded-lg border border-black" [srcObject]="captura"></video>
+				@if (captura.getAudioTracks().length > 0) {
+					@for (audioTrack of captura.getAudioTracks(); track $index) {}
+					<div class="audio-bar m-1 flex h-4 rounded-lg border border-black">
+						<div [id]="captura.getAudioTracks()[$index].id" class="audio-level"></div>
+					</div>
+				}
 			</div>
 		}
-		<div class="m-2 w-1/6 justify-center rounded-lg border border-black bg-gray-500" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
+		<div class="m-2 w-1/6 cursor-pointer justify-center rounded-lg border border-black bg-gray-400" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
 			<p class="p-2">Añadir pantalla</p>
 		</div>
 	</div>
