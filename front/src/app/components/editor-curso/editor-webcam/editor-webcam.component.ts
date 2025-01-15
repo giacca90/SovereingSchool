@@ -209,11 +209,13 @@ export class EditorWebcamComponent implements OnInit {
 		const canvas = document.getElementById('salida') as HTMLCanvasElement;
 		const rect = canvas.getBoundingClientRect();
 
-		//console.log('Posición: ', rect);
+		// Relación de escala entre el tamaño visual y el tamaño interno del canvas
+		const scaleX = canvas.width / rect.width;
+		const scaleY = canvas.height / rect.height;
 
-		// Actualiza la posición del ratón en el canvas
-		this.dragPosition.x = event.clientX - rect.left;
-		this.dragPosition.y = event.clientY - rect.top;
+		// Ajustar la posición del ratón al tamaño interno del canvas
+		this.dragPosition.x = Math.round((event.clientX - rect.left) * scaleX);
+		this.dragPosition.y = Math.round((event.clientY - rect.top) * scaleY);
 
 		// Dibuja una cruz y el marco del video mientras se arrastra
 		const context = canvas.getContext('2d');
