@@ -11,10 +11,8 @@ export class EditorWebcamComponent implements OnInit {
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	capturas: MediaStream[] = []; // Lista de capturas
-
-	// Variables para manejar la posición, escala y estado del video
-	private videoScale = 1; // Escala inicial del video
-	dragVideo: HTMLVideoElement | null = null; // Video que se está arrastrando
+	videosElements: VideoElement[] = []; // Lista de elementos de video
+	dragVideo: VideoElement | null = null; // Video que se está arrastrando
 	dragPosition = { x: 0, y: 0 }; // Posición del ratón mientras se arrastra
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 
@@ -139,6 +137,14 @@ export class EditorWebcamComponent implements OnInit {
 			const videoElement = this.videoElements.find((el) => el.nativeElement.id === deviceId);
 			if (videoElement) {
 				videoElement.nativeElement.srcObject = stream; // Asignar el stream al video
+				const ele: VideoElement = {
+					id: deviceId,
+					element: videoElement.nativeElement,
+					painted: false,
+					scale: 1,
+					position: null,
+				};
+				this.videosElements.push(ele);
 			}
 		} catch (error) {
 			console.error('Error al obtener el stream de video:', error);
@@ -201,6 +207,14 @@ export class EditorWebcamComponent implements OnInit {
 			document.getElementById('capturas')?.appendChild(videoElement);
 			videoElement.classList.add('m-2', 'rounded-lg', 'border', 'border-black', 'w-1/6');
 
+			const ele: VideoElement = {
+				id: stream.id,
+				element: videoElement,
+				painted: false,
+				scale: 1,
+				position: null,
+			};
+			this.videosElements.push(ele);
 			// Manejar el fin de la captura
 			stream.getVideoTracks()[0].onended = () => {
 				console.log('La captura ha terminado');
@@ -216,7 +230,10 @@ export class EditorWebcamComponent implements OnInit {
 		const videoElement = document.getElementById(deviceId) as HTMLVideoElement;
 
 		if (videoElement) {
-			this.dragVideo = videoElement; // Guarda el video en el estado
+			const ele = this.videosElements.find((el) => el.id === deviceId);
+			if (ele) {
+				this.dragVideo = ele; // Guarda el video en el estado
+			}
 		} else {
 			console.log('No hay videoElement');
 		}
@@ -264,12 +281,12 @@ export class EditorWebcamComponent implements OnInit {
 			context.stroke();
 
 			// Dibuja el video en su escala actual
-			const videoWidth = (this.dragVideo.videoWidth * this.videoScale) / 5;
-			const videoHeight = (this.dragVideo.videoHeight * this.videoScale) / 5;
+			const videoWidth = (this.dragVideo.element.videoWidth * this.dragVideo.scale) / 5;
+			const videoHeight = (this.dragVideo.element.videoHeight * this.dragVideo.scale) / 5;
 			const drawX = this.dragPosition.x - videoWidth / 2;
 			const drawY = this.dragPosition.y - videoHeight / 2;
 
-			context.drawImage(this.dragVideo, drawX, drawY, videoWidth, videoHeight);
+			context.drawImage(this.dragVideo.element, drawX, drawY, videoWidth, videoHeight);
 
 			// Dibuja un marco azul alrededor del video
 			context.strokeStyle = 'blue'; // Color azul para el marco
@@ -283,20 +300,25 @@ export class EditorWebcamComponent implements OnInit {
 	drop(event: DragEvent): void {
 		event.preventDefault();
 		if (!this.dragVideo) return; // Solo continua si hay un video en arrastre
-
-		const paintedVideo: HTMLVideoElement = this.dragVideo;
+		this.dragVideo.painted = true;
 		const canvas = document.getElementById('salida') as HTMLCanvasElement;
 		const context = canvas.getContext('2d');
 		if (context) {
 			// Inicia el bucle para mantener el video en movimiento en el canvas
-			const videoWidth = (paintedVideo.videoWidth * this.videoScale) / 5;
-			const videoHeight = (paintedVideo.videoHeight * this.videoScale) / 5;
+			const videoWidth = (this.dragVideo.element.videoWidth * this.dragVideo.scale) / 5;
+			const videoHeight = (this.dragVideo.element.videoHeight * this.dragVideo.scale) / 5;
 			const drawX = this.dragPosition.x - videoWidth / 2;
 			const drawY = this.dragPosition.y - videoHeight / 2;
+			this.dragVideo.position = { x: drawX, y: drawY };
 
 			const drawFrame = () => {
 				context.clearRect(0, 0, canvas.width, canvas.height);
-				context.drawImage(paintedVideo!, drawX, drawY, videoWidth, videoHeight);
+				this.videosElements.forEach((elemento) => {
+					if (!elemento.painted || !elemento.position) return;
+					const videoWidth = (elemento.element.videoWidth * elemento.scale) / 5;
+					const videoHeight = (elemento.element.videoHeight * elemento.scale) / 5;
+					context.drawImage(elemento.element!, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
+				});
 				requestAnimationFrame(drawFrame);
 			};
 
@@ -305,45 +327,21 @@ export class EditorWebcamComponent implements OnInit {
 		}
 	}
 
-	drawCross(context: CanvasRenderingContext2D, x: number, y: number): void {
-		context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Limpiar el canvas
-
-		// Dibujar la cruz
-		context.beginPath();
-		context.strokeStyle = 'red';
-		context.lineWidth = 2;
-
-		context.moveTo(x - 10, y);
-		context.lineTo(x + 10, y);
-		context.moveTo(x, y - 10);
-		context.lineTo(x, y + 10);
-
-		context.stroke();
-	}
-
-	drawVideo(context: CanvasRenderingContext2D, video: HTMLVideoElement, x: number, y: number): void {
-		const canvasWidth = context.canvas.width;
-		const canvasHeight = context.canvas.height;
-
-		const videoWidth = (video.videoWidth * this.videoScale) / 5; // Tamaño proporcional
-		const videoHeight = (video.videoHeight * this.videoScale) / 5;
-
-		// Limitar el video al tamaño del canvas
-		const drawX = Math.max(0, Math.min(x - videoWidth / 2, canvasWidth - videoWidth));
-		const drawY = Math.max(0, Math.min(y - videoHeight / 2, canvasHeight - videoHeight));
-
-		// Dibujar el video dentro del canvas
-		context.clearRect(0, 0, canvasWidth, canvasHeight); // Limpiar el canvas
-		context.drawImage(video, drawX, drawY, videoWidth, videoHeight);
-	}
-
 	wheel(event: WheelEvent): void {
 		console.log('Evento Scroll: ', event.deltaY);
 		if (!this.dragVideo) return; // Solo ajusta si hay un video en arrastre
 
 		event.preventDefault();
-		this.videoScale += event.deltaY < 0 ? 0.05 : -0.05; // Cambia el tamaño
-		this.videoScale = Math.max(0.1, this.videoScale); // Escala mínima
-		console.log('Escala: ', this.videoScale);
+		this.dragVideo.scale += event.deltaY < 0 ? 0.05 : -0.05; // Cambia el tamaño
+		this.dragVideo.scale = Math.max(0.1, this.dragVideo.scale); // Escala mínima
+		console.log('Escala: ', this.dragVideo.scale);
 	}
+}
+
+export interface VideoElement {
+	id: string;
+	element: HTMLVideoElement;
+	painted: boolean;
+	scale: number;
+	position: { x: number; y: number } | null;
 }
