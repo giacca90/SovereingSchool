@@ -1,6 +1,6 @@
 <div class="relative m-2 flex h-screen w-screen flex-col rounded-lg border border-black p-2 pb-4">
 	<div class="relative flex h-3/4 pr-4">
-		<canvas id="salida" width="1280" height="720" (wheel)="wheel($event)" (dragover)="dragOver($event)" (drop)="drop($event)" autoplay playsinline class="aspect-video h-full border border-black bg-white"></canvas>
+		<canvas id="salida" width="1280" height="720" autoplay playsinline class="aspect-video h-full border border-black bg-white"></canvas>
 	</div>
 	<br />
 	<div class="relative flex h-1/4 pb-4">
@@ -13,8 +13,8 @@
 			}
 		</div>
 		@for (device of this.videoDevices; track device.deviceId) {
-			<div draggable="true" (dragstart)="dragStart($event, device.deviceId)" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
-				<video #videoElement [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
+			<div class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
+				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
 			</div>
 
 			<!-- @if (device.kind === 'audiooutput') {
@@ -24,8 +24,8 @@
 			} -->
 		}
 		@for (captura of this.capturas; track captura.id) {
-			<div draggable="true" (dragstart)="dragStart($event, captura.id)" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent">
-				<video #videoElement [id]="captura.id" autoplay playsinline muted class="rounded-lg border border-black" [srcObject]="captura"></video>
+			<div class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent">
+				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="rounded-lg border border-black" [srcObject]="captura"></video>
 				@if (captura.getAudioTracks().length > 0) {
 					@for (audioTrack of captura.getAudioTracks(); track $index) {}
 					<div class="audio-bar m-1 flex h-4 rounded-lg border border-black">
