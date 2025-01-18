@@ -48,8 +48,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.videosElements.forEach((elemento) => {
 				if (!elemento.painted || !elemento.position || !this.context) return;
-				const videoWidth = (elemento.element.videoWidth * elemento.scale) / 5;
-				const videoHeight = (elemento.element.videoHeight * elemento.scale) / 5;
+				const videoWidth = elemento.element.videoWidth * elemento.scale;
+				const videoHeight = elemento.element.videoHeight * elemento.scale;
 				this.context.drawImage(elemento.element!, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
 			});
 			requestAnimationFrame(drawFrame);
@@ -263,6 +263,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		const ghost = videoElement.cloneNode(true) as HTMLVideoElement;
 		ghost.classList.add('ghost-video'); // Clase para estilizar el ghost
+		ghost.classList.remove('rounded-lg');
 		ghost.style.position = 'absolute';
 		ghost.style.pointerEvents = 'none'; // Para que no interfiera con eventos
 		ghost.style.zIndex = '1000';
@@ -320,6 +321,42 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				updateGhostPosition(moveEvent.clientX, moveEvent.clientY);
 
 				const rect = this.canvas.getBoundingClientRect();
+				const ghostRect = ghost.getBoundingClientRect();
+
+				// Calcular las coordenadas de intersección
+				const intersection = {
+					left: Math.max(rect.left, ghostRect.left),
+					top: Math.max(rect.top, ghostRect.top),
+					right: Math.min(rect.right, ghostRect.right),
+					bottom: Math.min(rect.bottom, ghostRect.bottom),
+				};
+
+				// Verificar si hay intersección
+				const isIntersecting = intersection.left < intersection.right && intersection.top < intersection.bottom;
+
+				if (isIntersecting) {
+					console.log('Intersección encontrada');
+					ghost.style.clipPath = `polygon(
+        				${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
+        				${((intersection.top - ghostRect.top) / ghostRect.height) * 100}%, 
+        				${((intersection.right - ghostRect.left) / ghostRect.width) * 100}% 
+        				${((intersection.top - ghostRect.top) / ghostRect.height) * 100}%, 
+        				${((intersection.right - ghostRect.left) / ghostRect.width) * 100}% 
+        				${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%, 
+        				${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
+        				${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%
+    				)`;
+					ghost.classList.remove('ghost-video');
+					ghost.classList.add('border-blue-700', 'border-2');
+					this.canvas.classList.add('border-blue-700', 'border-2');
+				} else {
+					console.log('No hay intersección');
+					ghost.style.clipPath = 'none'; // Restaurar si no hay intersección
+					ghost.classList.add('ghost-video');
+					ghost.classList.remove('border-blue-700', 'border-2');
+					this.canvas.classList.remove('border-blue-700', 'border-2');
+				}
+
 				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
 				console.log('Mouse over canvas: ', isMouseOverCanvas);
 			} catch (error) {
@@ -337,19 +374,47 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const isMouseOverCanvas: boolean = upEvent.clientX >= rect.left && upEvent.clientX <= rect.right && upEvent.clientY >= rect.top && upEvent.clientY <= rect.bottom;
 
 			if (isMouseOverCanvas) {
-				// Relación de escala entre el tamaño visual y el tamaño interno del canvas
+				// Relación de escala entre el tamaño visual y el interno del canvas
 				const scaleX = this.canvas.width / rect.width;
 				const scaleY = this.canvas.height / rect.height;
 
-				// Ajustar la posición del ratón al tamaño interno del canvas
-				this.dragVideo.position = {
-					x: Math.round((upEvent.clientX - rect.left) * scaleX),
-					y: Math.round((upEvent.clientY - rect.top) * scaleY),
-				};
-				this.dragVideo.painted = true;
+				// Dimensiones del ghost en el documento
+				const ghostRect = ghost.getBoundingClientRect();
+				const ghostWidthInCanvas = ghostRect.width * scaleX; // Ajustado al canvas
+				const ghostHeightInCanvas = ghostRect.height * scaleY;
+
+				// Dimensiones originales del video
+				const originalWidth = this.dragVideo.element.videoWidth;
+				const originalHeight = this.dragVideo.element.videoHeight;
+
+				// Calculamos la escala requerida
+				const requiredScaleX = ghostWidthInCanvas / originalWidth;
+				const requiredScaleY = ghostHeightInCanvas / originalHeight;
+				const requiredScale = Math.min(requiredScaleX, requiredScaleY);
+
+				// Dimensiones escaladas
+				const scaledWidth = originalWidth * requiredScale;
+				const scaledHeight = originalHeight * requiredScale;
+
+				// Ajustamos la posición para centrar el ratón en el video escalado
+				const canvasX = (upEvent.clientX - rect.left) * scaleX - scaledWidth / 2;
+				const canvasY = (upEvent.clientY - rect.top) * scaleY - scaledHeight / 2;
+
+				// Guardar datos en el objeto VideoElement
+				this.dragVideo.position = { x: canvasX, y: canvasY };
+				this.dragVideo.scale = requiredScale; // Escala que garantiza el tamaño correcto en el canvas
+				this.dragVideo.painted = true; // Marcamos el video como "pintado"
+
+				console.log('Video almacenado:', {
+					position: this.dragVideo.position,
+					scale: this.dragVideo.scale,
+					ghostWidthInCanvas,
+					ghostHeightInCanvas,
+				});
 			}
 
 			// Restaurar estado
+			this.canvas.classList.remove('border-blue-700', 'border-2');
 			this.dragVideo = null;
 			ghost.remove();
 			document.removeEventListener('mousemove', mousemove);
