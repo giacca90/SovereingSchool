@@ -334,21 +334,36 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				// Verificar si hay intersección
 				const isIntersecting = intersection.left < intersection.right && intersection.top < intersection.bottom;
 
+				// Verificar si el ghost está completamente contenido dentro del canvas
+				const isFullyContained = ghostRect.left >= rect.left && ghostRect.top >= rect.top && ghostRect.right <= rect.right && ghostRect.bottom <= rect.bottom;
+
 				if (isIntersecting) {
 					console.log('Intersección encontrada');
 					ghost.style.clipPath = `polygon(
-        				${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
-        				${((intersection.top - ghostRect.top) / ghostRect.height) * 100}%, 
-        				${((intersection.right - ghostRect.left) / ghostRect.width) * 100}% 
-        				${((intersection.top - ghostRect.top) / ghostRect.height) * 100}%, 
-        				${((intersection.right - ghostRect.left) / ghostRect.width) * 100}% 
-        				${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%, 
-        				${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
-        				${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%
-    				)`;
+			        ${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
+			        ${((intersection.top - ghostRect.top) / ghostRect.height) * 100}%, 
+			        ${((intersection.right - ghostRect.left) / ghostRect.width) * 100}% 
+			        ${((intersection.top - ghostRect.top) / ghostRect.height) * 100}%, 
+			        ${((intersection.right - ghostRect.left) / ghostRect.width) * 100}% 
+			        ${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%, 
+			        ${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
+			        ${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%
+					)`;
 					ghost.classList.remove('ghost-video');
-					ghost.classList.add('border-blue-700', 'border-2');
-					this.canvas.classList.add('border-blue-700', 'border-2');
+
+					// Detectar posición del cursor respecto al canvas
+
+					if (isFullyContained) {
+						ghost.classList.remove('border-red-700');
+						ghost.classList.add('border-blue-700', 'border-2');
+						this.canvas.classList.remove('border-red-700');
+						this.canvas.classList.add('border-blue-700', 'border-2');
+					} else {
+						ghost.classList.remove('border-blue-700');
+						ghost.classList.add('border-red-700', 'border-2');
+						this.canvas.classList.remove('border-blue-700');
+						this.canvas.classList.add('border-red-700', 'border-2');
+					}
 				} else {
 					console.log('No hay intersección');
 					ghost.style.clipPath = 'none'; // Restaurar si no hay intersección
@@ -359,20 +374,64 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
 				console.log('Mouse over canvas: ', isMouseOverCanvas);
-				const cross = document.getElementById('cross') as HTMLDivElement;
 				const orizontal = document.getElementById('orizontal') as HTMLDivElement;
+				if (!orizontal.classList.contains('hedden')) {
+					orizontal.classList.add('hedden');
+				}
+				orizontal.style.display = 'none';
 				const vertical = document.getElementById('vertical') as HTMLDivElement;
-				if (isMouseOverCanvas && cross && orizontal && vertical) {
+				if (!vertical.classList.contains('hedden')) {
+					vertical.classList.add('hedden');
+				}
+				vertical.style.display = 'none';
+				if (isIntersecting && orizontal && vertical) {
 					// Mostrar la cruz
-					cross.classList.remove('hidden');
-					cross.style.display = 'block';
+					const cursorPosition = {
+						isAbove: moveEvent.clientY < rect.top,
+						isBelow: moveEvent.clientY > rect.bottom,
+						isLeft: moveEvent.clientX < rect.left,
+						isRight: moveEvent.clientX > rect.right,
+					};
+					console.log('Cursor position: ', cursorPosition);
+					if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
+						orizontal.classList.remove('hedden');
+						orizontal.style.display = 'block';
+					}
+					if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
+						vertical.classList.remove('hedden');
+						vertical.style.display = 'block';
+					}
+					/* if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
+						vertical.classList.remove('hedden');
+						vertical.style.display = 'block';
+					}
+					if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
+						orizontal.classList.remove('hedden');
+						orizontal.style.display = 'block';
+					} */
 
+					if (isMouseOverCanvas) {
+						vertical.classList.remove('hedden');
+						vertical.style.display = 'block';
+						orizontal.classList.remove('hedden');
+						orizontal.style.display = 'block';
+					}
+
+					if (isFullyContained) {
+						vertical.classList.remove('bg-red-700');
+						vertical.classList.add('bg-blue-700');
+
+						orizontal.classList.remove('bg-red-700');
+						orizontal.classList.add('bg-blue-700');
+					} else {
+						vertical.classList.remove('bg-blue-700');
+						vertical.classList.add('bg-red-700');
+
+						orizontal.classList.remove('bg-blue-700');
+						orizontal.classList.add('bg-red-700');
+					}
 					vertical.style.left = `${moveEvent.clientX - rect.left}px`;
 					orizontal.style.top = `${moveEvent.clientY - rect.top}px`;
-				} else if (cross) {
-					// Ocultar la cruz cuando el ratón está fuera del canvas
-					cross.style.display = 'none';
-					cross.classList.add('hidden');
 				}
 			} catch (error) {
 				console.error('Error al mover el video: ', error);
