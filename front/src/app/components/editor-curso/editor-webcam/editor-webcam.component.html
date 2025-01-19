@@ -1,6 +1,16 @@
 <div class="relative m-2 flex h-screen w-screen flex-col rounded-lg border border-black p-2 pb-4">
+	<!-- Canvas con cruz -->
 	<div class="relative flex h-3/4 pr-4">
-		<canvas id="salida" width="1280" height="720" autoplay playsinline class="aspect-video h-full border border-black bg-white"></canvas>
+		<div class="relative aspect-video h-full">
+			<canvas id="salida" width="1280" height="720" autoplay playsinline class="h-full w-full border border-black bg-white"></canvas>
+			<!-- Cruz del arrastre -->
+			<div id="cross" class="pointer-events-none absolute inset-0 hidden">
+				<!-- Línea vertical -->
+				<div id="vertical" class="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 bg-blue-700"></div>
+				<!-- Línea horizontal -->
+				<div id="orizontal" class="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-blue-700"></div>
+			</div>
+		</div>
 	</div>
 	<br />
 	<div class="relative flex h-1/4 pb-4">

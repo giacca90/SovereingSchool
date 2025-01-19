@@ -359,6 +359,21 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
 				console.log('Mouse over canvas: ', isMouseOverCanvas);
+				const cross = document.getElementById('cross') as HTMLDivElement;
+				const orizontal = document.getElementById('orizontal') as HTMLDivElement;
+				const vertical = document.getElementById('vertical') as HTMLDivElement;
+				if (isMouseOverCanvas && cross && orizontal && vertical) {
+					// Mostrar la cruz
+					cross.classList.remove('hidden');
+					cross.style.display = 'block';
+
+					vertical.style.left = `${moveEvent.clientX - rect.left}px`;
+					orizontal.style.top = `${moveEvent.clientY - rect.top}px`;
+				} else if (cross) {
+					// Ocultar la cruz cuando el ratón está fuera del canvas
+					cross.style.display = 'none';
+					cross.classList.add('hidden');
+				}
 			} catch (error) {
 				console.error('Error al mover el video: ', error);
 			}
@@ -405,12 +420,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				this.dragVideo.scale = requiredScale; // Escala que garantiza el tamaño correcto en el canvas
 				this.dragVideo.painted = true; // Marcamos el video como "pintado"
 
-				console.log('Video almacenado:', {
-					position: this.dragVideo.position,
-					scale: this.dragVideo.scale,
-					ghostWidthInCanvas,
-					ghostHeightInCanvas,
-				});
+				const cross = document.getElementById('cross') as HTMLDivElement;
+				if (cross) {
+					cross.style.display = 'none';
+					cross.classList.add('hidden');
+				}
 			}
 
 			// Restaurar estado
