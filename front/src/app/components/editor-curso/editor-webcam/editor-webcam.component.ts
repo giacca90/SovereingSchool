@@ -333,10 +333,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				ghost.style.height = `${Math.max(10, newHeight)}px`;
 			}
 		};
-
 		document.addEventListener('wheel', wheel, { passive: false });
 
 		// Evento para mover el ghost
+		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
+		const crossCopy = document.getElementById('cross')?.cloneNode(true) as HTMLDivElement;
+		if (!canvasContainer || !crossCopy) return;
+		canvasContainer.appendChild(crossCopy);
+
 		const mousemove = (moveEvent: MouseEvent) => {
 			console.log('Mousemove');
 			try {
@@ -397,12 +401,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				}
 
 				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
-				const orizontal = document.getElementById('orizontal') as HTMLDivElement;
-
+				const orizontal = crossCopy.querySelector('#orizontal') as HTMLDivElement;
 				orizontal.style.display = 'none';
-				const vertical = document.getElementById('vertical') as HTMLDivElement;
 
+				const vertical = crossCopy.querySelector('#vertical') as HTMLDivElement;
 				vertical.style.display = 'none';
+
 				if (isIntersecting && orizontal && vertical) {
 					// Mostrar la cruz
 					const cursorPosition = {
@@ -514,6 +518,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.canvas.classList.remove('border-blue-700', 'border-2');
 			this.dragVideo = null;
 			ghost.remove();
+			crossCopy.remove();
 			document.removeEventListener('mousemove', mousemove);
 			document.removeEventListener('wheel', wheel);
 			document.removeEventListener('mouseup', mouseup);
