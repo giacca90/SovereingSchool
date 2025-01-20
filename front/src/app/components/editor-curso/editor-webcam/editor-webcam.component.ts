@@ -398,14 +398,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
 				const orizontal = document.getElementById('orizontal') as HTMLDivElement;
-				if (!orizontal.classList.contains('hedden')) {
-					orizontal.classList.add('hedden');
-				}
+
 				orizontal.style.display = 'none';
 				const vertical = document.getElementById('vertical') as HTMLDivElement;
-				if (!vertical.classList.contains('hedden')) {
-					vertical.classList.add('hedden');
-				}
+
 				vertical.style.display = 'none';
 				if (isIntersecting && orizontal && vertical) {
 					// Mostrar la cruz
@@ -416,26 +412,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						isRight: moveEvent.clientX > rect.right,
 					};
 					if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
-						orizontal.classList.remove('hedden');
 						orizontal.style.display = 'block';
 					}
 					if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
-						vertical.classList.remove('hedden');
 						vertical.style.display = 'block';
 					}
-					/* if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
-						vertical.classList.remove('hedden');
-						vertical.style.display = 'block';
-					}
-					if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
-						orizontal.classList.remove('hedden');
-						orizontal.style.display = 'block';
-					} */
 
 					if (isMouseOverCanvas) {
-						vertical.classList.remove('hedden');
 						vertical.style.display = 'block';
-						orizontal.classList.remove('hedden');
 						orizontal.style.display = 'block';
 					}
 
@@ -505,7 +489,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const cross = document.getElementById('cross') as HTMLDivElement;
 				if (cross) {
 					cross.style.display = 'none';
-					cross.classList.add('hidden');
 				}
 
 				// Añade una capa encima al elemento transmitido
@@ -513,12 +496,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				if (div) {
 					const capa: HTMLDivElement = document.createElement('div');
 					capa.classList.add('absolute', 'top-0', 'left-0', 'w-full', 'h-full', 'bg-black', 'z-10', 'opacity-50', 'rounded-lg');
-
+					capa.id = 'capa-' + ele.id;
 					// Elementos de la capa:
 
 					// Botón para detener la emisión
 					const X: HTMLButtonElement = document.createElement('button');
-					X.classList.add('absolute', 'top-0', 'right-0', 'w-4', 'h-4', 'rounded-full', 'text-red-500', 'm-2');
+					X.classList.add('absolute', 'top-0', 'right-0', 'w-4', 'h-4', 'rounded-full', 'm-2');
 					X.onclick = () => {
 						ele.painted = false;
 						ele.position = null;
@@ -584,8 +567,48 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			// Comprobar si el ratón está dentro del área del video
 			const isMouseOverVideo = internalMouseX >= videoLeft && internalMouseX <= videoLeft + videoWidth && internalMouseY >= videoTop && internalMouseY <= videoTop + videoHeight;
 
+			// Buscar el elemento "ghost"
+			const ghostDiv = document.getElementById('marco') as HTMLDivElement;
+			if (!ghostDiv) return;
+
 			if (isMouseOverVideo) {
 				console.log('Mouse over video ' + video.id);
+
+				// Calcular la posición y tamaño del "ghost" en el espacio visible del canvas
+				const ghostLeft = videoLeft / scaleX; // Convertir a coordenadas internas del canvas
+				const ghostTop = videoTop / scaleY; // Convertir a coordenadas internas del canvas
+				const ghostWidth = videoWidth / scaleX; // Ajustar el tamaño para la visualización
+				const ghostHeight = videoHeight / scaleY; // Ajustar el tamaño para la visualización
+
+				// Crear o actualizar el elemento del "ghost"
+				ghostDiv.style.position = 'absolute'; // Asegurarse de que el ghostDiv se posicione correctamente
+				ghostDiv.style.left = `${ghostLeft}px`; // Colocar el "ghost" en la posición correcta
+				ghostDiv.style.top = `${ghostTop}px`; // Colocar el "ghost" en la posición correcta
+				ghostDiv.style.width = `${ghostWidth}px`; // Ajustar el ancho del "ghost"
+				ghostDiv.style.height = `${ghostHeight}px`; // Ajustar la altura del "ghost"
+				ghostDiv.style.display = 'block'; // Hacerlo visible
+
+				// Crea el botón X
+				const buttonX = document.createElement('button');
+				buttonX.classList.add('absolute', 'right-0', 'top-0', 'z-20', 'm-2', 'h-4', 'w-4', 'cursor-pointer', 'rounded-full');
+				const img = document.createElement('img');
+				img.src = '../../../../assets/close_gray.svg';
+				img.alt = 'X';
+				buttonX.appendChild(img);
+				buttonX.onclick = () => {
+					video.painted = false;
+					video.position = null;
+					video.scale = 1;
+					ghostDiv.style.display = 'none';
+					const capa = document.getElementById('capa-' + video.id);
+					if (capa) {
+						capa.remove();
+					}
+				};
+				ghostDiv.appendChild(buttonX);
+			} else {
+				// Eliminar el elemento del "ghost" si ya no está sobre el video
+				ghostDiv.style.display = 'none'; // Hacerlo invisible
 			}
 		});
 	}
