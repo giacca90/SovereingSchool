@@ -282,17 +282,18 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		ghost.load();
 
 		// Dimensiones del video
-		const elementWidth = videoElement.offsetWidth;
-		const elementHeight = videoElement.offsetHeight;
-		const offsetX = elementWidth / 2;
-		const offsetY = elementHeight / 2;
 
-		const updateGhostPosition = (x: number, y: number) => {
+		const updateGhostPosition = (x: number, y: number, element: HTMLVideoElement) => {
+			const elementWidth = element.offsetWidth;
+			const elementHeight = element.offsetHeight;
+			const offsetX = elementWidth / 2;
+			const offsetY = elementHeight / 2;
+
 			ghost.style.left = `${x - offsetX}px`;
 			ghost.style.top = `${y - offsetY}px`;
 		};
 
-		updateGhostPosition(event.clientX, event.clientY); // Posición inicial
+		updateGhostPosition(event.clientX, event.clientY, videoElement); // Posición inicial
 		document.body.appendChild(ghost);
 
 		// Evento para detectar `wheel`
@@ -305,8 +306,31 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			if (isMouseOverCanvas) {
 				wheelEvent.preventDefault();
-				this.dragVideo.scale += wheelEvent.deltaY < 0 ? 0.05 : -0.05;
-				this.dragVideo.scale = Math.max(0.1, this.dragVideo.scale);
+				// Obtener tamaño actual del ghost
+				const ghostStyles = window.getComputedStyle(ghost);
+				const currentWidth = parseFloat(ghostStyles.width);
+				const currentHeight = parseFloat(ghostStyles.height);
+
+				// Obtener posición actual del ghost
+				const currentLeft = parseFloat(ghostStyles.left);
+				const currentTop = parseFloat(ghostStyles.top);
+
+				// Incrementar o reducir tamaño en función del scroll
+				const delta = wheelEvent.deltaY < 0 ? 1.05 : 0.95; // Aumenta o reduce en un 5%
+				const newWidth = currentWidth * delta;
+				const newHeight = currentHeight * delta;
+
+				// Calcular la diferencia de tamaño para ajustar la posición
+				const widthDiff = newWidth - currentWidth;
+				const heightDiff = newHeight - currentHeight;
+
+				// Ajustar la posición del ghost para mantener el centro alineado con el ratón
+				ghost.style.left = `${currentLeft - widthDiff / 2}px`;
+				ghost.style.top = `${currentTop - heightDiff / 2}px`;
+
+				// Actualizar dimensiones del ghost
+				ghost.style.width = `${Math.max(10, newWidth)}px`; // Asegurarse de que no sea demasiado pequeño
+				ghost.style.height = `${Math.max(10, newHeight)}px`;
 			}
 		};
 
@@ -318,7 +342,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			try {
 				if (!this.dragVideo || !this.canvas) return;
 
-				updateGhostPosition(moveEvent.clientX, moveEvent.clientY);
+				updateGhostPosition(moveEvent.clientX, moveEvent.clientY, ghost);
 
 				const rect = this.canvas.getBoundingClientRect();
 				const ghostRect = ghost.getBoundingClientRect();
@@ -392,7 +416,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						isLeft: moveEvent.clientX < rect.left,
 						isRight: moveEvent.clientX > rect.right,
 					};
-					console.log('Cursor position: ', cursorPosition);
 					if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
 						orizontal.classList.remove('hedden');
 						orizontal.style.display = 'block';
