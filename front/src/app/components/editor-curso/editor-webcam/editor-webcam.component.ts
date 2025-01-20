@@ -590,7 +590,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 				// Crea el botón X
 				const buttonX = document.createElement('button');
-				buttonX.classList.add('absolute', 'right-0', 'top-0', 'z-20', 'm-2', 'h-4', 'w-4', 'cursor-pointer', 'rounded-full');
+				buttonX.classList.add('absolute', 'right-0', 'top-0', 'z-20', 'm-4', 'h-4', 'w-4', 'cursor-pointer', 'rounded-full');
 				const img = document.createElement('img');
 				img.src = '../../../../assets/close_gray.svg';
 				img.alt = 'X';
@@ -606,6 +606,72 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					}
 				};
 				ghostDiv.appendChild(buttonX);
+
+				// Crea los tiradores y la x entre esquinas
+				const tiradorTL = document.createElement('div');
+				tiradorTL.classList.add('z-20', 'absolute', 'top-0', 'left-0', 'h-4', 'w-4', 'border', 'border-white', 'hover:border-2');
+				tiradorTL.addEventListener('mousedown', () => {
+					console.log('Tirador TL');
+				});
+
+				const tiradorTR = document.createElement('div');
+				tiradorTR.classList.add('z-20', 'absolute', 'top-0', 'right-0', 'h-4', 'w-4', 'border', 'border-white', 'hover:border-2');
+				tiradorTR.addEventListener('mousedown', () => {
+					console.log('Tirador TR');
+				});
+				const tiradorBL = document.createElement('div');
+				tiradorBL.classList.add('z-20', 'absolute', 'bottom-0', 'left-0', 'h-4', 'w-4', 'border', 'border-white', 'hover:border-2');
+				tiradorBL.addEventListener('mousedown', () => {
+					console.log('Tirador BL');
+				});
+
+				const tiradorBR = document.createElement('div');
+				tiradorBR.classList.add('z-20', 'absolute', 'bottom-0', 'right-0', 'h-4', 'w-4', 'border', 'border-white', 'hover:border-2');
+				tiradorBR.addEventListener('mousedown', () => {
+					console.log('Tirador BR');
+				});
+
+				const tiradorCentral = document.createElement('div');
+				tiradorCentral.classList.add('z-20', 'absolute', 'top-[50%]', 'left-[50%]', 'h-4', 'w-4', 'border', 'border-white', 'hover:border-2');
+				tiradorCentral.style.transform = 'translate(-50%, -50%)';
+				tiradorCentral.addEventListener('mousedown', () => {
+					console.log('Tirador Central');
+				});
+
+				ghostDiv.appendChild(tiradorTL);
+				ghostDiv.appendChild(tiradorTR);
+				ghostDiv.appendChild(tiradorBL);
+				ghostDiv.appendChild(tiradorBR);
+				ghostDiv.appendChild(tiradorCentral);
+
+				// Calcular la longitud de la línea diagonal (de esquina superior izquierda a inferior derecha)
+				const diagonalLength = Math.sqrt(Math.pow(ghostDiv.clientWidth, 2) + Math.pow(ghostDiv.clientHeight, 2));
+
+				// Crear la línea de la esquina superior izquierda a la esquina inferior derecha
+				const line1 = document.createElement('div');
+				line1.classList.add('absolute', 'bg-white');
+				line1.style.width = `${diagonalLength}px`;
+				line1.style.height = '1px';
+				line1.style.position = 'absolute';
+				line1.style.left = '0px';
+				line1.style.top = '0px';
+				line1.style.transformOrigin = '0 0'; // Origen de la rotación en la esquina superior izquierda
+				line1.style.transform = `rotate(${Math.atan2(ghostDiv.clientHeight, ghostDiv.clientWidth)}rad)`; // Rotar hacia la esquina inferior derecha
+
+				// Crear la línea de la esquina superior derecha a la esquina inferior izquierda
+				const line2 = document.createElement('div');
+				line2.classList.add('absolute', 'bg-white');
+				line2.style.width = `${diagonalLength}px`;
+				line2.style.height = '1px';
+				line2.style.position = 'absolute';
+				line2.style.right = '0px'; // Origen en la esquina superior derecha
+				line2.style.top = '0px';
+				line2.style.transformOrigin = '100% 0'; // Origen de la rotación en la esquina superior derecha
+				line2.style.transform = `rotate(${-Math.atan2(ghostDiv.clientHeight, ghostDiv.clientWidth)}rad)`; // Rotar hacia la esquina inferior izquierda
+
+				// Añadir las líneas al ghostDiv
+				ghostDiv.appendChild(line1);
+				ghostDiv.appendChild(line2);
 			} else {
 				// Eliminar el elemento del "ghost" si ya no está sobre el video
 				ghostDiv.style.display = 'none'; // Hacerlo invisible

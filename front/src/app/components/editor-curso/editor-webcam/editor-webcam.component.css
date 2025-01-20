@@ -25,5 +25,4 @@
 .ghost-video {
 	opacity: 0.8; /* Algo de transparencia para distinguirlo */
 	transform: scale(0.9); /* Un pequeño escalado si lo necesitas */
-	pointer-events: none; /* Esto ya lo tienes */
 }
