@@ -23,7 +23,7 @@
 			}
 		</div>
 		@for (device of this.videoDevices; track device.deviceId) {
-			<div class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
+			<div id="div-{{ device.deviceId }}" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
 				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
 			</div>
 
@@ -34,7 +34,7 @@
 			} -->
 		}
 		@for (captura of this.capturas; track captura.id) {
-			<div class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent">
+			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent">
 				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="rounded-lg border border-black" [srcObject]="captura"></video>
 				@if (captura.getAudioTracks().length > 0) {
 					@for (audioTrack of captura.getAudioTracks(); track $index) {}

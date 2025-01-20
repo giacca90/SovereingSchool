@@ -502,10 +502,46 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				this.dragVideo.scale = requiredScale; // Escala que garantiza el tamaño correcto en el canvas
 				this.dragVideo.painted = true; // Marcamos el video como "pintado"
 
+				// Quita la cruz de posicionamiento
 				const cross = document.getElementById('cross') as HTMLDivElement;
 				if (cross) {
 					cross.style.display = 'none';
 					cross.classList.add('hidden');
+				}
+
+				// Añade una capa encima al elemento transmitido
+				const div = document.getElementById('div-' + ele.id);
+				if (div) {
+					const capa: HTMLDivElement = document.createElement('div');
+					capa.classList.add('absolute', 'top-0', 'left-0', 'w-full', 'h-full', 'bg-black', 'z-10', 'opacity-50', 'rounded-lg');
+
+					// Elementos de la capa:
+
+					// Botón para detener la emisión
+					const X: HTMLButtonElement = document.createElement('button');
+					X.classList.add('absolute', 'top-0', 'right-0', 'w-4', 'h-4', 'rounded-full', 'text-red-500', 'm-2');
+					X.onclick = () => {
+						ele.painted = false;
+						ele.position = null;
+						ele.scale = 1;
+						div.removeChild(capa);
+					};
+					const X_icon: HTMLImageElement = document.createElement('img');
+					X_icon.src = '../../../../assets/close_gray.svg';
+					X_icon.alt = 'X';
+					X.appendChild(X_icon);
+
+					capa.addEventListener('mouseover', () => {
+						capa.classList.remove('opacity-50');
+						capa.classList.add('opacity-80');
+						capa.appendChild(X);
+					});
+					capa.addEventListener('mouseleave', () => {
+						capa.classList.remove('opacity-80');
+						capa.classList.add('opacity-50');
+						capa.removeChild(X);
+					});
+					div.appendChild(capa);
 				}
 			}
 
