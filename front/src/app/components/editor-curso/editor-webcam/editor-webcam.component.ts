@@ -397,7 +397,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				}
 
 				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
-				console.log('Mouse over canvas: ', isMouseOverCanvas);
 				const orizontal = document.getElementById('orizontal') as HTMLDivElement;
 				if (!orizontal.classList.contains('hedden')) {
 					orizontal.classList.add('hedden');
@@ -553,110 +552,42 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			document.removeEventListener('wheel', wheel);
 			document.removeEventListener('mouseup', mouseup);
 		};
-
 		document.addEventListener('mouseup', mouseup);
 	}
 
-	dragStart(event: DragEvent, deviceId: string): void {
-		event.dataTransfer?.setData('deviceId', deviceId);
-		const videoElement = document.getElementById(deviceId) as HTMLVideoElement;
+	canvasMouseMove(event: MouseEvent) {
+		if (!this.canvas) return;
+		const rect = this.canvas.getBoundingClientRect();
+		// Obtener las coordenadas relativas al tamaño visible del canvas
+		const mousex = Math.max(0, Math.round(event.clientX - rect.left)); // Redondear y evitar valores negativos
+		const mousey = Math.max(0, Math.round(event.clientY - rect.top)); // Redondear y evitar valores negativos
 
-		if (videoElement) {
-			const ele = this.videosElements.find((el) => el.id === deviceId);
-			if (ele) {
-				this.dragVideo = ele; // Guarda el video en el estado
+		// Relación de escala entre el tamaño interno del canvas y el tamaño visible
+		const scaleX = this.canvas.width / rect.width; // Relación horizontal
+		const scaleY = this.canvas.height / rect.height; // Relación vertical
+
+		// Obtener las coordenadas internas (relativas al tamaño interno del canvas)
+		const internalMouseX = mousex * scaleX;
+		const internalMouseY = mousey * scaleY;
+		//console.log('Mouse move in canvas (internal): ' + internalMouseX + ' ' + internalMouseY);
+
+		// Obtener las coordenadas de cada video renderizado
+		const rendered = this.videosElements.filter((video) => video.painted);
+		rendered.forEach((video) => {
+			const videoWidth = video.element.videoWidth * video.scale;
+			const videoHeight = video.element.videoHeight * video.scale;
+
+			// Coordenadas del video en el canvas
+			const videoLeft = video.position ? video.position.x : 0;
+			const videoTop = video.position ? video.position.y : 0;
+
+			// Comprobar si el ratón está dentro del área del video
+			const isMouseOverVideo = internalMouseX >= videoLeft && internalMouseX <= videoLeft + videoWidth && internalMouseY >= videoTop && internalMouseY <= videoTop + videoHeight;
+
+			if (isMouseOverVideo) {
+				console.log('Mouse over video ' + video.id);
 			}
-		} else {
-			console.log('No hay videoElement');
-		}
-
-		// Crear el elemento "ghost"
-		const ghost = videoElement.cloneNode(true) as HTMLVideoElement;
-		ghost.classList.add('ghost-video'); // Agregar clase CSS para estilizar el ghost
-		ghost.style.position = 'absolute';
-		ghost.style.pointerEvents = 'none'; // Para que no interfiera con otros eventos
-		ghost.style.zIndex = '1000';
-		document.body.appendChild(ghost);
-	}
-
-	dragOver(event: DragEvent) {
-		event.preventDefault();
-		if (!this.dragVideo) return; // Solo continua si hay un video en arrastre
-
-		const canvas = document.getElementById('salida') as HTMLCanvasElement;
-		const rect = canvas.getBoundingClientRect();
-
-		// Relación de escala entre el tamaño visual y el tamaño interno del canvas
-		const scaleX = canvas.width / rect.width;
-		const scaleY = canvas.height / rect.height;
-
-		// Ajustar la posición del ratón al tamaño interno del canvas
-		this.dragPosition.x = Math.round((event.clientX - rect.left) * scaleX);
-		this.dragPosition.y = Math.round((event.clientY - rect.top) * scaleY);
-
-		// Dibuja una cruz y el marco del video mientras se arrastra
-		const context = canvas.getContext('2d');
-		if (context) {
-			context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
-
-			// Dibujar cruz en el centro del ratón, extendida hasta los bordes del canvas
-			context.strokeStyle = 'blue';
-			context.lineWidth = 3;
-			context.beginPath();
-
-			// Línea horizontal (extendida hasta los bordes)
-			context.moveTo(0, this.dragPosition.y); // Comienza desde el borde izquierdo
-			context.lineTo(canvas.width, this.dragPosition.y); // Termina en el borde derecho
-
-			// Línea vertical (extendida hasta los bordes)
-			context.moveTo(this.dragPosition.x, 0); // Comienza desde el borde superior
-			context.lineTo(this.dragPosition.x, canvas.height); // Termina en el borde inferior
-
-			// Dibuja la cruz
-			context.stroke();
-
-			// Dibuja el video en su escala actual
-			const videoWidth = (this.dragVideo.element.videoWidth * this.dragVideo.scale) / 5;
-			const videoHeight = (this.dragVideo.element.videoHeight * this.dragVideo.scale) / 5;
-			const drawX = this.dragPosition.x - videoWidth / 2;
-			const drawY = this.dragPosition.y - videoHeight / 2;
-
-			context.drawImage(this.dragVideo.element, drawX, drawY, videoWidth, videoHeight);
-
-			// Dibuja un marco azul alrededor del video
-			context.strokeStyle = 'blue'; // Color azul para el marco
-			context.lineWidth = 3; // Grosor del marco
-			context.strokeRect(drawX, drawY, videoWidth, videoHeight); // Dibuja el rectángulo
-		} else {
-			console.log('No hay contexto');
-		}
-	}
-
-	drop(event: DragEvent): void {
-		event.preventDefault();
-		if (!this.dragVideo) return; // Solo continua si hay un video en arrastre
-		this.dragVideo.painted = true;
-		const canvas = document.getElementById('salida') as HTMLCanvasElement;
-		const context = canvas.getContext('2d');
-		if (context) {
-			// Inicia el bucle para mantener el video en movimiento en el canvas
-			const videoWidth = (this.dragVideo.element.videoWidth * this.dragVideo.scale) / 5;
-			const videoHeight = (this.dragVideo.element.videoHeight * this.dragVideo.scale) / 5;
-			const drawX = this.dragPosition.x - videoWidth / 2;
-			const drawY = this.dragPosition.y - videoHeight / 2;
-			this.dragVideo.position = { x: drawX, y: drawY };
-			this.dragVideo = null; // Limpia el estado del video arrastrado
-		}
-	}
-
-	wheel(event: WheelEvent): void {
-		console.log('Evento Scroll: ', event.deltaY);
-		if (!this.dragVideo) return; // Solo ajusta si hay un video en arrastre
-
-		event.preventDefault();
-		this.dragVideo.scale += event.deltaY < 0 ? 0.05 : -0.05; // Cambia el tamaño
-		this.dragVideo.scale = Math.max(0.1, this.dragVideo.scale); // Escala mínima
-		console.log('Escala: ', this.dragVideo.scale);
+		});
 	}
 }
 
