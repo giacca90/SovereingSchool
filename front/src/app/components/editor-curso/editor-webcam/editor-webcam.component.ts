@@ -376,21 +376,17 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					// Detectar posición del cursor respecto al canvas
 
 					if (isFullyContained) {
-						ghost.classList.remove('border-red-700');
-						ghost.classList.add('border-blue-700', 'border-2');
-						this.canvas.classList.remove('border-red-700');
-						this.canvas.classList.add('border-blue-700', 'border-2');
+						ghost.style.border = '2px solid #1d4ed8';
+						this.canvas.style.border = '2px solid #1d4ed8';
 					} else {
-						ghost.classList.remove('border-blue-700');
-						ghost.classList.add('border-red-700', 'border-2');
-						this.canvas.classList.remove('border-blue-700');
-						this.canvas.classList.add('border-red-700', 'border-2');
+						ghost.style.border = '2px solid #b91c1c';
+						this.canvas.style.border = '2px solid #b91c1c';
 					}
 				} else {
 					ghost.style.clipPath = 'none'; // Restaurar si no hay intersección
 					ghost.classList.add('ghost-video');
-					ghost.classList.remove('border-blue-700', 'border-2');
-					this.canvas.classList.remove('border-blue-700', 'border-2');
+					ghost.style.border = '1px solid black';
+					this.canvas.style.border = '1px solid black';
 				}
 
 				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
@@ -501,9 +497,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 
 			// Restaurar estado
-			this.canvas.classList.remove('border-blue-700', 'border-2');
+			this.canvas.style.border = '1px solid black';
 			this.dragVideo = null;
-			ghost.style.display = 'none';
+			ghost.style.visibility = 'hidden';
 			crossCopy.remove();
 			document.removeEventListener('mousemove', mousemove);
 			document.removeEventListener('wheel', wheel);
@@ -574,7 +570,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				ghostDiv.style.top = `${ghostTop}px`; // Colocar el "ghost" en la posición correcta
 				ghostDiv.style.width = `${ghostWidth}px`; // Ajustar el ancho del "ghost"
 				ghostDiv.style.height = `${ghostHeight}px`; // Ajustar la altura del "ghost"
-				ghostDiv.style.display = 'block'; // Hacerlo visible
+				ghostDiv.style.visibility = 'visible'; // Hacerlo visible
 
 				const buttonX = ghostDiv.querySelector('#buttonx') as HTMLButtonElement;
 				buttonX.onclick = () => {
@@ -605,7 +601,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				line2.style.top = '0px';
 			} else {
 				// Eliminar el elemento del "ghost" si ya no está sobre el video
-				ghostDiv.style.display = 'none';
+				ghostDiv.style.visibility = 'hidden';
 			}
 		});
 	}
@@ -665,6 +661,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const mouseMove = ($event2: MouseEvent) => {
 			const difX = $event2.clientX - posicionInicial.x;
 			const difY = $event2.clientY - posicionInicial.y;
+			if (!this.canvas) return;
+			this.canvas.style.border = '1px solid black';
+			const elementos = canvasContainer.querySelectorAll('[id^="marco"]') as NodeListOf<HTMLDivElement>;
+			elementos.forEach((elemento) => {
+				if (elemento.id !== ghostDiv.id) {
+					elemento.style.visibility = 'hidden';
+				}
+			});
 
 			// Función para recalcular las líneas diagonales
 			const recalculaDiagonales = () => {
@@ -745,7 +749,20 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			vertical.style.left = centroX + 'px';
 			const intersecciones = this.colisiones(ghostDiv as HTMLDivElement);
 			console.log('intersecciones ', intersecciones);
+
+			// Cambiar el color de la cruz de posicionamiento si hay alguna colisión
 			if (intersecciones && intersecciones.length > 0) {
+				// Pone el marco rojo a los elementos colisionados
+				intersecciones.forEach((elemento) => {
+					if (elemento.id === 'canvas-container') {
+						if (this.canvas) {
+							this.canvas.style.border = '2px solid #b91c1c';
+						}
+					} else {
+						elemento.style.border = '2px solid #b91c1c';
+						elemento.style.visibility = 'visible';
+					}
+				});
 				orizontal.style.backgroundColor = '#b91c1c';
 				vertical.style.backgroundColor = '#b91c1c';
 				ghostDiv.style.border = '2px solid #b91c1c';
@@ -799,7 +816,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			canvasContainer.removeEventListener('mousemove', mouseMove);
 			canvasContainer.removeEventListener('mouseup', mouseup);
 			cross.remove();
-			ghostDiv.style.display = 'none';
+			ghostDiv.style.visibility = 'hidden';
 			this.editandoDimensiones = false;
 		};
 		canvasContainer.addEventListener('mouseup', mouseup);
@@ -821,9 +838,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				}
 			}
 		});
-		const canvasRect = canvasContainer.getBoundingClientRect();
+		const canvasRect = this.canvas.getBoundingClientRect();
 		const tocaBorde = rect.left <= canvasRect.left || rect.right >= canvasRect.right || rect.top <= canvasRect.top || rect.bottom >= canvasRect.bottom;
 		if (tocaBorde) {
+			console.log('toca borde: ' + canvasContainer.id);
 			elementosIntersecados.push(canvasContainer);
 		}
 		return elementosIntersecados;
