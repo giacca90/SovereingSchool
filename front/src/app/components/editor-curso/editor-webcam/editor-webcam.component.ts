@@ -584,7 +584,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				ghostDiv.style.height = `${ghostHeight}px`; // Ajustar la altura del "ghost"
 				ghostDiv.style.display = 'block'; // Hacerlo visible
 
-				const buttonX = document.getElementById('buttonx') as HTMLButtonElement;
+				const buttonX = ghostDiv.querySelector('#buttonx') as HTMLButtonElement;
 				buttonX.onclick = () => {
 					video.painted = false;
 					video.position = null;
