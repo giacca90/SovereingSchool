@@ -62,7 +62,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	startMedias(devices: MediaDeviceInfo[]) {
 		// Asignar el video stream a cada dispositivo de video
 		devices.forEach((device) => {
-			console.log('Device: ' + device.label);
 			if (device.kind === 'videoinput') {
 				this.videoDevices.push(device);
 				this.getVideoStream(device.deviceId);
@@ -105,7 +104,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const disconnectedVideoDevices = this.videoDevices.filter((device) => !allDevices.some((d) => d.deviceId === device.deviceId));
 
 			if (disconnectedVideoDevices.length > 0) {
-				console.log('Dispositivos desconectados:', disconnectedVideoDevices);
 				// Limpiar recursos de dispositivos desconectados
 				disconnectedVideoDevices.forEach((device) => {
 					console.log('Dispositivo desconectado:', device.label || 'Sin nombre');
@@ -126,7 +124,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const disconnectedDevices = this.audioDevices.filter((device) => !allDevices.some((d) => d.deviceId === device.deviceId));
 
 			if (disconnectedDevices.length > 0) {
-				console.log('Dispositivos desconectados:', disconnectedDevices);
 				// Limpiar recursos de dispositivos desconectados
 				disconnectedDevices.forEach((device) => {
 					console.log('Dispositivo desconectado:', device.label || 'Sin nombre');
@@ -142,7 +139,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					}
 				});
 			}
-
 			console.log('Dispositivos actualizados:', this.videoDevices + '\n' + this.audioDevices);
 		} catch (error) {
 			console.error('Error al actualizar dispositivos:', error);
@@ -210,7 +206,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	async addScrean() {
-		console.log('Añadir pantalla');
 		try {
 			// Solicitar al usuario que seleccione una ventana, aplicación o pantalla
 			const stream: MediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -241,6 +236,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			stream.getVideoTracks()[0].onended = () => {
 				console.log('La captura ha terminado');
 				this.capturas = this.capturas.filter((s) => s !== stream);
+				// Eliminar el objeto ele del array videosElements
+				this.videosElements = this.videosElements.filter((v) => v.id !== stream.id);
 			};
 		} catch (error) {
 			console.error('Error al capturar ventana o pantalla:', error);
@@ -248,7 +245,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	mousedown(event: MouseEvent, deviceId: string): void {
-		console.log('Mousedown');
 		const videoElement = document.getElementById(deviceId) as HTMLVideoElement;
 		if (!videoElement) {
 			console.error('No hay videoElement');
@@ -299,7 +295,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Evento para detectar `wheel`
 		const wheel = (wheelEvent: WheelEvent) => {
-			console.log('Wheel');
 			if (!this.dragVideo || !this.canvas) return;
 
 			const rect = this.canvas.getBoundingClientRect();
@@ -343,7 +338,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		canvasContainer.appendChild(crossCopy);
 
 		const mousemove = (moveEvent: MouseEvent) => {
-			console.log('Mousemove');
 			try {
 				if (!this.dragVideo || !this.canvas) return;
 
@@ -367,7 +361,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const isFullyContained = ghostRect.left >= rect.left && ghostRect.top >= rect.top && ghostRect.right <= rect.right && ghostRect.bottom <= rect.bottom;
 
 				if (isIntersecting) {
-					console.log('Intersección encontrada');
 					ghost.style.clipPath = `polygon(
 			        ${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
 			        ${((intersection.top - ghostRect.top) / ghostRect.height) * 100}%, 
@@ -394,7 +387,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						this.canvas.classList.add('border-red-700', 'border-2');
 					}
 				} else {
-					console.log('No hay intersección');
 					ghost.style.clipPath = 'none'; // Restaurar si no hay intersección
 					ghost.classList.add('ghost-video');
 					ghost.classList.remove('border-blue-700', 'border-2');
@@ -452,7 +444,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Evento para soltar el ratón
 		const mouseup = (upEvent: MouseEvent) => {
-			console.log('MOUSEUP');
 			if (!this.dragVideo || !this.canvas) return;
 
 			const rect = this.canvas.getBoundingClientRect();
@@ -543,7 +534,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		// Obtener las coordenadas internas (relativas al tamaño interno del canvas)
 		const internalMouseX = mousex * scaleX;
 		const internalMouseY = mousey * scaleY;
-		//console.log('Mouse move in canvas (internal): ' + internalMouseX + ' ' + internalMouseY);
 
 		// Obtener las coordenadas de cada video renderizado
 		const rendered = this.videosElements.filter((video) => video.painted);
@@ -577,7 +567,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			if (isMouseOverVideo) {
 				canvasContainer.appendChild;
-				console.log('Mouse over video ' + video.id);
 
 				// Calcular la posición y tamaño del "ghost" en el espacio visible del canvas
 				const ghostLeft = videoLeft / scaleX; // Convertir a coordenadas internas del canvas
@@ -622,7 +611,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				line2.style.top = '0px';
 			} else {
 				// Eliminar el elemento del "ghost" si ya no está sobre el video
-				console.log('no sobre video');
 				ghostDiv.style.display = 'none';
 			}
 		});
@@ -633,7 +621,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const tiradorId = ($event.target as HTMLElement).id; // ID del tirador
 		const ghostId = ($event.target as HTMLElement).parentElement?.id; // ID del padre
 		const posicionInicial = { x: $event.clientX, y: $event.clientY };
-		console.log(tiradorId, ' ', ghostId);
 		if (!tiradorId || !ghostId || !canvasContainer || !this.canvas) return;
 		const ghostDiv = document.getElementById(ghostId);
 		if (!ghostDiv) return;
@@ -721,9 +708,46 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Evento mouseup
 		const mouseup = () => {
+			if (!this.canvas) return;
+			const rect = this.canvas.getBoundingClientRect();
+			// Relación de escala entre el tamaño visual y el interno del canvas
+			const scaleX = this.canvas.width / rect.width;
+			const scaleY = this.canvas.height / rect.height;
+
+			// Dimensiones del ghost en el documento
+			const ghostRect = ghostDiv.getBoundingClientRect();
+			const ghostWidthInCanvas = ghostRect.width * scaleX; // Ajustado al canvas
+			const ghostHeightInCanvas = ghostRect.height * scaleY;
+
+			// Dimensiones originales del video
+			const elemento: VideoElement | undefined = this.videosElements.find((el) => el.id === ghostId.substring(6));
+			if (!elemento) return;
+			const originalWidth = elemento.element.videoWidth;
+			const originalHeight = elemento.element.videoHeight;
+
+			// Calculamos la escala requerida
+			const requiredScaleX = ghostWidthInCanvas / originalWidth;
+			const requiredScaleY = ghostHeightInCanvas / originalHeight;
+			const requiredScale = Math.min(requiredScaleX, requiredScaleY);
+
+			// Dimensiones escaladas
+			const scaledWidth = originalWidth * requiredScale;
+			const scaledHeight = originalHeight * requiredScale;
+
+			// Ajustamos la posición para centrar el ratón en el video escalado
+			const center = { x: ghostRect.left + ghostRect.width / 2, y: ghostRect.top + ghostRect.height / 2 };
+			const canvasX = (center.x - rect.left) * scaleX - scaledWidth / 2;
+			const canvasY = (center.y - rect.top) * scaleY - scaledHeight / 2;
+
+			// Guardar datos en el objeto VideoElement
+			elemento.position = { x: canvasX, y: canvasY };
+			elemento.scale = requiredScale; // Escala que garantiza el tamaño correcto en el canvas
+			elemento.painted = true; // Marcamos el video como "pintado"
+
 			// Restaurar estado
 			canvasContainer.removeEventListener('mousemove', mouseMove);
 			canvasContainer.removeEventListener('mouseup', mouseup);
+			ghostDiv.remove();
 			this.editandoDimensiones = false;
 		};
 		canvasContainer.addEventListener('mouseup', mouseup);
