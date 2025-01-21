@@ -9,7 +9,7 @@
 	<div class="relative flex h-1/4 pb-4">
 		<div class="relative flex w-1/6 flex-col">
 			@for (device of this.audioDevices; track device.deviceId) {
-				<div draggable="true" class="audio-bar m-2 flex h-8 items-center justify-center rounded-lg border border-black bg-transparent text-center">
+				<div draggable="true" class="audio-bar m-2 flex h-8 cursor-pointer items-center justify-center rounded-lg border border-black bg-transparent text-center hover:border-2">
 					<p class="m-2 w-full overflow-hidden truncate text-ellipsis whitespace-nowrap">{{ device.label || 'Micrófono sin nombre' }}</p>
 					<div [id]="device.deviceId" class="audio-level"></div>
 				</div>
@@ -17,7 +17,7 @@
 		</div>
 		@for (device of this.videoDevices; track device.deviceId) {
 			<div id="div-{{ device.deviceId }}" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
-				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="rounded-lg border border-black"></video>
+				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="cursor-pointer rounded-lg border border-black hover:border-2"></video>
 			</div>
 
 			<!-- @if (device.kind === 'audiooutput') {
@@ -27,7 +27,7 @@
 			} -->
 		}
 		@for (captura of this.capturas; track captura.id) {
-			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent">
+			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent hover:border-2">
 				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="rounded-lg border border-black" [srcObject]="captura"></video>
 				@if (captura.getAudioTracks().length > 0) {
 					@for (audioTrack of captura.getAudioTracks(); track $index) {}
@@ -37,8 +37,11 @@
 				}
 			</div>
 		}
-		<div class="m-2 w-1/6 cursor-pointer justify-center rounded-lg border border-black bg-gray-400" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
-			<p class="p-2">Añadir pantalla</p>
+		<div class="m-2 flex w-1/6 cursor-pointer flex-col items-center justify-center rounded-lg border border-black bg-gray-400 text-gray-700 hover:border-2 hover:text-black" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
+			<p class="p-2 text-center">Añadir pantalla</p>
+			<svg class="h-10 w-10" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+			</svg>
 		</div>
 	</div>
 </div>
