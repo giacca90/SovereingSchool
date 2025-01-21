@@ -527,7 +527,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	canvasMouseMove(event: MouseEvent) {
-		if (!this.canvas) return;
+		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
+		if (!this.canvas || !canvasContainer) return;
+
 		const rect = this.canvas.getBoundingClientRect();
 		// Obtener las coordenadas relativas al tamaño visible del canvas
 		const mousex = Math.max(0, Math.round(event.clientX - rect.left)); // Redondear y evitar valores negativos
@@ -556,10 +558,16 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const isMouseOverVideo = internalMouseX >= videoLeft && internalMouseX <= videoLeft + videoWidth && internalMouseY >= videoTop && internalMouseY <= videoTop + videoHeight;
 
 			// Buscar el elemento "ghost"
-			const ghostDiv = document.getElementById('marco') as HTMLDivElement;
-			if (!ghostDiv) return;
+			let ghostDiv = canvasContainer.querySelector('#marco-' + video.id) as HTMLDivElement;
+			if (!ghostDiv) {
+				ghostDiv = document.getElementById('marco')?.cloneNode(true) as HTMLDivElement;
+				if (!ghostDiv) return;
+				ghostDiv.id = 'marco-' + video.id;
+				canvasContainer.appendChild(ghostDiv);
+			}
 
 			if (isMouseOverVideo) {
+				canvasContainer.appendChild;
 				console.log('Mouse over video ' + video.id);
 
 				// Calcular la posición y tamaño del "ghost" en el espacio visible del canvas
@@ -591,11 +599,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				// Calcular la longitud de la línea diagonal (de esquina superior izquierda a inferior derecha)
 				const diagonalLength = Math.sqrt(Math.pow(ghostDiv.clientWidth, 2) + Math.pow(ghostDiv.clientHeight, 2));
 
-				const line1 = document.getElementById('line1') as HTMLDivElement;
+				const line1 = ghostDiv.querySelector('#line1') as HTMLDivElement;
 				line1.style.width = `${diagonalLength}px`;
 				line1.style.transform = `rotate(${Math.atan2(ghostDiv.clientHeight, ghostDiv.clientWidth)}rad)`;
 
-				const line2 = document.getElementById('line2') as HTMLDivElement;
+				const line2 = ghostDiv.querySelector('#line2') as HTMLDivElement;
 				// Aplicar estilos dinámicos
 				line2.style.width = `${diagonalLength}px`;
 				line2.style.transform = `rotate(${-Math.atan2(ghostDiv.clientHeight, ghostDiv.clientWidth)}rad)`;
