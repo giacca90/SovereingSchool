@@ -546,6 +546,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Obtener las coordenadas de cada video renderizado
 		const rendered = this.videosElements.filter((video) => video.painted);
+		const originalGhost = document.getElementById('marco') as HTMLDivElement;
 		rendered.forEach((video) => {
 			const videoWidth = video.element.videoWidth * video.scale;
 			const videoHeight = video.element.videoHeight * video.scale;
@@ -560,7 +561,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			// Buscar el elemento "ghost"
 			let ghostDiv = canvasContainer.querySelector('#marco-' + video.id) as HTMLDivElement;
 			if (!ghostDiv) {
-				ghostDiv = document.getElementById('marco')?.cloneNode(true) as HTMLDivElement;
+				ghostDiv = originalGhost.cloneNode(true) as HTMLDivElement;
+				const tiradores = ghostDiv.querySelectorAll('[id*="tirador-"]') as NodeListOf<HTMLDivElement>; // Seleccionar los tiradores
+				tiradores.forEach((tirador: HTMLDivElement) => {
+					tirador.addEventListener('mousedown', (event: MouseEvent) => {
+						this.redimensionado(event); // Llamar a la función original
+					});
+				});
+
 				if (!ghostDiv) return;
 				ghostDiv.id = 'marco-' + video.id;
 				canvasContainer.appendChild(ghostDiv);
@@ -617,8 +625,81 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 		});
 	}
-}
 
+	redimensionado($event: MouseEvent) {
+		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
+		const tiradorId = ($event.target as HTMLElement).id; // ID del tirador
+		const ghostId = ($event.target as HTMLElement).parentElement?.id; // ID del padre
+		const posicionInicial = { x: $event.clientX, y: $event.clientY };
+		console.log(tiradorId, ' ', ghostId);
+		if (!tiradorId || !ghostId || !canvasContainer || !this.canvas) return;
+		const ghostDiv = document.getElementById(ghostId);
+		if (!ghostDiv) return;
+
+		this.canvas.removeEventListener('mousemove', this.canvasMouseMove);
+
+		// En evento mousemove, se calcula la diferencia de posición entre el momento del click y el movimiento
+		const mouseMove = ($event2: MouseEvent) => {
+			const difX = $event2.clientX - posicionInicial.x;
+			const difY = $event2.clientY - posicionInicial.y;
+
+			switch (tiradorId) {
+				case 'tirador-tl':
+					// Mueve la esquina superior izquierda
+					ghostDiv.style.left = `${ghostDiv.offsetLeft + difX}px`;
+					ghostDiv.style.top = `${ghostDiv.offsetTop + difY}px`;
+
+					// Mueve la esquina inferior derecha
+					ghostDiv.style.width = `${ghostDiv.offsetWidth - difX}px`;
+					ghostDiv.style.height = `${ghostDiv.offsetHeight - difY}px`;
+					break;
+
+				case 'tirador-tr':
+					// Mueve la esquina superior derecha
+					ghostDiv.style.top = `${ghostDiv.offsetTop + difY}px`;
+
+					// Mueve la esquina inferior izquierda
+					ghostDiv.style.width = `${ghostDiv.offsetWidth + difX}px`;
+					ghostDiv.style.height = `${ghostDiv.offsetHeight - difY}px`;
+					break;
+
+				case 'tirador-bl':
+					// Mueve la esquina inferior izquierda
+					ghostDiv.style.left = `${ghostDiv.offsetLeft + difX}px`;
+					ghostDiv.style.height = `${ghostDiv.offsetHeight + difY}px`;
+
+					// Mueve la esquina superior derecha
+					ghostDiv.style.width = `${ghostDiv.offsetWidth - difX}px`;
+					break;
+
+				case 'tirador-br':
+					// Mueve la esquina inferior derecha
+					ghostDiv.style.width = `${ghostDiv.offsetWidth + difX}px`;
+					ghostDiv.style.height = `${ghostDiv.offsetHeight + difY}px`;
+					break;
+
+				case 'tirador-center':
+					ghostDiv.style.left = `${ghostDiv.offsetLeft + difX}px`;
+					ghostDiv.style.top = `${ghostDiv.offsetTop + difY}px`;
+					break;
+				default:
+					console.error('Tirador desconocido');
+					break;
+			}
+			// Actualiza las posiciones del mouse para el próximo movimiento
+			posicionInicial.x = $event2.clientX;
+			posicionInicial.y = $event2.clientY;
+		};
+		canvasContainer.addEventListener('mousemove', mouseMove);
+
+		// Evento mouseup
+		const mouseup = () => {
+			canvasContainer.removeEventListener('mousemove', mouseMove);
+			canvasContainer.removeEventListener('mouseup', mouseup);
+		};
+		canvasContainer.addEventListener('mouseup', mouseup);
+	}
+}
 export interface VideoElement {
 	id: string;
 	element: HTMLVideoElement;
