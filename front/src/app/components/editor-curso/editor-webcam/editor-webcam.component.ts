@@ -16,6 +16,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	dragPosition = { x: 0, y: 0 }; // Posición del ratón mientras se arrastra
 	canvas: HTMLCanvasElement | null = null;
 	context: CanvasRenderingContext2D | null = null;
+	editandoDimensiones = false; // Indica si se está editando las dimensiones de un video
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 
 	async ngOnInit() {
@@ -528,7 +529,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	canvasMouseMove(event: MouseEvent) {
 		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
-		if (!this.canvas || !canvasContainer) return;
+		if (!this.canvas || !canvasContainer || this.editandoDimensiones) return;
 
 		const rect = this.canvas.getBoundingClientRect();
 		// Obtener las coordenadas relativas al tamaño visible del canvas
@@ -597,7 +598,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					video.painted = false;
 					video.position = null;
 					video.scale = 1;
-					ghostDiv.style.display = 'none';
+					ghostDiv.remove();
 					const capa = document.getElementById('capa-' + video.id);
 					if (capa) {
 						capa.remove();
@@ -621,7 +622,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				line2.style.top = '0px';
 			} else {
 				// Eliminar el elemento del "ghost" si ya no está sobre el video
-				ghostDiv.style.display = 'none'; // Hacerlo invisible
+				console.log('no sobre video');
+				ghostDiv.style.display = 'none';
 			}
 		});
 	}
@@ -636,12 +638,33 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const ghostDiv = document.getElementById(ghostId);
 		if (!ghostDiv) return;
 
-		this.canvas.removeEventListener('mousemove', this.canvasMouseMove);
+		this.editandoDimensiones = true;
 
 		// En evento mousemove, se calcula la diferencia de posición entre el momento del click y el movimiento
 		const mouseMove = ($event2: MouseEvent) => {
 			const difX = $event2.clientX - posicionInicial.x;
 			const difY = $event2.clientY - posicionInicial.y;
+
+			// Función para recalcular las líneas diagonales
+			const recalculaDiagonales = () => {
+				const linea1: HTMLDivElement | null = ghostDiv.querySelector('#line1');
+				const linea2: HTMLDivElement | null = ghostDiv.querySelector('#line2');
+
+				if (!linea1 || !linea2) return;
+
+				// Calcular la longitud de la línea diagonal (de esquina superior izquierda a inferior derecha)
+				const diagonalLength = Math.sqrt(Math.pow(ghostDiv.clientWidth, 2) + Math.pow(ghostDiv.clientHeight, 2));
+
+				linea1.style.width = `${diagonalLength}px`;
+				linea1.style.transform = `rotate(${Math.atan2(ghostDiv.clientHeight, ghostDiv.clientWidth)}rad)`;
+
+				linea2.style.width = `${diagonalLength}px`;
+				linea2.style.transform = `rotate(${-Math.atan2(ghostDiv.clientHeight, ghostDiv.clientWidth)}rad)`;
+
+				// Colocar la línea en la esquina superior derecha
+				linea2.style.right = '0px';
+				linea2.style.top = '0px';
+			};
 
 			switch (tiradorId) {
 				case 'tirador-tl':
@@ -652,6 +675,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					// Mueve la esquina inferior derecha
 					ghostDiv.style.width = `${ghostDiv.offsetWidth - difX}px`;
 					ghostDiv.style.height = `${ghostDiv.offsetHeight - difY}px`;
+					recalculaDiagonales();
 					break;
 
 				case 'tirador-tr':
@@ -661,6 +685,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					// Mueve la esquina inferior izquierda
 					ghostDiv.style.width = `${ghostDiv.offsetWidth + difX}px`;
 					ghostDiv.style.height = `${ghostDiv.offsetHeight - difY}px`;
+					recalculaDiagonales();
 					break;
 
 				case 'tirador-bl':
@@ -670,12 +695,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 					// Mueve la esquina superior derecha
 					ghostDiv.style.width = `${ghostDiv.offsetWidth - difX}px`;
+					recalculaDiagonales();
 					break;
 
 				case 'tirador-br':
 					// Mueve la esquina inferior derecha
 					ghostDiv.style.width = `${ghostDiv.offsetWidth + difX}px`;
 					ghostDiv.style.height = `${ghostDiv.offsetHeight + difY}px`;
+					recalculaDiagonales();
 					break;
 
 				case 'tirador-center':
@@ -694,8 +721,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Evento mouseup
 		const mouseup = () => {
+			// Restaurar estado
 			canvasContainer.removeEventListener('mousemove', mouseMove);
 			canvasContainer.removeEventListener('mouseup', mouseup);
+			this.editandoDimensiones = false;
 		};
 		canvasContainer.addEventListener('mouseup', mouseup);
 	}
