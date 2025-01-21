@@ -625,12 +625,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		cross.style.top = this.canvas.offsetTop + 'px';
 		cross.style.width = this.canvas.offsetWidth + 'px';
 		cross.style.height = this.canvas.offsetHeight + 'px';
-		if (intersecciones && intersecciones.length > 0) {
-			cross.style.border = '2px solid #b91c1c';
-		} else {
-			cross.style.border = '2px solid #1d4ed8';
-		}
 		cross.style.display = 'block';
+		this.canvas.style.border = '2px solid #1d4ed8';
 		canvasContainer.appendChild(cross);
 		const orizontal = cross.querySelector('#orizontal') as HTMLDivElement;
 		const vertical = cross.querySelector('#vertical') as HTMLDivElement;
@@ -662,7 +658,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const difX = $event2.clientX - posicionInicial.x;
 			const difY = $event2.clientY - posicionInicial.y;
 			if (!this.canvas) return;
-			this.canvas.style.border = '1px solid black';
+			this.canvas.style.border = '2px solid #1d4ed8';
 			const elementos = canvasContainer.querySelectorAll('[id^="marco"]') as NodeListOf<HTMLDivElement>;
 			elementos.forEach((elemento) => {
 				if (elemento.id !== ghostDiv.id) {
@@ -816,6 +812,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			canvasContainer.removeEventListener('mousemove', mouseMove);
 			canvasContainer.removeEventListener('mouseup', mouseup);
 			cross.remove();
+			const elementos = canvasContainer.querySelectorAll('[id^="marco"]') as NodeListOf<HTMLDivElement>;
+			elementos.forEach((elemento) => {
+				if (elemento.id !== ghostDiv.id) {
+					elemento.style.border = '1px solid black';
+				}
+			});
 			ghostDiv.style.visibility = 'hidden';
 			this.editandoDimensiones = false;
 		};
