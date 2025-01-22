@@ -739,6 +739,29 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			posicionInicial.y = $event2.clientY;
 
 			// Actualiza las posiciones de la cruz de posicionamiento
+			orizontal.style.display = 'none';
+			vertical.style.display = 'none';
+			const rect = this.canvas.getBoundingClientRect();
+			const isMouseOverCanvas: boolean = $event2.clientX >= rect.left && $event2.clientX <= rect.right && $event2.clientY >= rect.top && $event2.clientY <= rect.bottom;
+
+			const cursorPosition = {
+				isAbove: $event2.clientY < rect.top,
+				isBelow: $event2.clientY > rect.bottom,
+				isLeft: $event2.clientX < rect.left,
+				isRight: $event2.clientX > rect.right,
+			};
+			if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
+				orizontal.style.display = 'block';
+			}
+			if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
+				vertical.style.display = 'block';
+			}
+
+			if (isMouseOverCanvas) {
+				vertical.style.display = 'block';
+				orizontal.style.display = 'block';
+			}
+
 			const centroX = ghostDiv.offsetLeft + ghostDiv.offsetWidth / 2;
 			const centroY = ghostDiv.offsetTop + ghostDiv.offsetHeight / 2;
 			orizontal.style.top = centroY + 'px';
@@ -818,6 +841,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					elemento.style.border = '1px solid black';
 				}
 			});
+			this.canvas.style.border = '1px solid black';
 			ghostDiv.style.visibility = 'hidden';
 			this.editandoDimensiones = false;
 		};
