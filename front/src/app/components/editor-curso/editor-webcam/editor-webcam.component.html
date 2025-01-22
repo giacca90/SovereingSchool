@@ -37,11 +37,31 @@
 				}
 			</div>
 		}
-		<div class="m-2 flex w-1/6 cursor-pointer flex-col items-center justify-center rounded-lg border border-black bg-gray-400 text-gray-700 hover:border-2 hover:text-black" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
-			<p class="p-2 text-center">Añadir pantalla</p>
-			<svg class="h-10 w-10" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-				<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-			</svg>
+		@for (estatico of this.staticContent; track estatico.name) {
+			<div id="div-{{ estatico.name }}" class="relative m-2 flex w-1/6 rounded-lg border border-black bg-transparent hover:border-2">
+				@if (estatico.type.startsWith('image/')) {
+					<!-- Renderiza una imagen -->
+					<img [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [alt]="estatico.name" class="h-full w-full rounded-lg" />
+				} @else if (estatico.type.startsWith('video/')) {
+					<!-- Renderiza un video -->
+					<video [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [id]="estatico.name" autoplay playsinline muted loop class="h-full w-full rounded-lg"></video>
+				}
+			</div>
+		}
+
+		<div class="m-2 flex h-full w-1/6 flex-col justify-between">
+			<div class="flex cursor-pointer justify-center rounded-lg border border-black bg-gray-400 hover:border-2" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
+				<p class="p-2 text-center">Añadir pantalla</p>
+				<svg class="h-10 w-10 text-gray-700 hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
+			</div>
+			<div class="flex cursor-pointer justify-center rounded-lg border border-black bg-gray-400 hover:border-2" (click)="addFiles()" tabindex="0" (keydown.enter)="addFiles()">
+				<p class="p-2 text-center">Añadir archivo</p>
+				<svg class="h-10 w-10 text-gray-700 hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
+			</div>
 		</div>
 	</div>
 </div>

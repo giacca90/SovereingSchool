@@ -11,12 +11,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	capturas: MediaStream[] = []; // Lista de capturas
+	staticContent: File[] = []; // Lista de archivos estáticos
 	videosElements: VideoElement[] = []; // Lista de elementos de video
 	dragVideo: VideoElement | null = null; // Video que se está arrastrando
 	dragPosition = { x: 0, y: 0 }; // Posición del ratón mientras se arrastra
 	canvas: HTMLCanvasElement | null = null;
 	context: CanvasRenderingContext2D | null = null;
 	editandoDimensiones = false; // Indica si se está editando las dimensiones de un video
+	private fileUrlCache = new Map<File, string>(); // Cache de URLs de archivos
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 
 	async ngOnInit() {
@@ -49,9 +51,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.videosElements.forEach((elemento) => {
 				if (!elemento.painted || !elemento.position || !this.context) return;
-				const videoWidth = elemento.element.videoWidth * elemento.scale;
-				const videoHeight = elemento.element.videoHeight * elemento.scale;
-				this.context.drawImage(elemento.element!, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
+				if (elemento.element instanceof HTMLVideoElement) {
+					const videoWidth = elemento.element.videoWidth * elemento.scale;
+					const videoHeight = elemento.element.videoHeight * elemento.scale;
+					this.context.drawImage(elemento.element!, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
+				} else if (elemento.element instanceof HTMLImageElement) {
+					const imageWidth = elemento.element.naturalWidth * elemento.scale;
+					const imageHeight = elemento.element.naturalHeight * elemento.scale;
+					this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, imageWidth, imageHeight);
+				}
 			});
 			requestAnimationFrame(drawFrame);
 		};
@@ -244,6 +252,64 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		}
 	}
 
+	addFiles() {
+		const input: HTMLInputElement = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/* video/* audio/*';
+		input.multiple = true;
+		input.onchange = (event: Event) => {
+			const target = event.target as HTMLInputElement;
+			if (!target.files || target.files.length === 0) {
+				console.error('No se seleccionaron archivos');
+				return;
+			}
+			// Convertir FileList a un array para trabajar con los archivos
+			this.staticContent = Array.from(target.files);
+			// espera una decima de segundo que se renderizen en el front
+			setTimeout(() => {
+				this.staticContent.forEach((file) => {
+					const div = document.getElementById('div-' + file.name);
+					if (div) {
+						if (file.type.startsWith('image/')) {
+							const img = document.getElementById(file.name) as HTMLImageElement;
+							if (img) {
+								const elemento: VideoElement = {
+									id: file.name,
+									element: img,
+									painted: false,
+									scale: 1,
+									position: null,
+								};
+								this.videosElements.push(elemento);
+							}
+						} else if (file.type.startsWith('video/')) {
+							const video = document.getElementById(file.name) as HTMLVideoElement;
+							if (video) {
+								const elemento: VideoElement = {
+									id: file.name,
+									element: video,
+									painted: false,
+									scale: 1,
+									position: null,
+								};
+								this.videosElements.push(elemento);
+							}
+						}
+					}
+				});
+			}, 100);
+		};
+		input.click();
+	}
+
+	getFileUrl(file: File): string {
+		if (!this.fileUrlCache.has(file)) {
+			const url = URL.createObjectURL(file);
+			this.fileUrlCache.set(file, url);
+		}
+		return this.fileUrlCache.get(file) as string;
+	}
+
 	mousedown(event: MouseEvent, deviceId: string): void {
 		const videoElement = document.getElementById(deviceId) as HTMLVideoElement;
 		if (!videoElement) {
@@ -274,9 +340,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		ghost.style.objectFit = getComputedStyle(videoElement).objectFit || 'contain';
 		ghost.style.fontFamily = getComputedStyle(videoElement).fontFamily || 'inherit';
 
-		// Copiar fuente y poner en marcha
-		ghost.srcObject = ele.element.srcObject;
-		ghost.load();
+		// Copiar fuente y poner en marcha si es un video
+		if (ele.element instanceof HTMLVideoElement) {
+			ghost.srcObject = ele.element.srcObject;
+			ghost.load();
+		} else if (ele.element instanceof HTMLImageElement) {
+			ghost.src = ele.element.src;
+		}
 
 		// Dimensiones del video
 
@@ -421,17 +491,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					}
 
 					if (isFullyContained && intersecciones && intersecciones.length === 0) {
-						console.log('1: ', intersecciones);
 						vertical.style.backgroundColor = '#1d4ed8';
 						orizontal.style.backgroundColor = '#1d4ed8';
 					} else {
-						console.log('2', intersecciones);
 						vertical.style.backgroundColor = '#b91c1c';
 						orizontal.style.backgroundColor = '#b91c1c';
 					}
 
 					intersecciones?.forEach((elemento) => {
-						console.log('elemento ', elemento);
 						if (elemento.id === 'canvas-container') {
 							if (this.canvas) {
 								this.canvas.style.border = '2px solid #b91c1c';
@@ -468,8 +535,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const ghostHeightInCanvas = ghostRect.height * scaleY;
 
 				// Dimensiones originales del video
-				const originalWidth = this.dragVideo.element.videoWidth;
-				const originalHeight = this.dragVideo.element.videoHeight;
+				let originalWidth: number = 0;
+				let originalHeight: number = 0;
+				if (this.dragVideo.element instanceof HTMLVideoElement) {
+					originalWidth = this.dragVideo.element.videoWidth;
+					originalHeight = this.dragVideo.element.videoHeight;
+				} else if (this.dragVideo.element instanceof HTMLImageElement) {
+					originalWidth = this.dragVideo.element.naturalWidth;
+					originalHeight = this.dragVideo.element.naturalHeight;
+				}
 
 				// Calculamos la escala requerida
 				const requiredScaleX = ghostWidthInCanvas / originalWidth;
@@ -547,9 +621,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const rendered = this.videosElements.filter((video) => video.painted);
 		const originalGhost = document.getElementById('marco') as HTMLDivElement;
 		rendered.forEach((video) => {
-			const videoWidth = video.element.videoWidth * video.scale;
-			const videoHeight = video.element.videoHeight * video.scale;
-
+			let videoWidth: number = 0;
+			let videoHeight: number = 0;
+			if (video.element instanceof HTMLVideoElement) {
+				videoWidth = video.element.videoWidth * video.scale;
+				videoHeight = video.element.videoHeight * video.scale;
+			} else if (video.element instanceof HTMLImageElement) {
+				videoWidth = video.element.naturalWidth * video.scale;
+				videoHeight = video.element.naturalHeight * video.scale;
+			}
 			// Coordenadas del video en el canvas
 			const videoLeft = video.position ? video.position.x : 0;
 			const videoTop = video.position ? video.position.y : 0;
@@ -638,7 +718,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const cross = document.getElementById('cross')?.cloneNode(true) as HTMLDivElement;
 		if (!cross) return;
 		const intersecciones = this.colisiones(ghostDiv);
-		console.log('intersecciones ', intersecciones);
 		cross.style.left = this.canvas.offsetLeft + 'px';
 		cross.style.top = this.canvas.offsetTop + 'px';
 		cross.style.width = this.canvas.offsetWidth + 'px';
@@ -785,7 +864,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			orizontal.style.top = centroY + 'px';
 			vertical.style.left = centroX + 'px';
 			const intersecciones = this.colisiones(ghostDiv);
-			console.log('intersecciones ', intersecciones);
 
 			// Cambiar el color de la cruz de posicionamiento si hay alguna colisión
 			if (intersecciones && intersecciones.length > 0) {
@@ -827,9 +905,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			// Dimensiones originales del video
 			const elemento: VideoElement | undefined = this.videosElements.find((el) => el.id === ghostId.substring(6));
 			if (!elemento) return;
-			const originalWidth = elemento.element.videoWidth;
-			const originalHeight = elemento.element.videoHeight;
-
+			let originalWidth: number = 0;
+			let originalHeight: number = 0;
+			if (elemento.element instanceof HTMLVideoElement) {
+				originalWidth = elemento.element.videoWidth;
+				originalHeight = elemento.element.videoHeight;
+			} else if (elemento.element instanceof HTMLImageElement) {
+				originalWidth = elemento.element.naturalWidth;
+				originalHeight = elemento.element.naturalHeight;
+			}
 			// Calculamos la escala requerida
 			const requiredScaleX = ghostWidthInCanvas / originalWidth;
 			const requiredScaleY = ghostHeightInCanvas / originalHeight;
@@ -885,7 +969,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const canvasRect = this.canvas.getBoundingClientRect();
 		const tocaBorde = rect.left <= canvasRect.left || rect.right >= canvasRect.right || rect.top <= canvasRect.top || rect.bottom >= canvasRect.bottom;
 		if (tocaBorde) {
-			console.log('toca borde: ' + canvasContainer.id);
 			elementosIntersecados.push(canvasContainer);
 		}
 		return elementosIntersecados;
@@ -893,7 +976,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 }
 export interface VideoElement {
 	id: string;
-	element: HTMLVideoElement;
+	element: HTMLElement;
 	painted: boolean;
 	scale: number;
 	position: { x: number; y: number } | null;
