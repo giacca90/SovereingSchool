@@ -396,8 +396,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const vertical = crossCopy.querySelector('#vertical') as HTMLDivElement;
 				vertical.style.display = 'none';
 
+				const intersecciones = this.colisiones(ghost);
+
 				if (isIntersecting && orizontal && vertical) {
 					// Mostrar la cruz
+					vertical.style.backgroundColor = '#1d4ed8';
+					orizontal.style.backgroundColor = '#1d4ed8';
 					const cursorPosition = {
 						isAbove: moveEvent.clientY < rect.top,
 						isBelow: moveEvent.clientY > rect.bottom,
@@ -416,13 +420,27 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						orizontal.style.display = 'block';
 					}
 
-					if (isFullyContained) {
+					if (isFullyContained && intersecciones && intersecciones.length === 0) {
+						console.log('1: ', intersecciones);
 						vertical.style.backgroundColor = '#1d4ed8';
 						orizontal.style.backgroundColor = '#1d4ed8';
 					} else {
+						console.log('2', intersecciones);
 						vertical.style.backgroundColor = '#b91c1c';
 						orizontal.style.backgroundColor = '#b91c1c';
 					}
+
+					intersecciones?.forEach((elemento) => {
+						console.log('elemento ', elemento);
+						if (elemento.id === 'canvas-container') {
+							if (this.canvas) {
+								this.canvas.style.border = '2px solid #b91c1c';
+							}
+						} else {
+							elemento.style.border = '2px solid #b91c1c';
+							elemento.style.visibility = 'visible';
+						}
+					});
 					vertical.style.left = `${moveEvent.clientX - rect.left}px`;
 					orizontal.style.top = `${moveEvent.clientY - rect.top}px`;
 				}
@@ -619,7 +637,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		// Añadir la cruz de posicionamiento
 		const cross = document.getElementById('cross')?.cloneNode(true) as HTMLDivElement;
 		if (!cross) return;
-		const intersecciones = this.colisiones(ghostDiv as HTMLDivElement);
+		const intersecciones = this.colisiones(ghostDiv);
 		console.log('intersecciones ', intersecciones);
 		cross.style.left = this.canvas.offsetLeft + 'px';
 		cross.style.top = this.canvas.offsetTop + 'px';
@@ -766,7 +784,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const centroY = ghostDiv.offsetTop + ghostDiv.offsetHeight / 2;
 			orizontal.style.top = centroY + 'px';
 			vertical.style.left = centroX + 'px';
-			const intersecciones = this.colisiones(ghostDiv as HTMLDivElement);
+			const intersecciones = this.colisiones(ghostDiv);
 			console.log('intersecciones ', intersecciones);
 
 			// Cambiar el color de la cruz de posicionamiento si hay alguna colisión
@@ -848,12 +866,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		canvasContainer.addEventListener('mouseup', mouseup);
 	}
 
-	colisiones(principal: HTMLDivElement) {
+	colisiones(principal: HTMLElement) {
 		const rect = principal.getBoundingClientRect();
-		const elementosIntersecados: HTMLDivElement[] = [];
-		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
+		const elementosIntersecados: HTMLElement[] = [];
+		const canvasContainer = document.getElementById('canvas-container') as HTMLElement;
 		if (!canvasContainer || !this.canvas) return;
-		const elementos = canvasContainer.querySelectorAll('[id^="marco"]') as NodeListOf<HTMLDivElement>;
+		const elementos = canvasContainer.querySelectorAll('[id^="marco"]') as NodeListOf<HTMLElement>;
 		elementos.forEach((elemento) => {
 			if (elemento.id != principal.id) {
 				const rect2 = elemento.getBoundingClientRect();
