@@ -310,6 +310,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		return this.fileUrlCache.get(file) as string;
 	}
 
+	// Empieza el arrastre de un elemento
 	mousedown(event: MouseEvent, deviceId: string): void {
 		const videoElement = document.getElementById(deviceId) as HTMLVideoElement;
 		if (!videoElement) {
@@ -324,7 +325,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		this.dragVideo = ele;
 
-		const ghost = videoElement.cloneNode(true) as HTMLVideoElement;
+		let ghost: HTMLVideoElement | HTMLImageElement;
+		if (this.dragVideo.element instanceof HTMLVideoElement) {
+			ghost = videoElement.cloneNode(true) as HTMLVideoElement;
+		} else if (this.dragVideo.element instanceof HTMLImageElement) {
+			ghost = videoElement.cloneNode(true) as HTMLImageElement;
+		} else {
+			console.error('Tipo de elemento no reconocido');
+			return;
+		}
 		ghost.classList.add('ghost-video'); // Clase para estilizar el ghost
 		ghost.classList.remove('rounded-lg');
 		ghost.style.position = 'absolute';
@@ -335,22 +344,25 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		ghost.style.width = `${videoElement.offsetWidth}px`;
 		ghost.style.height = `${videoElement.offsetHeight}px`;
 
-		// Copiar estilos clave
+		/* // Copiar estilos clave
 		ghost.style.transform = getComputedStyle(videoElement).transform || 'none';
 		ghost.style.objectFit = getComputedStyle(videoElement).objectFit || 'contain';
-		ghost.style.fontFamily = getComputedStyle(videoElement).fontFamily || 'inherit';
+		ghost.style.fontFamily = getComputedStyle(videoElement).fontFamily || 'inherit'; */
 
 		// Copiar fuente y poner en marcha si es un video
-		if (ele.element instanceof HTMLVideoElement) {
+		if (ele.element instanceof HTMLVideoElement && ghost instanceof HTMLVideoElement) {
 			ghost.srcObject = ele.element.srcObject;
 			ghost.load();
-		} else if (ele.element instanceof HTMLImageElement) {
+		} else if (ele.element instanceof HTMLImageElement && ghost instanceof HTMLImageElement) {
 			ghost.src = ele.element.src;
+		} else {
+			console.error('Tipo de elemento no reconocido');
+			return;
 		}
 
 		// Dimensiones del video
 
-		const updateGhostPosition = (x: number, y: number, element: HTMLVideoElement) => {
+		const updateGhostPosition = (x: number, y: number, element: HTMLElement) => {
 			const elementWidth = element.offsetWidth;
 			const elementHeight = element.offsetHeight;
 			const offsetX = elementWidth / 2;
@@ -365,7 +377,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Evento para detectar `wheel`
 		const wheel = (wheelEvent: WheelEvent) => {
-			if (!this.dragVideo || !this.canvas) return;
+			if (!this.dragVideo) {
+				console.error('No hay video arrastrando');
+				return;
+			}
+			if (!this.canvas) {
+				console.error('No hay canvas');
+				return;
+			}
 
 			const rect = this.canvas.getBoundingClientRect();
 			const isMouseOverCanvas: boolean = wheelEvent.clientX >= rect.left && wheelEvent.clientX <= rect.right && wheelEvent.clientY >= rect.top && wheelEvent.clientY <= rect.bottom;
@@ -543,6 +562,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				} else if (this.dragVideo.element instanceof HTMLImageElement) {
 					originalWidth = this.dragVideo.element.naturalWidth;
 					originalHeight = this.dragVideo.element.naturalHeight;
+				} else {
+					console.error('Tipo de elemento no reconocido');
+					return;
 				}
 
 				// Calculamos la escala requerida
@@ -583,6 +605,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						ele.position = null;
 						ele.scale = 1;
 						div.removeChild(capa);
+						const marco = document.getElementById('marco-' + ele.id);
+						if (marco) {
+							marco.remove();
+						}
 					};
 					div.appendChild(capa);
 				}
@@ -591,7 +617,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			// Restaurar estado
 			this.canvas.style.border = '1px solid black';
 			this.dragVideo = null;
-			ghost.style.visibility = 'hidden';
+			//ghost.style.visibility = 'hidden';
+			ghost.remove();
 			crossCopy.remove();
 			document.removeEventListener('mousemove', mousemove);
 			document.removeEventListener('wheel', wheel);
@@ -629,6 +656,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			} else if (video.element instanceof HTMLImageElement) {
 				videoWidth = video.element.naturalWidth * video.scale;
 				videoHeight = video.element.naturalHeight * video.scale;
+			} else {
+				console.error('Tipo de elemento no reconocido');
 			}
 			// Coordenadas del video en el canvas
 			const videoLeft = video.position ? video.position.x : 0;
@@ -638,7 +667,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const isMouseOverVideo = internalMouseX >= videoLeft && internalMouseX <= videoLeft + videoWidth && internalMouseY >= videoTop && internalMouseY <= videoTop + videoHeight;
 
 			// Buscar el elemento "ghost"
-			let ghostDiv = canvasContainer.querySelector('#marco-' + video.id) as HTMLDivElement;
+			let ghostDiv = canvasContainer.querySelector(`#marco-${CSS.escape(video.id)}`) as HTMLDivElement;
 			if (!ghostDiv) {
 				ghostDiv = originalGhost.cloneNode(true) as HTMLDivElement;
 				const tiradores = ghostDiv.querySelectorAll('[id*="tirador-"]') as NodeListOf<HTMLDivElement>; // Seleccionar los tiradores
@@ -654,8 +683,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 
 			if (isMouseOverVideo) {
-				canvasContainer.appendChild;
-
 				// Calcular la posición y tamaño del "ghost" en el espacio visible del canvas
 				const ghostLeft = videoLeft / scaleX; // Convertir a coordenadas internas del canvas
 				const ghostTop = videoTop / scaleY; // Convertir a coordenadas internas del canvas
@@ -679,6 +706,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					const capa = document.getElementById('capa-' + video.id);
 					if (capa) {
 						capa.remove();
+					}
+					const marco = document.getElementById('marco-' + video.id);
+					if (marco) {
+						marco.remove();
 					}
 				};
 
