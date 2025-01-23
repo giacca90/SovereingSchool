@@ -610,6 +610,85 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 							marco.remove();
 						}
 					};
+
+					if (ele.element instanceof HTMLVideoElement && ele.element.src && ele.element.src.length > 0) {
+						const control = document.getElementById('control')?.cloneNode(true) as HTMLDivElement;
+						if (!control) return;
+						const controllers = capa.querySelector('#controllers') as HTMLDivElement;
+						if (!controllers) return;
+						control.id = 'control-' + ele.id;
+						control.style.display = 'block';
+						const playPause = control.querySelector('#play-pause') as HTMLButtonElement;
+						const restart = control.querySelector('#restart') as HTMLButtonElement;
+						const loop = control.querySelector('#loop') as HTMLButtonElement;
+						const play = control.querySelector('#play') as SVGElement;
+						const pause = control.querySelector('#pause') as SVGElement;
+						const loopOff = control.querySelector('#loop-off') as SVGElement;
+						const loopOn = control.querySelector('#loop-on') as SVGElement;
+						const progress = control.querySelector('#progress') as HTMLInputElement;
+						const time = control.querySelector('#time') as HTMLSpanElement;
+
+						playPause.onclick = () => {
+							if ((ele.element as HTMLVideoElement).paused) {
+								(ele.element as HTMLVideoElement).play();
+								play.style.display = 'none';
+								pause.style.display = 'block';
+							} else {
+								(ele.element as HTMLVideoElement).pause();
+								play.style.display = 'block';
+								pause.style.display = 'none';
+							}
+						};
+
+						restart.onclick = () => {
+							(ele.element as HTMLVideoElement).currentTime = 0;
+						};
+
+						loop.onclick = () => {
+							if ((ele.element as HTMLVideoElement).loop) {
+								(ele.element as HTMLVideoElement).loop = false;
+								loopOff.style.display = 'block';
+								loopOn.style.display = 'none';
+							} else {
+								(ele.element as HTMLVideoElement).loop = true;
+								loopOff.style.display = 'none';
+								loopOn.style.display = 'block';
+							}
+						};
+
+						/* Barra de progreso */
+						ele.element.ontimeupdate = () => {
+							const percentage = ((ele.element as HTMLVideoElement).currentTime / (ele.element as HTMLVideoElement).duration) * 100;
+							progress.value = percentage.toString();
+
+							// Mostrar el tiempo actual y la duración
+							const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
+							const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
+							time.innerText = `${currentTime} / ${duration}`;
+
+							progress.oninput = () => {
+								const newTime = (parseInt(progress.value) / 100) * (ele.element as HTMLVideoElement).duration;
+								(ele.element as HTMLVideoElement).currentTime = newTime;
+
+								// Actualizar el tiempo en el texto inmediatamente
+								const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
+								const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
+								time.innerText = `${currentTime} / ${duration}`;
+							};
+						};
+
+						/* Tiempo de reproducción */
+						ele.element.addEventListener('timeupdate', () => {
+							const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
+							const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
+							time.innerText = `${currentTime} / ${duration}`;
+						});
+						const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
+						const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
+						time.innerText = `${currentTime} / ${duration}`;
+						controllers.appendChild(control);
+					}
+
 					div.appendChild(capa);
 				}
 			}
@@ -1003,6 +1082,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			elementosIntersecados.push(canvasContainer);
 		}
 		return elementosIntersecados;
+	}
+
+	private formatTime(seconds: number): string {
+		const mins = Math.floor(seconds / 60);
+		const secs = Math.floor(seconds % 60);
+		return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 	}
 }
 export interface VideoElement {
