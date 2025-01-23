@@ -266,7 +266,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				return;
 			}
 			// Convertir FileList a un array para trabajar con los archivos
-			this.staticContent = Array.from(target.files);
+			this.staticContent = this.staticContent.concat(Array.from(target.files));
 			// espera una decima de segundo que se renderizen en el front
 			setTimeout(() => {
 				this.staticContent.forEach((file) => {
@@ -316,13 +316,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const resolucion = document.getElementById('resolucion') as HTMLSelectElement;
 		if (!resolucion) return;
 		const [width, height] = resolucion.value.split('x');
-		console.log(width, height);
 		this.canvasWidth = parseInt(width);
 		this.canvasHeight = parseInt(height);
 	}
 
 	// Empieza el arrastre de un elemento
 	mousedown(event: MouseEvent, deviceId: string): void {
+		event.preventDefault();
 		const videoElement = document.getElementById(deviceId) as HTMLVideoElement;
 		if (!videoElement) {
 			console.error('No hay videoElement');
@@ -346,7 +346,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			return;
 		}
 		document.body.classList.add('cursor-grabbing');
-		console.log('Cursor grabbing on');
 		ghost.classList.remove('rounded-lg');
 		ghost.style.position = 'absolute';
 		ghost.style.pointerEvents = 'none'; // Para que no interfiera con eventos
@@ -430,12 +429,18 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		// Evento para mover el ghost
 		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
 		const crossCopy = document.getElementById('cross')?.cloneNode(true) as HTMLDivElement;
-		if (!canvasContainer || !crossCopy) return;
+		if (!canvasContainer || !crossCopy) {
+			console.error('No se pudo crear el elemento de la cruz');
+			return;
+		}
 		canvasContainer.appendChild(crossCopy);
 
 		const mousemove = (moveEvent: MouseEvent) => {
 			try {
-				if (!this.dragVideo || !this.canvas) return;
+				if (!this.dragVideo || !this.canvas) {
+					console.error('No hay video arrastrando o canvas');
+					return;
+				}
 
 				updateGhostPosition(moveEvent.clientX, moveEvent.clientY, ghost);
 
@@ -542,7 +547,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Evento para soltar el ratón
 		const mouseup = (upEvent: MouseEvent) => {
-			if (!this.dragVideo || !this.canvas) return;
+			if (!this.dragVideo || !this.canvas) {
+				console.error('No hay video arrastrando o canvas');
+				return;
+			}
 
 			const rect = this.canvas.getBoundingClientRect();
 			const isMouseOverCanvas: boolean = upEvent.clientX >= rect.left && upEvent.clientX <= rect.right && upEvent.clientY >= rect.top && upEvent.clientY <= rect.bottom;
@@ -712,6 +720,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	canvasMouseMove(event: MouseEvent) {
+		event.preventDefault();
 		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
 		if (!this.canvas || !canvasContainer || this.editandoDimensiones) return;
 

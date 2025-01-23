@@ -54,7 +54,7 @@
 			<div id="div-{{ estatico.name }}" class="relative m-2 flex w-1/6 rounded-lg border border-black bg-transparent hover:border-2">
 				@if (estatico.type.startsWith('image/')) {
 					<!-- Renderiza una imagen -->
-					<img [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [alt]="estatico.name" class="h-full w-full cursor-grab rounded-lg active:cursor-grabbing" />
+					<img [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [alt]="estatico.name" class="h-full w-full cursor-grab rounded-lg object-contain active:cursor-grabbing" />
 				} @else if (estatico.type.startsWith('video/')) {
 					<!-- Renderiza un video -->
 					<video [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [id]="estatico.name" muted class="h-full w-full cursor-grab rounded-lg active:cursor-grabbing"></video>
