@@ -8,6 +8,8 @@ import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChildren }
 	styleUrls: ['./editor-webcam.component.css'],
 })
 export class EditorWebcamComponent implements OnInit, AfterViewInit {
+	canvasWidth = 1280;
+	canvasHeight = 720;
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	capturas: MediaStream[] = []; // Lista de capturas
@@ -308,6 +310,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.fileUrlCache.set(file, url);
 		}
 		return this.fileUrlCache.get(file) as string;
+	}
+
+	cambiarResolucion() {
+		const resolucion = document.getElementById('resolucion') as HTMLSelectElement;
+		if (!resolucion) return;
+		const [width, height] = resolucion.value.split('x');
+		console.log(width, height);
+		this.canvasWidth = parseInt(width);
+		this.canvasHeight = parseInt(height);
 	}
 
 	// Empieza el arrastre de un elemento

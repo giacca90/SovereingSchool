@@ -2,7 +2,20 @@
 	<!-- Canvas con cruz -->
 	<div class="relative flex h-3/4 pr-4">
 		<div id="canvas-container" class="relative aspect-video h-full">
-			<canvas (mousemove)="canvasMouseMove($event)" id="salida" width="1280" height="720" autoplay playsinline class="h-full w-full border border-black bg-white"></canvas>
+			<canvas (mousemove)="canvasMouseMove($event)" id="salida" [width]="canvasWidth" [height]="canvasHeight" autoplay playsinline class="h-full w-full border border-black bg-white"></canvas>
+		</div>
+		<div class="relative ml-4 flex flex-col bg-transparent">
+			<div class="flex">
+				<label for="resolucion">Elige una resolución:</label>
+				<select id="resolucion" class="bg-transparent" (change)="cambiarResolucion()">
+					<option value="640x360">360p (640x360)</option>
+					<option value="854x480">480p (854x480)</option>
+					<option value="1280x720" selected>720p HD (1280x720)</option>
+					<option value="1920x1080">1080p Full HD (1920x1080)</option>
+					<option value="2560x1440">1440p QHD (2560x1440)</option>
+					<option value="3840x2160">4K UHD (3840x2160)</option>
+				</select>
+			</div>
 		</div>
 	</div>
 	<br />
@@ -28,7 +41,7 @@
 		}
 		@for (captura of this.capturas; track captura.id) {
 			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent hover:border-2">
-				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="rounded-lg border border-black" [srcObject]="captura"></video>
+				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="cursor-grab rounded-lg border border-black active:cursor-grabbing" [srcObject]="captura"></video>
 				@if (captura.getAudioTracks().length > 0) {
 					@for (audioTrack of captura.getAudioTracks(); track $index) {}
 					<div class="audio-bar m-1 flex h-4 rounded-lg border border-black">
