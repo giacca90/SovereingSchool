@@ -9,7 +9,7 @@
 	<div class="relative flex h-1/4 pb-4">
 		<div class="relative flex w-1/6 flex-col">
 			@for (device of this.audioDevices; track device.deviceId) {
-				<div draggable="true" class="audio-bar m-2 flex h-8 cursor-pointer items-center justify-center rounded-lg border border-black bg-transparent text-center hover:border-2">
+				<div draggable="true" class="audio-bar m-2 flex h-8 cursor-grab items-center justify-center rounded-lg border border-black bg-transparent text-center hover:border-2 active:cursor-grabbing">
 					<p class="m-2 w-full overflow-hidden truncate text-ellipsis whitespace-nowrap">{{ device.label || 'Micrófono sin nombre' }}</p>
 					<div [id]="device.deviceId" class="audio-level"></div>
 				</div>
@@ -17,7 +17,7 @@
 		</div>
 		@for (device of this.videoDevices; track device.deviceId) {
 			<div id="div-{{ device.deviceId }}" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
-				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="cursor-pointer rounded-lg border border-black hover:border-2"></video>
+				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="cursor-grab rounded-lg border border-black hover:border-2 active:cursor-grabbing"></video>
 			</div>
 
 			<!-- @if (device.kind === 'audiooutput') {
@@ -41,10 +41,10 @@
 			<div id="div-{{ estatico.name }}" class="relative m-2 flex w-1/6 rounded-lg border border-black bg-transparent hover:border-2">
 				@if (estatico.type.startsWith('image/')) {
 					<!-- Renderiza una imagen -->
-					<img [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [alt]="estatico.name" class="h-full w-full rounded-lg" />
+					<img [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [alt]="estatico.name" class="h-full w-full cursor-grab rounded-lg active:cursor-grabbing" />
 				} @else if (estatico.type.startsWith('video/')) {
 					<!-- Renderiza un video -->
-					<video [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [id]="estatico.name" muted class="h-full w-full rounded-lg"></video>
+					<video [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [id]="estatico.name" muted class="h-full w-full cursor-grab rounded-lg active:cursor-grabbing"></video>
 				}
 			</div>
 		}
@@ -92,11 +92,11 @@
 		</svg>
 	</button>
 
-	<div id="tirador-tl" (mousedown)="redimensionado($event)" class="bordr absolute left-0 top-0 z-20 h-4 w-4 cursor-pointer border border-white hover:border-2"></div>
-	<div id="tirador-tr" (mousedown)="redimensionado($event)" class="bordr absolute right-0 top-0 z-20 h-4 w-4 cursor-pointer border border-white hover:border-2"></div>
-	<div id="tirador-bl" (mousedown)="redimensionado($event)" class="bordr absolute bottom-0 left-0 z-20 h-4 w-4 cursor-pointer border border-white hover:border-2"></div>
-	<div id="tirador-br" (mousedown)="redimensionado($event)" class="bordr absolute bottom-0 right-0 z-20 h-4 w-4 cursor-pointer border border-white hover:border-2"></div>
-	<div id="tirador-center" (mousedown)="redimensionado($event)" class="bordr absolute left-[50%] top-[50%] z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 cursor-pointer border border-white hover:border-2"></div>
+	<div id="tirador-tl" (mousedown)="redimensionado($event)" class="bordr absolute left-0 top-0 z-20 h-4 w-4 cursor-grab border border-white hover:border-2 active:cursor-grabbing"></div>
+	<div id="tirador-tr" (mousedown)="redimensionado($event)" class="bordr absolute right-0 top-0 z-20 h-4 w-4 cursor-grab border border-white hover:border-2 active:cursor-grabbing"></div>
+	<div id="tirador-bl" (mousedown)="redimensionado($event)" class="bordr absolute bottom-0 left-0 z-20 h-4 w-4 cursor-grab border border-white hover:border-2 active:cursor-grabbing"></div>
+	<div id="tirador-br" (mousedown)="redimensionado($event)" class="bordr absolute bottom-0 right-0 z-20 h-4 w-4 cursor-grab border border-white hover:border-2 active:cursor-grabbing"></div>
+	<div id="tirador-center" (mousedown)="redimensionado($event)" class="bordr absolute left-[50%] top-[50%] z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 cursor-grab border border-white hover:border-2 active:cursor-grabbing"></div>
 
 	<div id="line1" class="absolute h-[1px] origin-top-left transform bg-white"></div>
 	<div id="line2" class="absolute h-[1px] origin-top-right transform bg-white" style="border: null"></div>

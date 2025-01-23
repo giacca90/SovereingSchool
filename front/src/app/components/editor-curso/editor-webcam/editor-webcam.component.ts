@@ -334,7 +334,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			console.error('Tipo de elemento no reconocido');
 			return;
 		}
-		ghost.classList.add('ghost-video'); // Clase para estilizar el ghost
+		document.body.classList.add('cursor-grabbing');
+		console.log('Cursor grabbing on');
 		ghost.classList.remove('rounded-lg');
 		ghost.style.position = 'absolute';
 		ghost.style.pointerEvents = 'none'; // Para que no interfiera con eventos
@@ -343,11 +344,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		// Ajustar dimensiones del ghost para que coincidan con el video original
 		ghost.style.width = `${videoElement.offsetWidth}px`;
 		ghost.style.height = `${videoElement.offsetHeight}px`;
-
-		/* // Copiar estilos clave
-		ghost.style.transform = getComputedStyle(videoElement).transform || 'none';
-		ghost.style.objectFit = getComputedStyle(videoElement).objectFit || 'contain';
-		ghost.style.fontFamily = getComputedStyle(videoElement).fontFamily || 'inherit'; */
 
 		// Copiar fuente y poner en marcha si es un video
 		if (ele.element instanceof HTMLVideoElement && ghost instanceof HTMLVideoElement) {
@@ -460,8 +456,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			        ${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
 			        ${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%
 					)`;
-					ghost.classList.remove('ghost-video');
-
 					// Detectar posición del cursor respecto al canvas
 
 					if (isFullyContained) {
@@ -473,7 +467,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					}
 				} else {
 					ghost.style.clipPath = 'none'; // Restaurar si no hay intersección
-					ghost.classList.add('ghost-video');
 					ghost.style.border = '1px solid black';
 					this.canvas.style.border = '1px solid black';
 				}
@@ -702,6 +695,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			document.removeEventListener('mousemove', mousemove);
 			document.removeEventListener('wheel', wheel);
 			document.removeEventListener('mouseup', mouseup);
+			document.body.classList.remove('cursor-grabbing');
 		};
 		document.addEventListener('mouseup', mouseup);
 	}
