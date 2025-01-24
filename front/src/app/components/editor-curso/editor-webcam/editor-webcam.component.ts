@@ -21,6 +21,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	canvas: HTMLCanvasElement | null = null;
 	context: CanvasRenderingContext2D | null = null;
 	editandoDimensiones = false; // Indica si se está editando las dimensiones de un video
+	presets = new Map<string, { elements: VideoElement[]; shortcut: string }>(); // Presets
 	private fileUrlCache = new Map<File, string>(); // Cache de URLs de archivos
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 
@@ -1107,6 +1108,20 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const mins = Math.floor(seconds / 60);
 		const secs = Math.floor(seconds % 60);
 		return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+	}
+
+	guardaPreset() {
+		const name = prompt('Introduce el nombre del preset', 'Nuevo preset');
+		if (name) {
+			console.log(name);
+			const videoElements: VideoElement[] = [];
+			this.videosElements.forEach((elemento) => {
+				if (elemento.painted) {
+					videoElements.push(elemento);
+				}
+			});
+			this.presets.set(name, { elements: videoElements, shortcut: 'ctrl+' + this.presets.size + 1 });
+		}
 	}
 }
 export interface VideoElement {
