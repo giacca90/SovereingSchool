@@ -6,23 +6,36 @@
 		</div>
 		<div class="relative ml-4 flex flex-col bg-transparent">
 			<div class="flex">
-				<label for="resolucion">Elige una resolución:</label>
-				<select id="resolucion" class="bg-transparent" (change)="cambiarResolucion()">
-					<option value="640x360">360p (640x360)</option>
-					<option value="854x480">480p (854x480)</option>
-					<option value="1280x720" selected>720p HD (1280x720)</option>
-					<option value="1920x1080">1080p Full HD (1920x1080)</option>
-					<option value="2560x1440">1440p QHD (2560x1440)</option>
-					<option value="3840x2160">4K UHD (3840x2160)</option>
-				</select>
+				<div id="resolucion" class="flex bg-transparent">
+					<p>Elige una resolución:</p>
+					<div class="flex flex-col">
+						<div class="group flex cursor-pointer items-center pl-2 pr-2" id="selected" (click)="isResolutionSelectedVisible = !isResolutionSelectedVisible" tabindex="0" (keydown.enter)="isResolutionSelectedVisible = !isResolutionSelectedVisible">
+							<p id="value">720p HD (1280x720)</p>
+							<svg class="ml-2 hidden h-4 w-4 group-hover:block" width="800px" height="800px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z" fill="#000000" />
+							</svg>
+						</div>
+
+						@if (isResolutionSelectedVisible) {
+							<div class="z-10 flex flex-col bg-transparent">
+								<div class="cursor-pointer" (click)="cambiarResolucion($event, '640x360')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '640x360')"><p class="rounded-lg border-black pl-2 pr-2 hover:border">360p (640x360)</p></div>
+								<div class="cursor-pointer" (click)="cambiarResolucion($event, '854x480')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '854x480')"><p class="rounded-lg border-black pl-2 pr-2 hover:border">480p (854x480)</p></div>
+								<div class="cursor-pointer" (click)="cambiarResolucion($event, '1280x720')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '1280x720')"><p class="rounded-lg border-black pl-2 pr-2 hover:border">720p HD (1280x720)</p></div>
+								<div class="cursor-pointer" (click)="cambiarResolucion($event, '1920x1080')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '1920x1080')"><p class="rounded-lg border-black pl-2 pr-2 hover:border">1080p Full HD (1920x1080)</p></div>
+								<div class="cursor-pointer" (click)="cambiarResolucion($event, '2560x1440')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '2560x1440')"><p class="rounded-lg border-black pl-2 pr-2 hover:border">1440p QHD (2560x1440)</p></div>
+								<div class="cursor-pointer" (click)="cambiarResolucion($event, '3840x2160')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '3840x2160')"><p class="rounded-lg border-black pl-2 pr-2 hover:border">4K UHD (3840x2160)</p></div>
+							</div>
+						}
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 	<br />
 	<div class="relative flex h-1/4 pb-4">
-		<div class="relative flex w-1/6 flex-col">
+		<div class="relative flex w-1/6 flex-col justify-between">
 			@for (device of this.audioDevices; track device.deviceId) {
-				<div draggable="true" class="audio-bar m-2 flex h-8 cursor-grab items-center justify-center rounded-lg border border-black bg-transparent text-center hover:border-2 active:cursor-grabbing">
+				<div draggable="true" class="audio-bar m-2 flex h-10 cursor-grab items-center justify-center rounded-lg border border-black bg-transparent text-center hover:border-2 active:cursor-grabbing">
 					<p class="m-2 w-full overflow-hidden truncate text-ellipsis whitespace-nowrap">{{ device.label || 'Micrófono sin nombre' }}</p>
 					<div [id]="device.deviceId" class="audio-level"></div>
 				</div>
@@ -62,14 +75,14 @@
 			</div>
 		}
 
-		<div class="m-2 flex h-full w-1/6 flex-col justify-between">
-			<div class="flex cursor-pointer justify-center rounded-lg border border-black bg-gray-400 hover:border-2" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
+		<div class="relative flex w-1/6 flex-col justify-between">
+			<div class="relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
 				<p class="p-2 text-center">Añadir pantalla</p>
 				<svg class="h-10 w-10 text-gray-700 hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
 			</div>
-			<div class="flex cursor-pointer justify-center rounded-lg border border-black bg-gray-400 hover:border-2" (click)="addFiles()" tabindex="0" (keydown.enter)="addFiles()">
+			<div class="relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
 				<p class="p-2 text-center">Añadir archivo</p>
 				<svg class="h-10 w-10 text-gray-700 hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -160,20 +173,3 @@
 	<!-- Tiempo actual / Duración -->
 	<span id="time">00:00 / 00:00</span>
 </div>
-
-<!-- 
-			Botón Play/Pause 
-	<button (click)="togglePlay(videoElement)">
-		{{ videoElement.paused ? 'Play' : 'Pause' }}
-	</button>
-
-			Barra de progreso 
-	<input type="range" [max]="videoElement.duration || 0" [value]="videoElement.currentTime || 0" (input)="seek(videoElement, $event)" class="mx-2 w-full" />
-
-			Control de volumen 
-	<input type="range" min="0" max="1" step="0.1" [value]="videoElement.volume" (input)="adjustVolume(videoElement, $event)" />
-
-			Tiempo actual / Duración 
-	<span>{{ formatTime(videoElement.currentTime) }} / {{ formatTime(videoElement.duration) }}</span>
-</div>
--->

@@ -10,6 +10,7 @@ import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChildren }
 export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	canvasWidth = 1280;
 	canvasHeight = 720;
+	isResolutionSelectedVisible = false;
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	capturas: MediaStream[] = []; // Lista de capturas
@@ -312,12 +313,16 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		return this.fileUrlCache.get(file) as string;
 	}
 
-	cambiarResolucion() {
-		const resolucion = document.getElementById('resolucion') as HTMLSelectElement;
-		if (!resolucion) return;
-		const [width, height] = resolucion.value.split('x');
+	cambiarResolucion($event: Event, res: string) {
+		const selected = document.getElementById('selected') as HTMLDivElement;
+		const value = selected.querySelector('#value');
+		if (!selected || !value) return;
+		const string = ($event.target as HTMLDivElement).innerHTML;
+		const [width, height] = res.split('x');
 		this.canvasWidth = parseInt(width);
 		this.canvasHeight = parseInt(height);
+		value.innerHTML = string;
+		this.isResolutionSelectedVisible = false;
 	}
 
 	// Empieza el arrastre de un elemento
