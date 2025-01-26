@@ -11,19 +11,29 @@
 					<div class="flex w-full flex-col">
 						<div class="group flex cursor-pointer items-center pl-2 pr-2" id="selected" (click)="isResolutionSelectedVisible = !isResolutionSelectedVisible" tabindex="0" (keydown.enter)="isResolutionSelectedVisible = !isResolutionSelectedVisible">
 							<p id="value">720p HD (1280x720)</p>
+							<p class="ml-2">{{ canvasFPS }} fps</p>
 							<svg class="ml-2 hidden h-4 w-4 group-hover:block" width="800px" height="800px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 								<path d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z" fill="#000000" />
 							</svg>
 						</div>
 						<div class="relative w-full">
 							@if (isResolutionSelectedVisible) {
-								<div class="absolute z-10 flex flex-col bg-transparent">
-									<div class="cursor-pointer" (click)="cambiarResolucion($event, '640x360')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '640x360')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">360p (640x360)</p></div>
-									<div class="cursor-pointer" (click)="cambiarResolucion($event, '854x480')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '854x480')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">480p (854x480)</p></div>
-									<div class="cursor-pointer" (click)="cambiarResolucion($event, '1280x720')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '1280x720')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">720p HD (1280x720)</p></div>
-									<div class="cursor-pointer" (click)="cambiarResolucion($event, '1920x1080')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '1920x1080')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">1080p Full HD (1920x1080)</p></div>
-									<div class="cursor-pointer" (click)="cambiarResolucion($event, '2560x1440')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '2560x1440')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">1440p QHD (2560x1440)</p></div>
-									<div class="cursor-pointer" (click)="cambiarResolucion($event, '3840x2160')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '3840x2160')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">4K UHD (3840x2160)</p></div>
+								<div class="relative flex">
+									<div class="z-10 flex flex-col bg-transparent">
+										<div class="cursor-pointer" (click)="cambiarResolucion($event, '640x360')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '640x360')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">360p (640x360)</p></div>
+										<div class="cursor-pointer" (click)="cambiarResolucion($event, '854x480')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '854x480')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">480p (854x480)</p></div>
+										<div class="cursor-pointer" (click)="cambiarResolucion($event, '1280x720')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '1280x720')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">720p HD (1280x720)</p></div>
+										<div class="cursor-pointer" (click)="cambiarResolucion($event, '1920x1080')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '1920x1080')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">1080p Full HD (1920x1080)</p></div>
+										<div class="cursor-pointer" (click)="cambiarResolucion($event, '2560x1440')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '2560x1440')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">1440p QHD (2560x1440)</p></div>
+										<div class="cursor-pointer" (click)="cambiarResolucion($event, '3840x2160')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '3840x2160')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">4K UHD (3840x2160)</p></div>
+									</div>
+									<div class="z-10 flex flex-col bg-transparent">
+										<div class="cursor-pointer" (click)="cambiarFPS($event, '25')" tabindex="0" (keydown.enter)="cambiarFPS($event, '25')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">25fps</p></div>
+										<div class="cursor-pointer" (click)="cambiarFPS($event, '30')" tabindex="0" (keydown.enter)="cambiarFPS($event, '30')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">30fps</p></div>
+										<div class="cursor-pointer" (click)="cambiarFPS($event, '60')" tabindex="0" (keydown.enter)="cambiarFPS($event, '60')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">60fps</p></div>
+										<div class="cursor-pointer" (click)="cambiarFPS($event, '90')" tabindex="0" (keydown.enter)="cambiarFPS($event, '90')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">90fps</p></div>
+										<div class="cursor-pointer" (click)="cambiarFPS($event, '120')" tabindex="0" (keydown.enter)="cambiarFPS($event, '120')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">120fps</p></div>
+									</div>
 								</div>
 							}
 						</div>
@@ -62,13 +72,13 @@
 			<div id="div-{{ device.deviceId }}" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
 				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="cursor-grab rounded-lg border border-black hover:border-2 active:cursor-grabbing"></video>
 			</div>
+		}
 
-			<!-- @if (device.kind === 'audiooutput') {
+		<!-- @if (device.kind === 'audiooutput') {
 				<div class="m-2 flex w-1/6 rounded-lg border border-black bg-transparent p-2">
 					<p>{{ device.label || 'Altavoz sin nombre' }}</p>
 				</div>
 			} -->
-		}
 		@for (captura of this.capturas; track captura.id) {
 			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent hover:border-2">
 				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="cursor-grab rounded-lg border border-black active:cursor-grabbing" [srcObject]="captura"></video>
