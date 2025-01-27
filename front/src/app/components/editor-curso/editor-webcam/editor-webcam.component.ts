@@ -1198,6 +1198,25 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.staticContent = this.staticContent.filter((file) => file !== ele);
 		}
 	}
+
+	fullscreen(ele: MediaDeviceInfo | MediaStream | File) {
+		if (ele instanceof MediaDeviceInfo) {
+			const div = document.getElementById('div-' + ele.deviceId);
+			if (!div) return;
+			const videoElement = div.querySelector('video') as HTMLVideoElement;
+			if (!videoElement) return;
+		} else if (ele instanceof MediaStream) {
+			const div = document.getElementById('div-' + ele.id);
+			if (!div) return;
+			const videoElement = div.querySelector('video') as HTMLVideoElement;
+			if (!videoElement) return;
+		} else if (ele instanceof File) {
+			const div = document.getElementById('div-' + ele.name);
+			if (!div) return;
+			const videoElement = div.querySelector('video') as HTMLVideoElement;
+			if (!videoElement) return;
+		}
+	}
 }
 export interface VideoElement {
 	id: string;
