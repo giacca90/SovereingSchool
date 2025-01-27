@@ -29,10 +29,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	async ngOnInit() {
 		try {
 			// Solicitar permisos para cámara y micrófono
-			await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
 			// Listar todos los dispositivos multimedia
 			const devices = await navigator.mediaDevices.enumerateDevices();
+			stream.getTracks().forEach((track) => {
+				track.stop();
+			});
 
 			// Iniciar la configuración de medios
 			this.startMedias(devices);
@@ -160,33 +163,36 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	async getVideoStream(deviceId: string): Promise<void> {
 		try {
-			const stream = await navigator.mediaDevices.getUserMedia({
+			let stream = await navigator.mediaDevices.getUserMedia({
 				video: { deviceId: { exact: deviceId } },
 			});
 
 			// Obtener datos del dispositivo
-			const videoTrack = stream.getVideoTracks()[0];
+			let videoTrack = stream.getVideoTracks()[0];
 			const capabilities = videoTrack.getCapabilities(); // Capacidades del dispositivo
 			let settings = videoTrack.getSettings(); // Configuración actual
 
-			console.log('Capabilities:', capabilities);
-			console.log('Current Settings:', settings);
+			console.log('Capabilities:', capabilities.width?.max, 'x', capabilities.height?.max);
+			console.log('Current Settings:', settings.width, 'x', settings.height);
+
+			stream.getTracks().forEach((track) => {
+				track.stop();
+			});
 
 			// Seleccionar valores específicos dentro de las capacidades
-			const constraints = {
-				width: capabilities.width?.max || settings.width, // Máximo permitido
-				height: capabilities.height?.max || settings.height, // Máximo permitido
-				frameRate: capabilities.frameRate?.max || settings.frameRate, // Máximo permitido
+			const constraints: MediaStreamConstraints = {
+				video: {
+					deviceId: { ideal: deviceId },
+					width: { exact: capabilities.width?.max }, // Máximo permitido
+					height: { exact: capabilities.height?.max }, // Máximo permitido
+					frameRate: { exact: capabilities.frameRate?.max }, // Máximo permitido
+				},
 			};
 
-			// Aplica configuraciones avanzadas al flujo existente
-			try {
-				await videoTrack.applyConstraints(constraints);
-				settings = videoTrack.getSettings(); // Configuración actual después de aplicar restricciones
-				console.log('New Current Settings:', settings);
-			} catch (error) {
-				console.error('Error al aplicar configuraciones:', error);
-			}
+			stream = await navigator.mediaDevices.getUserMedia(constraints);
+			videoTrack = stream.getVideoTracks()[0];
+			settings = videoTrack.getSettings();
+			console.log('New Current Settings:', settings.width, 'x', settings.height);
 
 			// Encontrar el elemento <video> con el mismo ID que el dispositivo
 			const videoElement = this.videoElements.find((el) => el.nativeElement.id === deviceId);
@@ -356,7 +362,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		this.isResolutionSelectedVisible = false;
 	}
 
-	cambiarFPS($event: Event, fps: string) {
+	cambiarFPS(fps: string) {
 		this.canvasFPS = parseInt(fps);
 	}
 
