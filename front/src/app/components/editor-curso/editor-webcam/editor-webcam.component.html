@@ -71,6 +71,8 @@
 		@for (device of this.videoDevices; track device.deviceId) {
 			<div id="div-{{ device.deviceId }}" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
 				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="cursor-grab rounded-lg border border-black hover:border-2 active:cursor-grabbing"></video>
+				<p class="absolute bottom-6 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white">{{ device.label || 'Camara sin nombre' }}</p>
+				<p id="resolution" class="absolute bottom-2 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white"></p>
 			</div>
 		}
 
@@ -80,8 +82,11 @@
 				</div>
 			} -->
 		@for (captura of this.capturas; track captura.id) {
-			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col rounded-lg border border-black bg-transparent hover:border-2">
+			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col justify-center bg-transparent text-center">
 				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="cursor-grab rounded-lg border border-black active:cursor-grabbing" [srcObject]="captura"></video>
+				<p class="absolute bottom-6 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white">{{ captura.id || 'Pantalla sin nombre' }}</p>
+				<p id="resolution" class="absolute bottom-2 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white"></p>
+
 				@if (captura.getAudioTracks().length > 0) {
 					@for (audioTrack of captura.getAudioTracks(); track $index) {}
 					<div class="audio-bar m-1 flex h-4 rounded-lg border border-black">

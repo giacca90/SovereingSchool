@@ -195,6 +195,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			console.log('New Current Settings:', settings.width, 'x', settings.height);
 
 			// Encontrar el elemento <video> con el mismo ID que el dispositivo
+			const div = document.getElementById('div-' + deviceId);
+			if (!div) return;
+			const resolution = div.querySelector('#resolution');
+			if (!resolution) return;
+			resolution.innerHTML = `${settings.width}x${settings.height} ${settings.frameRate}fps`;
+
 			const videoElement = this.videoElements.find((el) => el.nativeElement.id === deviceId);
 			if (videoElement) {
 				videoElement.nativeElement.srcObject = stream; // Asignar el stream al video
@@ -261,25 +267,28 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				audio: true, // Opcional: captura el audio del sistema si es compatible
 			});
 			this.capturas.push(stream);
+			setTimeout(() => {
+				const div = document.getElementById('div-' + stream.id);
+				if (!div) return;
+				const resolution = div.querySelector('#resolution');
+				if (!resolution) return;
+				const settings = stream.getVideoTracks()[0].getSettings();
+				resolution.innerHTML = `${settings.width}x${settings.height} ${settings.frameRate}fps`;
 
-			// Crear un elemento `<video>` dinámico para mostrar el contenido capturado
-			const videoElement = document.createElement('video');
-			videoElement.autoplay = true;
-			videoElement.playsInline = true;
-			videoElement.srcObject = stream;
+				const videoElement = this.videoElements.find((el) => el.nativeElement.id === stream.id);
+				if (videoElement) {
+					videoElement.nativeElement.srcObject = stream;
+					const ele: VideoElement = {
+						id: stream.id,
+						element: videoElement.nativeElement,
+						painted: false,
+						scale: 1,
+						position: null,
+					};
+					this.videosElements.push(ele);
+				}
+			}, 100);
 
-			// Añadir el elemento al DOM para mostrar el stream
-			document.getElementById('capturas')?.appendChild(videoElement);
-			videoElement.classList.add('m-2', 'rounded-lg', 'border', 'border-black', 'w-1/6');
-
-			const ele: VideoElement = {
-				id: stream.id,
-				element: videoElement,
-				painted: false,
-				scale: 1,
-				position: null,
-			};
-			this.videosElements.push(ele);
 			// Manejar el fin de la captura
 			stream.getVideoTracks()[0].onended = () => {
 				console.log('La captura ha terminado');
