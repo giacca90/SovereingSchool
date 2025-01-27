@@ -69,8 +69,12 @@
 			}
 		</div>
 		@for (device of this.videoDevices; track device.deviceId) {
-			<div id="div-{{ device.deviceId }}" class="relative m-2 flex w-1/6 justify-center bg-transparent text-center">
-				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="cursor-grab rounded-lg border border-black hover:border-2 active:cursor-grabbing"></video>
+			<div id="div-{{ device.deviceId }}" class="group relative m-2 flex max-w-[16.6667%] justify-center bg-transparent object-contain text-center">
+				<video #videoElement (mousedown)="mousedown($event, device.deviceId)" [id]="device.deviceId" autoplay playsinline class="cursor-grab rounded-lg border border-black object-contain hover:border-2 active:cursor-grabbing"></video>
+				<!-- Botón X -->
+				<svg (click)="stopElemento(device)" class="absolute right-2 top-2 z-10 hidden h-4 w-4 cursor-pointer text-black group-hover:block" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z" fill="currentColor" />
+				</svg>
 				<p class="absolute bottom-6 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white">{{ device.label || 'Camara sin nombre' }}</p>
 				<p id="resolution" class="absolute bottom-2 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white"></p>
 			</div>
@@ -82,8 +86,12 @@
 				</div>
 			} -->
 		@for (captura of this.capturas; track captura.id) {
-			<div id="div-{{ captura.id }}" class="relative m-2 flex w-1/6 flex-col justify-center bg-transparent text-center">
-				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="cursor-grab rounded-lg border border-black active:cursor-grabbing" [srcObject]="captura"></video>
+			<div id="div-{{ captura.id }}" class="group relative m-2 flex max-w-[16.6667%] flex-col justify-center bg-transparent text-center">
+				<video #videoElement (mousedown)="mousedown($event, captura.id)" [id]="captura.id" autoplay playsinline muted class="cursor-grab rounded-lg border border-black object-contain active:cursor-grabbing" [srcObject]="captura"></video>
+				<!-- Botón X -->
+				<svg (click)="stopElemento(captura)" class="absolute right-2 top-2 z-10 hidden h-4 w-4 cursor-pointer text-black group-hover:block" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z" fill="currentColor" />
+				</svg>
 				<p class="absolute bottom-6 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white">{{ captura.id || 'Pantalla sin nombre' }}</p>
 				<p id="resolution" class="absolute bottom-2 overflow-hidden truncate text-ellipsis whitespace-nowrap text-xs text-white"></p>
 
@@ -96,7 +104,7 @@
 			</div>
 		}
 		@for (estatico of this.staticContent; track estatico.name) {
-			<div id="div-{{ estatico.name }}" class="relative m-2 flex w-1/6 rounded-lg border border-black bg-transparent hover:border-2">
+			<div id="div-{{ estatico.name }}" class="group relative m-2 flex max-w-[16.6667%] rounded-lg border border-black bg-transparent hover:border-2">
 				@if (estatico.type.startsWith('image/')) {
 					<!-- Renderiza una imagen -->
 					<img [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [alt]="estatico.name" class="h-full w-full cursor-grab rounded-lg object-contain active:cursor-grabbing" />
@@ -104,6 +112,10 @@
 					<!-- Renderiza un video -->
 					<video [id]="estatico.name" (mousedown)="mousedown($event, estatico.name)" [src]="getFileUrl(estatico)" [id]="estatico.name" muted class="h-full w-full cursor-grab rounded-lg active:cursor-grabbing"></video>
 				}
+				<!-- Botón X -->
+				<svg (click)="stopElemento(estatico)" class="absolute right-2 top-2 z-10 hidden h-4 w-4 cursor-pointer text-black group-hover:block" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z" fill="currentColor" />
+				</svg>
 			</div>
 		}
 
@@ -127,6 +139,7 @@
 <!-- Capa elementos emitidos -->
 <div id="capa" class="group absolute left-0 top-0 z-10 hidden h-full w-full rounded-lg bg-black opacity-50 hover:opacity-80">
 	<button id="buttonxcapa" class="absolute right-0 top-0 m-2 hidden h-4 w-4 rounded-full text-gray-700 hover:text-gray-500 group-hover:block">
+		<!-- Botón X -->
 		<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 			<path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z" fill="currentColor" />
 		</svg>

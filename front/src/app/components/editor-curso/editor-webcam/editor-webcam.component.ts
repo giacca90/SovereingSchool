@@ -1172,6 +1172,32 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.presets.set(name, { elements: videoElements, shortcut: 'ctrl+' + this.presets.size + 1 });
 		}
 	}
+
+	stopElemento(ele: MediaDeviceInfo | MediaStream | File) {
+		if (ele instanceof MediaDeviceInfo) {
+			const div = document.getElementById('div-' + ele.deviceId);
+			if (div) {
+				const videoElement = div.querySelector('video') as HTMLVideoElement;
+				if (videoElement) {
+					const stream = videoElement.srcObject as MediaStream;
+					stream.getTracks().forEach((track) => track.stop());
+				}
+			}
+			this.videoDevices = this.videoDevices.filter((device) => device.deviceId !== ele.deviceId);
+		} else if (ele instanceof MediaStream) {
+			const div = document.getElementById('div-' + ele.id);
+			if (div) {
+				const videoElement = div.querySelector('video') as HTMLVideoElement;
+				if (videoElement) {
+					const stream = videoElement.srcObject as MediaStream;
+					stream.getTracks().forEach((track) => track.stop());
+				}
+			}
+			this.capturas = this.capturas.filter((stream) => stream !== ele);
+		} else if (ele instanceof File) {
+			this.staticContent = this.staticContent.filter((file) => file !== ele);
+		}
+	}
 }
 export interface VideoElement {
 	id: string;
