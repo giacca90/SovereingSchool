@@ -483,12 +483,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// Evento para mover el ghost
 		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
-		const crossCopy = document.getElementById('cross')?.cloneNode(true) as HTMLDivElement;
-		if (!canvasContainer || !crossCopy) {
+		const cross = document.getElementById('cross') as HTMLDivElement;
+		if (!canvasContainer || !cross) {
 			console.error('No se pudo crear el elemento de la cruz');
 			return;
 		}
-		canvasContainer.appendChild(crossCopy);
+		cross.style.display = 'block';
 
 		const mousemove = (moveEvent: MouseEvent) => {
 			try {
@@ -542,44 +542,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					this.canvas.style.border = '1px solid black';
 				}
 
-				const isMouseOverCanvas: boolean = moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right && moveEvent.clientY >= rect.top && moveEvent.clientY <= rect.bottom;
-				const orizontal = crossCopy.querySelector('#orizontal') as HTMLDivElement;
-				orizontal.style.display = 'none';
-
-				const vertical = crossCopy.querySelector('#vertical') as HTMLDivElement;
-				vertical.style.display = 'none';
-
 				const intersecciones = this.colisiones(ghost);
 
-				if (isIntersecting && orizontal && vertical) {
+				if (isIntersecting) {
 					// Mostrar la cruz
-					vertical.style.backgroundColor = '#1d4ed8';
-					orizontal.style.backgroundColor = '#1d4ed8';
-					const cursorPosition = {
-						isAbove: moveEvent.clientY < rect.top,
-						isBelow: moveEvent.clientY > rect.bottom,
-						isLeft: moveEvent.clientX < rect.left,
-						isRight: moveEvent.clientX > rect.right,
-					};
-					if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
-						orizontal.style.display = 'block';
-					}
-					if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
-						vertical.style.display = 'block';
-					}
-
-					if (isMouseOverCanvas) {
-						vertical.style.display = 'block';
-						orizontal.style.display = 'block';
-					}
-
-					if (isFullyContained && intersecciones && intersecciones.length === 0) {
-						vertical.style.backgroundColor = '#1d4ed8';
-						orizontal.style.backgroundColor = '#1d4ed8';
-					} else {
-						vertical.style.backgroundColor = '#b91c1c';
-						orizontal.style.backgroundColor = '#b91c1c';
-					}
+					this.moverCruzPosicionamiento(moveEvent.clientX, moveEvent.clientY, intersecciones);
 
 					intersecciones?.forEach((elemento) => {
 						if (elemento.id === 'canvas-container') {
@@ -591,8 +558,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 							elemento.style.visibility = 'visible';
 						}
 					});
-					vertical.style.left = `${moveEvent.clientX - rect.left}px`;
-					orizontal.style.top = `${moveEvent.clientY - rect.top}px`;
 				}
 			} catch (error) {
 				console.error('Error al mover el video: ', error);
@@ -633,7 +598,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.dragVideo = null;
 			//ghost.style.visibility = 'hidden';
 			ghost.remove();
-			crossCopy.remove();
+			cross.style.display = 'none';
 			document.removeEventListener('mousemove', mousemove);
 			document.removeEventListener('wheel', wheel);
 			document.removeEventListener('mouseup', mouseup);
@@ -762,40 +727,26 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		this.editandoDimensiones = true;
 		// Añadir la cruz de posicionamiento
-		const cross = document.getElementById('cross')?.cloneNode(true) as HTMLDivElement;
+		const cross = document.getElementById('cross') as HTMLDivElement;
 		if (!cross) return;
-		const intersecciones = this.colisiones(ghostDiv);
-		cross.style.left = this.canvas.offsetLeft + 'px';
-		cross.style.top = this.canvas.offsetTop + 'px';
-		cross.style.width = this.canvas.offsetWidth + 'px';
-		cross.style.height = this.canvas.offsetHeight + 'px';
 		cross.style.display = 'block';
-		this.canvas.style.border = '2px solid #1d4ed8';
-		canvasContainer.appendChild(cross);
-		const orizontal = cross.querySelector('#orizontal') as HTMLDivElement;
-		const vertical = cross.querySelector('#vertical') as HTMLDivElement;
-		if (!orizontal || !vertical) return;
-		orizontal.style.width = this.canvas.offsetWidth - 2 + 'px';
-		orizontal.style.left = this.canvas.offsetLeft + 'px';
-		if (intersecciones && intersecciones.length > 0) {
-			orizontal.style.backgroundColor = '#b91c1c';
-		} else {
-			orizontal.style.backgroundColor = '#1d4ed8';
-		}
-		orizontal.style.display = 'block';
-		vertical.style.height = this.canvas.offsetHeight - 2 + 'px';
-		vertical.style.top = this.canvas.offsetTop + 'px';
-		if (intersecciones && intersecciones.length > 0) {
-			vertical.style.backgroundColor = '#b91c1c';
-		} else {
-			vertical.style.backgroundColor = '#1d4ed8';
-		}
-		vertical.style.display = 'block';
+		let intersecciones = this.colisiones(ghostDiv);
+
 		// Calcular el centro del ghost para posicionar las lineas
-		const centroX = ghostDiv.offsetLeft + ghostDiv.offsetWidth / 2;
-		const centroY = ghostDiv.offsetTop + ghostDiv.offsetHeight / 2;
-		orizontal.style.top = centroY + 'px';
-		vertical.style.left = centroX + 'px';
+		const rect = this.canvas.getBoundingClientRect();
+		const centroX = ghostDiv.offsetLeft + ghostDiv.offsetWidth / 2 + rect.x;
+		const centroY = ghostDiv.offsetTop + ghostDiv.offsetHeight / 2 + rect.y;
+		this.moverCruzPosicionamiento(centroX, centroY, intersecciones);
+		intersecciones?.forEach((elemento) => {
+			if (elemento.id === 'canvas-container') {
+				if (this.canvas) {
+					this.canvas.style.border = '2px solid #b91c1c';
+				}
+			} else {
+				elemento.style.border = '2px solid #b91c1c';
+				elemento.style.visibility = 'visible';
+			}
+		});
 
 		// En evento mousemove, se calcula la diferencia de posición entre el momento del click y el movimiento
 		const mouseMove = ($event2: MouseEvent) => {
@@ -883,56 +834,23 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			posicionInicial.y = $event2.clientY;
 
 			// Actualiza las posiciones de la cruz de posicionamiento
-			orizontal.style.display = 'none';
-			vertical.style.display = 'none';
+			// Calcular el centro del ghost para posicionar las lineas
+			intersecciones = this.colisiones(ghostDiv);
 			const rect = this.canvas.getBoundingClientRect();
-			const isMouseOverCanvas: boolean = $event2.clientX >= rect.left && $event2.clientX <= rect.right && $event2.clientY >= rect.top && $event2.clientY <= rect.bottom;
+			const centroX = ghostDiv.offsetLeft + ghostDiv.offsetWidth / 2 + rect.x;
+			const centroY = ghostDiv.offsetTop + ghostDiv.offsetHeight / 2 + rect.y;
+			this.moverCruzPosicionamiento(centroX, centroY, intersecciones);
 
-			const cursorPosition = {
-				isAbove: $event2.clientY < rect.top,
-				isBelow: $event2.clientY > rect.bottom,
-				isLeft: $event2.clientX < rect.left,
-				isRight: $event2.clientX > rect.right,
-			};
-			if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
-				orizontal.style.display = 'block';
-			}
-			if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
-				vertical.style.display = 'block';
-			}
-
-			if (isMouseOverCanvas) {
-				vertical.style.display = 'block';
-				orizontal.style.display = 'block';
-			}
-
-			const centroX = ghostDiv.offsetLeft + ghostDiv.offsetWidth / 2;
-			const centroY = ghostDiv.offsetTop + ghostDiv.offsetHeight / 2;
-			orizontal.style.top = centroY + 'px';
-			vertical.style.left = centroX + 'px';
-			const intersecciones = this.colisiones(ghostDiv);
-
-			// Cambiar el color de la cruz de posicionamiento si hay alguna colisión
-			if (intersecciones && intersecciones.length > 0) {
-				// Pone el marco rojo a los elementos colisionados
-				intersecciones.forEach((elemento) => {
-					if (elemento.id === 'canvas-container') {
-						if (this.canvas) {
-							this.canvas.style.border = '2px solid #b91c1c';
-						}
-					} else {
-						elemento.style.border = '2px solid #b91c1c';
-						elemento.style.visibility = 'visible';
+			intersecciones?.forEach((elemento) => {
+				if (elemento.id === 'canvas-container') {
+					if (this.canvas) {
+						this.canvas.style.border = '2px solid #b91c1c';
 					}
-				});
-				orizontal.style.backgroundColor = '#b91c1c';
-				vertical.style.backgroundColor = '#b91c1c';
-				ghostDiv.style.border = '2px solid #b91c1c';
-			} else {
-				orizontal.style.backgroundColor = '#1d4ed8';
-				vertical.style.backgroundColor = '#1d4ed8';
-				ghostDiv.style.border = '2px solid #1d4ed8';
-			}
+				} else {
+					elemento.style.border = '2px solid #b91c1c';
+					elemento.style.visibility = 'visible';
+				}
+			});
 		};
 		canvasContainer.addEventListener('mousemove', mouseMove);
 
@@ -952,7 +870,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			// Restaurar estado
 			canvasContainer.removeEventListener('mousemove', mouseMove);
 			canvasContainer.removeEventListener('mouseup', mouseup);
-			cross.remove();
+			cross.style.display = 'none';
 			const elementos = canvasContainer.querySelectorAll('[id^="marco"]') as NodeListOf<HTMLDivElement>;
 			elementos.forEach((elemento) => {
 				if (elemento.id !== ghostDiv.id) {
@@ -1016,11 +934,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		return videoElement;
 	}
 
-	colisiones(principal: HTMLElement) {
+	colisiones(principal: HTMLElement): HTMLElement[] {
 		const rect = principal.getBoundingClientRect();
 		const elementosIntersecados: HTMLElement[] = [];
 		const canvasContainer = document.getElementById('canvas-container') as HTMLElement;
-		if (!canvasContainer || !this.canvas) return;
+		if (!canvasContainer || !this.canvas) return elementosIntersecados;
 		const elementos = canvasContainer.querySelectorAll('[id^="marco"]') as NodeListOf<HTMLElement>;
 		elementos.forEach((elemento) => {
 			if (elemento.id != principal.id) {
@@ -1214,6 +1132,47 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			div.appendChild(capa);
 		}
+	}
+
+	moverCruzPosicionamiento(eventX: number, eventY: number, intersecciones: HTMLElement[]) {
+		const cross = document.getElementById('cross') as HTMLDivElement;
+		if (!cross || !this.canvas) return;
+		const rect = this.canvas.getBoundingClientRect();
+		const orizontal = cross.querySelector('#orizontal') as HTMLDivElement;
+		orizontal.style.display = 'none';
+		orizontal.style.backgroundColor = '#1d4ed8';
+		orizontal.style.width = rect.width + 'px';
+		const vertical = cross.querySelector('#vertical') as HTMLDivElement;
+		vertical.style.display = 'none';
+		vertical.style.backgroundColor = '#1d4ed8';
+		vertical.style.height = rect.height + 'px';
+
+		const isMouseOverCanvas: boolean = eventX >= rect.left && eventX <= rect.right && eventY >= rect.top && eventY <= rect.bottom;
+
+		const cursorPosition = {
+			isAbove: eventY < rect.top,
+			isBelow: eventY > rect.bottom,
+			isLeft: eventX < rect.left,
+			isRight: eventX > rect.right,
+		};
+		if ((cursorPosition.isLeft || cursorPosition.isRight) && !cursorPosition.isAbove && !cursorPosition.isBelow) {
+			orizontal.style.display = 'block';
+		}
+		if ((cursorPosition.isAbove || cursorPosition.isBelow) && !cursorPosition.isLeft && !cursorPosition.isRight) {
+			vertical.style.display = 'block';
+		}
+
+		if (isMouseOverCanvas) {
+			orizontal.style.display = 'block';
+			vertical.style.display = 'block';
+		}
+
+		if (intersecciones && intersecciones.length > 0) {
+			orizontal.style.backgroundColor = '#b91c1c';
+			vertical.style.backgroundColor = '#b91c1c';
+		}
+		vertical.style.left = `${eventX - rect.left}px`;
+		orizontal.style.top = `${eventY - rect.top}px`;
 	}
 }
 export interface VideoElement {

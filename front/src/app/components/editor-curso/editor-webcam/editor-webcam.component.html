@@ -3,6 +3,13 @@
 	<div class="relative flex h-3/4 pr-4">
 		<div id="canvas-container" class="relative aspect-video h-full">
 			<canvas (mousemove)="canvasMouseMove($event)" id="salida" [width]="canvasWidth" [height]="canvasHeight" autoplay playsinline class="h-full w-full border border-black bg-white"></canvas>
+			<!-- Cruz del arrastre -->
+			<div id="cross" class="pointer-events-none absolute inset-0">
+				<!-- Línea vertical -->
+				<div id="vertical" class="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2" style="display: none; background-color: #b91c1c"></div>
+				<!-- Línea horizontal -->
+				<div id="orizontal" class="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2" style="display: none; background-color: #b91c1c"></div>
+			</div>
 		</div>
 		<div class="relative ml-4 flex flex-col bg-transparent">
 			<div class="flex">
@@ -160,14 +167,6 @@
 		</svg>
 	</button>
 	<div id="controllers" class="hidden group-hover:block"></div>
-</div>
-
-<!-- Cruz del arrastre -->
-<div id="cross" class="pointer-events-none absolute inset-0">
-	<!-- Línea vertical -->
-	<div id="vertical" class="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2" style="display: none; background-color: #b91c1c"></div>
-	<!-- Línea horizontal -->
-	<div id="orizontal" class="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2" style="display: none; background-color: #b91c1c"></div>
 </div>
 
 <!-- Marco azul -->
