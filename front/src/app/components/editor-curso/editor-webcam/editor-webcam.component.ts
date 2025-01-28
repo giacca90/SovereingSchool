@@ -619,111 +619,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				this.dragVideo.position = result.position;
 				this.dragVideo.painted = result.painted;
 
+				// Añade una capa encima al elemento transmitido
+				this.addCapa(this.dragVideo);
 				// Quita la cruz de posicionamiento
 				const cross = document.getElementById('cross') as HTMLDivElement;
 				if (cross) {
 					cross.style.display = 'none';
-				}
-
-				// Añade una capa encima al elemento transmitido
-				const div = document.getElementById('div-' + ele.id);
-				if (div) {
-					const capa: HTMLDivElement = document.getElementById('capa')?.cloneNode(true) as HTMLDivElement;
-					capa.id = 'capa-' + ele.id;
-					capa.classList.remove('hidden');
-
-					// Botón para detener la emisión
-					const X: HTMLButtonElement = capa.querySelector('#buttonxcapa') as HTMLButtonElement;
-					X.onclick = () => {
-						ele.painted = false;
-						ele.position = null;
-						ele.scale = 1;
-						div.removeChild(capa);
-						const marco = document.getElementById('marco-' + ele.id);
-						if (marco) {
-							marco.remove();
-						}
-					};
-
-					if (ele.element instanceof HTMLVideoElement && ele.element.src && ele.element.src.length > 0) {
-						const control = document.getElementById('control')?.cloneNode(true) as HTMLDivElement;
-						if (!control) return;
-						const controllers = capa.querySelector('#controllers') as HTMLDivElement;
-						if (!controllers) return;
-						control.id = 'control-' + ele.id;
-						control.style.display = 'block';
-						const playPause = control.querySelector('#play-pause') as HTMLButtonElement;
-						const restart = control.querySelector('#restart') as HTMLButtonElement;
-						const loop = control.querySelector('#loop') as HTMLButtonElement;
-						const play = control.querySelector('#play') as SVGElement;
-						const pause = control.querySelector('#pause') as SVGElement;
-						const loopOff = control.querySelector('#loop-off') as SVGElement;
-						const loopOn = control.querySelector('#loop-on') as SVGElement;
-						const progress = control.querySelector('#progress') as HTMLInputElement;
-						const time = control.querySelector('#time') as HTMLSpanElement;
-
-						playPause.onclick = () => {
-							if ((ele.element as HTMLVideoElement).paused) {
-								(ele.element as HTMLVideoElement).play();
-								play.style.display = 'none';
-								pause.style.display = 'block';
-							} else {
-								(ele.element as HTMLVideoElement).pause();
-								play.style.display = 'block';
-								pause.style.display = 'none';
-							}
-						};
-
-						restart.onclick = () => {
-							(ele.element as HTMLVideoElement).currentTime = 0;
-						};
-
-						loop.onclick = () => {
-							if ((ele.element as HTMLVideoElement).loop) {
-								(ele.element as HTMLVideoElement).loop = false;
-								loopOff.style.display = 'block';
-								loopOn.style.display = 'none';
-							} else {
-								(ele.element as HTMLVideoElement).loop = true;
-								loopOff.style.display = 'none';
-								loopOn.style.display = 'block';
-							}
-						};
-
-						/* Barra de progreso */
-						ele.element.ontimeupdate = () => {
-							const percentage = ((ele.element as HTMLVideoElement).currentTime / (ele.element as HTMLVideoElement).duration) * 100;
-							progress.value = percentage.toString();
-
-							// Mostrar el tiempo actual y la duración
-							const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
-							const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
-							time.innerText = `${currentTime} / ${duration}`;
-
-							progress.oninput = () => {
-								const newTime = (parseInt(progress.value) / 100) * (ele.element as HTMLVideoElement).duration;
-								(ele.element as HTMLVideoElement).currentTime = newTime;
-
-								// Actualizar el tiempo en el texto inmediatamente
-								const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
-								const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
-								time.innerText = `${currentTime} / ${duration}`;
-							};
-						};
-
-						/* Tiempo de reproducción */
-						ele.element.addEventListener('timeupdate', () => {
-							const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
-							const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
-							time.innerText = `${currentTime} / ${duration}`;
-						});
-						const currentTime = this.formatTime((ele.element as HTMLVideoElement).currentTime);
-						const duration = this.formatTime((ele.element as HTMLVideoElement).duration);
-						time.innerText = `${currentTime} / ${duration}`;
-						controllers.appendChild(control);
-					}
-
-					div.appendChild(capa);
 				}
 			}
 
@@ -1193,7 +1094,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			elemento = this.videosElements.find((el) => el.id === ele.id);
 		} else if (ele instanceof File) {
 			elemento = this.videosElements.find((el) => el.id === ele.name);
-		}
+		} else return;
 		if (!elemento || !elemento.element || !this.canvas) return;
 		const rect = this.canvas.getBoundingClientRect();
 		const x = rect.x + rect.width / 2;
@@ -1203,6 +1104,115 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			elemento.position = result.position;
 			elemento.scale = result.scale;
 			elemento.painted = true;
+			this.addCapa(elemento);
+		}
+	}
+
+	addCapa(elemento: VideoElement) {
+		const div = document.getElementById('div-' + elemento.id);
+		if (div) {
+			const capa: HTMLDivElement = document.getElementById('capa')?.cloneNode(true) as HTMLDivElement;
+			capa.id = 'capa-' + elemento.id;
+			capa.classList.remove('hidden');
+
+			// Botón para detener la emisión
+			const X: HTMLButtonElement = capa.querySelector('#buttonxcapa') as HTMLButtonElement;
+			X.onclick = () => {
+				if (!elemento) return;
+				elemento.painted = false;
+				elemento.position = null;
+				elemento.scale = 1;
+				div.removeChild(capa);
+				const marco = document.getElementById('marco-' + elemento.id);
+				if (marco) {
+					marco.remove();
+				}
+			};
+
+			if (elemento.element instanceof HTMLVideoElement && elemento.element.src && elemento.element.src.length > 0) {
+				const control = document.getElementById('control')?.cloneNode(true) as HTMLDivElement;
+				if (!control) return;
+				const controllers = capa.querySelector('#controllers') as HTMLDivElement;
+				if (!controllers) return;
+				control.id = 'control-' + elemento.id;
+				control.style.display = 'block';
+				const playPause = control.querySelector('#play-pause') as HTMLButtonElement;
+				const restart = control.querySelector('#restart') as HTMLButtonElement;
+				const loop = control.querySelector('#loop') as HTMLButtonElement;
+				const play = control.querySelector('#play') as SVGElement;
+				const pause = control.querySelector('#pause') as SVGElement;
+				const loopOff = control.querySelector('#loop-off') as SVGElement;
+				const loopOn = control.querySelector('#loop-on') as SVGElement;
+				const progress = control.querySelector('#progress') as HTMLInputElement;
+				const time = control.querySelector('#time') as HTMLSpanElement;
+
+				playPause.onclick = () => {
+					if (!elemento) return;
+					if ((elemento.element as HTMLVideoElement).paused) {
+						(elemento.element as HTMLVideoElement).play();
+						play.style.display = 'none';
+						pause.style.display = 'block';
+					} else {
+						(elemento.element as HTMLVideoElement).pause();
+						play.style.display = 'block';
+						pause.style.display = 'none';
+					}
+				};
+
+				restart.onclick = () => {
+					if (!elemento) return;
+					(elemento.element as HTMLVideoElement).currentTime = 0;
+				};
+
+				loop.onclick = () => {
+					if (!elemento) return;
+					if ((elemento.element as HTMLVideoElement).loop) {
+						(elemento.element as HTMLVideoElement).loop = false;
+						loopOff.style.display = 'block';
+						loopOn.style.display = 'none';
+					} else {
+						(elemento.element as HTMLVideoElement).loop = true;
+						loopOff.style.display = 'none';
+						loopOn.style.display = 'block';
+					}
+				};
+
+				/* Barra de progreso */
+				elemento.element.ontimeupdate = () => {
+					if (!elemento) return;
+					const percentage = ((elemento.element as HTMLVideoElement).currentTime / (elemento.element as HTMLVideoElement).duration) * 100;
+					progress.value = percentage.toString();
+					// Mostrar el tiempo actual y la duración
+					const currentTime = this.formatTime((elemento.element as HTMLVideoElement).currentTime);
+					const duration = this.formatTime((elemento.element as HTMLVideoElement).duration);
+					time.innerText = `${currentTime} / ${duration}`;
+
+					progress.oninput = () => {
+						if (!elemento) return;
+						const newTime = (parseInt(progress.value) / 100) * (elemento.element as HTMLVideoElement).duration;
+						(elemento.element as HTMLVideoElement).currentTime = newTime;
+
+						// Actualizar el tiempo en el texto inmediatamente
+						const currentTime = this.formatTime((elemento.element as HTMLVideoElement).currentTime);
+						const duration = this.formatTime((elemento.element as HTMLVideoElement).duration);
+						time.innerText = `${currentTime} / ${duration}`;
+					};
+				};
+
+				/* Tiempo de reproducción */
+				elemento.element.addEventListener('timeupdate', () => {
+					if (!elemento) return;
+					const currentTime = this.formatTime((elemento.element as HTMLVideoElement).currentTime);
+					const duration = this.formatTime((elemento.element as HTMLVideoElement).duration);
+					time.innerText = `${currentTime} / ${duration}`;
+				});
+				const currentTime = this.formatTime((elemento.element as HTMLVideoElement).currentTime);
+				const duration = this.formatTime((elemento.element as HTMLVideoElement).duration);
+				time.innerText = `${currentTime} / ${duration}`;
+				controllers.appendChild(control);
+			}
+
+			div.appendChild(capa);
 		}
 	}
 }
