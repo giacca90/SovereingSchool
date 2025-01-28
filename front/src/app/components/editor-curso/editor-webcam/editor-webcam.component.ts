@@ -611,46 +611,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const isMouseOverCanvas: boolean = upEvent.clientX >= rect.left && upEvent.clientX <= rect.right && upEvent.clientY >= rect.top && upEvent.clientY <= rect.bottom;
 
 			if (isMouseOverCanvas) {
-				// Relación de escala entre el tamaño visual y el interno del canvas
-				const scaleX = this.canvas.width / rect.width;
-				const scaleY = this.canvas.height / rect.height;
-
-				// Dimensiones del ghost en el documento
 				const ghostRect = ghost.getBoundingClientRect();
-				const ghostWidthInCanvas = ghostRect.width * scaleX; // Ajustado al canvas
-				const ghostHeightInCanvas = ghostRect.height * scaleY;
-
-				// Dimensiones originales del video
-				let originalWidth: number = 0;
-				let originalHeight: number = 0;
-				if (this.dragVideo.element instanceof HTMLVideoElement) {
-					originalWidth = this.dragVideo.element.videoWidth;
-					originalHeight = this.dragVideo.element.videoHeight;
-				} else if (this.dragVideo.element instanceof HTMLImageElement) {
-					originalWidth = this.dragVideo.element.naturalWidth;
-					originalHeight = this.dragVideo.element.naturalHeight;
-				} else {
-					console.error('Tipo de elemento no reconocido');
-					return;
-				}
-
-				// Calculamos la escala requerida
-				const requiredScaleX = ghostWidthInCanvas / originalWidth;
-				const requiredScaleY = ghostHeightInCanvas / originalHeight;
-				const requiredScale = Math.min(requiredScaleX, requiredScaleY);
-
-				// Dimensiones escaladas
-				const scaledWidth = originalWidth * requiredScale;
-				const scaledHeight = originalHeight * requiredScale;
-
-				// Ajustamos la posición para centrar el ratón en el video escalado
-				const canvasX = (upEvent.clientX - rect.left) * scaleX - scaledWidth / 2;
-				const canvasY = (upEvent.clientY - rect.top) * scaleY - scaledHeight / 2;
-
+				const result: VideoElement | undefined = this.paintInCanvas(ghost, ghostRect.width, ghostRect.height, upEvent.clientX, upEvent.clientY);
 				// Guardar datos en el objeto VideoElement
-				this.dragVideo.position = { x: canvasX, y: canvasY };
-				this.dragVideo.scale = requiredScale; // Escala que garantiza el tamaño correcto en el canvas
-				this.dragVideo.painted = true; // Marcamos el video como "pintado"
+				if (!result) return;
+				this.dragVideo.scale = result.scale;
+				this.dragVideo.position = result.position;
+				this.dragVideo.painted = result.painted;
 
 				// Quita la cruz de posicionamiento
 				const cross = document.getElementById('cross') as HTMLDivElement;
@@ -1071,45 +1038,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		// Evento mouseup
 		const mouseup = () => {
 			if (!this.canvas) return;
-			const rect = this.canvas.getBoundingClientRect();
-			// Relación de escala entre el tamaño visual y el interno del canvas
-			const scaleX = this.canvas.width / rect.width;
-			const scaleY = this.canvas.height / rect.height;
-
-			// Dimensiones del ghost en el documento
-			const ghostRect = ghostDiv.getBoundingClientRect();
-			const ghostWidthInCanvas = ghostRect.width * scaleX; // Ajustado al canvas
-			const ghostHeightInCanvas = ghostRect.height * scaleY;
-
-			// Dimensiones originales del video
 			const elemento: VideoElement | undefined = this.videosElements.find((el) => el.id === ghostId.substring(6));
 			if (!elemento) return;
-			let originalWidth: number = 0;
-			let originalHeight: number = 0;
-			if (elemento.element instanceof HTMLVideoElement) {
-				originalWidth = elemento.element.videoWidth;
-				originalHeight = elemento.element.videoHeight;
-			} else if (elemento.element instanceof HTMLImageElement) {
-				originalWidth = elemento.element.naturalWidth;
-				originalHeight = elemento.element.naturalHeight;
-			}
-			// Calculamos la escala requerida
-			const requiredScaleX = ghostWidthInCanvas / originalWidth;
-			const requiredScaleY = ghostHeightInCanvas / originalHeight;
-			const requiredScale = Math.min(requiredScaleX, requiredScaleY);
-
-			// Dimensiones escaladas
-			const scaledWidth = originalWidth * requiredScale;
-			const scaledHeight = originalHeight * requiredScale;
-
-			// Ajustamos la posición para centrar el ratón en el video escalado
-			const center = { x: ghostRect.left + ghostRect.width / 2, y: ghostRect.top + ghostRect.height / 2 };
-			const canvasX = (center.x - rect.left) * scaleX - scaledWidth / 2;
-			const canvasY = (center.y - rect.top) * scaleY - scaledHeight / 2;
-
+			const ghostRect = ghostDiv.getBoundingClientRect();
+			const result: VideoElement | undefined = this.paintInCanvas(elemento.element, ghostRect.width, ghostRect.height, ghostRect.left + ghostRect.width / 2, ghostRect.top + ghostRect.height / 2);
 			// Guardar datos en el objeto VideoElement
-			elemento.position = { x: canvasX, y: canvasY };
-			elemento.scale = requiredScale; // Escala que garantiza el tamaño correcto en el canvas
+			if (!result) return;
+			elemento.position = result.position;
+			elemento.scale = result.scale; // Escala que garantiza el tamaño correcto en el canvas
 			elemento.painted = true; // Marcamos el video como "pintado"
 
 			// Restaurar estado
@@ -1127,6 +1063,56 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.editandoDimensiones = false;
 		};
 		canvasContainer.addEventListener('mouseup', mouseup);
+	}
+
+	paintInCanvas(element: HTMLElement, widthElement: number, heightElement: number, positionX: number, positionY: number) {
+		if (!this.canvas) return;
+		const rect = this.canvas.getBoundingClientRect();
+
+		// Relación de escala entre el tamaño visual y el interno del canvas
+		const scaleX = this.canvas.width / rect.width;
+		const scaleY = this.canvas.height / rect.height;
+
+		// Dimensiones del ghost en el documento
+		const ghostWidthInCanvas = widthElement * scaleX; // Ajustado al canvas
+		const ghostHeightInCanvas = heightElement * scaleY;
+
+		// Dimensiones originales del video
+		let originalWidth: number = 0;
+		let originalHeight: number = 0;
+		if (element instanceof HTMLVideoElement) {
+			originalWidth = element.videoWidth;
+			originalHeight = element.videoHeight;
+		} else if (element instanceof HTMLImageElement) {
+			originalWidth = element.naturalWidth;
+			originalHeight = element.naturalHeight;
+		} else {
+			console.error('Tipo de elemento no reconocido');
+			return;
+		}
+
+		// Calculamos la escala requerida
+		const requiredScaleX = ghostWidthInCanvas / originalWidth;
+		const requiredScaleY = ghostHeightInCanvas / originalHeight;
+		const requiredScale = Math.min(requiredScaleX, requiredScaleY);
+
+		// Dimensiones escaladas
+		const scaledWidth = originalWidth * requiredScale;
+		const scaledHeight = originalHeight * requiredScale;
+
+		// Ajustamos la posición para centrar el ratón en el video escalado
+		const canvasX = (positionX - rect.left) * scaleX - scaledWidth / 2;
+		const canvasY = (positionY - rect.top) * scaleY - scaledHeight / 2;
+
+		// Devuelve un VideoElement con la información de la imagen da pintar
+		const videoElement: VideoElement = {
+			id: element.id,
+			element: element,
+			painted: true,
+			scale: requiredScale,
+			position: { x: canvasX, y: canvasY },
+		};
+		return videoElement;
 	}
 
 	colisiones(principal: HTMLElement) {
@@ -1200,21 +1186,23 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	fullscreen(ele: MediaDeviceInfo | MediaStream | File) {
+		let elemento: VideoElement | undefined;
 		if (ele instanceof MediaDeviceInfo) {
-			const div = document.getElementById('div-' + ele.deviceId);
-			if (!div) return;
-			const videoElement = div.querySelector('video') as HTMLVideoElement;
-			if (!videoElement) return;
+			elemento = this.videosElements.find((el) => el.id === ele.deviceId);
 		} else if (ele instanceof MediaStream) {
-			const div = document.getElementById('div-' + ele.id);
-			if (!div) return;
-			const videoElement = div.querySelector('video') as HTMLVideoElement;
-			if (!videoElement) return;
+			elemento = this.videosElements.find((el) => el.id === ele.id);
 		} else if (ele instanceof File) {
-			const div = document.getElementById('div-' + ele.name);
-			if (!div) return;
-			const videoElement = div.querySelector('video') as HTMLVideoElement;
-			if (!videoElement) return;
+			elemento = this.videosElements.find((el) => el.id === ele.name);
+		}
+		if (!elemento || !elemento.element || !this.canvas) return;
+		const rect = this.canvas.getBoundingClientRect();
+		const x = rect.x + rect.width / 2;
+		const y = rect.y + rect.height / 2;
+		const result = this.paintInCanvas(elemento.element, rect.width, rect.height, x, y);
+		if (result && elemento.element) {
+			elemento.position = result.position;
+			elemento.scale = result.scale;
+			elemento.painted = true;
 		}
 	}
 }
