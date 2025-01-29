@@ -1209,9 +1209,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			presetDiv.innerHTML = '';
 			this.presets.get(key)?.elements.forEach((element) => {
 				let ele;
+				let width;
+				let height;
 				if (element.element instanceof HTMLVideoElement) {
 					ele = document.createElement('video');
 					const originalStream = element.element.srcObject as MediaStream;
+					width = element.element.videoWidth;
+					height = element.element.videoHeight;
 
 					if (originalStream) {
 						// Crear un nuevo flujo vacío
@@ -1231,6 +1235,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					ele = document.createElement('img');
 					ele.src = element.element.src;
 					ele.alt = element.element.id;
+					width = element.element.naturalWidth;
+					height = element.element.naturalHeight;
 				} else return;
 
 				// Calculamos la escala y posición en el div respecto al canvas
@@ -1243,10 +1249,27 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				ele.classList.add('absolute');
 				ele.style.left = `${element.position.x / scaleX}px`;
 				ele.style.top = `${element.position.y / scaleY}px`;
-				ele.style.width = `${element.scale * divRect.width}px`;
-				ele.style.height = `${element.scale * divRect.height}px`;
+				ele.style.width = `${(width * element.scale) / scaleX}px`;
+				ele.style.height = `${(height * element.scale) / scaleY}px`;
 				presetDiv.appendChild(ele);
 			});
+		});
+	}
+
+	aplicaPreset(name: string) {
+		const preset = this.presets.get(name);
+		if (!preset) return;
+		this.videosElements.forEach((elemento) => {
+			elemento.painted = false;
+			elemento.scale = 1;
+			elemento.position = null;
+		});
+		preset.elements.forEach((element) => {
+			const ele = this.videosElements.find((el) => el.id === element.id);
+			if (!ele) return;
+			ele.scale = element.scale;
+			ele.position = element.position;
+			ele.painted = true;
 		});
 	}
 }
