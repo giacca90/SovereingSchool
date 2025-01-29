@@ -50,11 +50,7 @@
 			<p class="mb-2 mt-2">Presets:</p>
 			<div id="presets" class="relative flex flex-grow flex-wrap">
 				@for (presetName of this.presets.keys(); track presetName) {
-					<div id="preset-{{ presetName }}" class="m-1 aspect-video h-1/3 rounded-lg border-black bg-white hover:border">
-						@for (videoElement of presets.get(presetName)?.elements; track videoElement.id) {
-							<p>.</p>
-						}
-					</div>
+					<div id="preset-{{ presetName }}" class="relative m-1 aspect-video h-1/3 rounded-lg border-black bg-white hover:border"></div>
 				}
 				<div (click)="guardaPreset()" tabindex="0" (keydown.enter)="guardaPreset()" class="relative m-1 flex aspect-video h-1/3 items-center overflow-hidden truncate text-ellipsis whitespace-nowrap text-wrap rounded-lg border-black bg-gray-400 hover:border">
 					<p class="m-2">Guargar preset actual</p>

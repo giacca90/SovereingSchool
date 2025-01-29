@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChildren } from '@angular/core';
 
 @Component({
 	selector: 'app-editor-webcam',
@@ -25,6 +25,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	presets = new Map<string, { elements: VideoElement[]; shortcut: string }>(); // Presets
 	private fileUrlCache = new Map<File, string>(); // Cache de URLs de archivos
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
+
+	@HostListener('window:resize', ['$event'])
+	onResize(): void {
+		this.calculatePreset();
+	}
 
 	async ngOnInit() {
 		try {
@@ -614,7 +619,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	canvasMouseMove(event: MouseEvent) {
 		event.preventDefault();
-		console.log('canvasMouseMove');
 		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
 		if (!this.canvas || !canvasContainer || this.editandoDimensiones) return;
 
@@ -993,6 +997,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				}
 			});
 			this.presets.set(name, { elements: videoElements, shortcut: 'ctrl+' + this.presets.size + 1 });
+			setTimeout(() => this.calculatePreset(), 100);
 		}
 	}
 
@@ -1191,6 +1196,58 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		}
 		vertical.style.left = `${eventX - rect.left}px`;
 		orizontal.style.top = `${eventY - rect.top}px`;
+	}
+
+	calculatePreset() {
+		const keysArray = Array.from(this.presets.keys());
+		keysArray.forEach((key) => {
+			const presetDiv = document.getElementById('preset-' + key);
+			if (!presetDiv) {
+				console.error('Preset ' + key + ' no encontrado');
+				return;
+			}
+			presetDiv.innerHTML = '';
+			this.presets.get(key)?.elements.forEach((element) => {
+				let ele;
+				if (element.element instanceof HTMLVideoElement) {
+					ele = document.createElement('video');
+					const originalStream = element.element.srcObject as MediaStream;
+
+					if (originalStream) {
+						// Crear un nuevo flujo vacío
+						const newStream = new MediaStream();
+
+						// Copiar todas las pistas (video, audio) al nuevo flujo
+						originalStream.getTracks().forEach((track) => {
+							newStream.addTrack(track);
+						});
+
+						// Asignar el nuevo flujo al video
+						ele.srcObject = newStream;
+						ele.autoplay = true;
+						ele.muted = true;
+					}
+				} else if (element.element instanceof HTMLImageElement) {
+					ele = document.createElement('img');
+					ele.src = element.element.src;
+					ele.alt = element.element.id;
+				} else return;
+
+				// Calculamos la escala y posición en el div respecto al canvas
+				const divRect = presetDiv.getBoundingClientRect();
+				if (!this.canvas || !element.position) return;
+				// Relación de escala entre el tamaño interno del canvas y el tamaño del div
+				const scaleX = this.canvas.width / divRect.width;
+				const scaleY = this.canvas.height / divRect.height;
+				// Calculamos la posición en el div
+				ele.classList.add('absolute');
+				ele.style.left = `${element.position.x / scaleX}px`;
+				ele.style.top = `${element.position.y / scaleY}px`;
+				ele.style.width = `${element.scale * divRect.width}px`;
+				ele.style.height = `${element.scale * divRect.height}px`;
+				presetDiv.appendChild(ele);
+			});
+		});
 	}
 }
 export interface VideoElement {
