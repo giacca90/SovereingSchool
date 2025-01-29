@@ -1,8 +1,8 @@
 <div class="relative m-2 flex h-screen w-screen flex-col rounded-lg border border-black p-2 pb-4">
 	<!-- Canvas con cruz -->
 	<div class="relative flex h-3/4 pr-4">
-		<div id="canvas-container" class="relative aspect-video h-full">
-			<canvas (mousemove)="canvasMouseMove($event)" id="salida" [width]="canvasWidth" [height]="canvasHeight" autoplay playsinline class="h-full w-full border border-black bg-white"></canvas>
+		<div id="canvas-container" (mouseleave)="canvasMouseLeave()" class="relative aspect-video h-full">
+			<canvas (mousemove)="canvasMouseMove($event)" tabindex="0" id="salida" [width]="canvasWidth" [height]="canvasHeight" autoplay playsinline class="h-full w-full border border-black bg-white"></canvas>
 			<!-- Cruz del arrastre -->
 			<div id="cross" class="pointer-events-none absolute inset-0">
 				<!-- Línea vertical -->
@@ -16,7 +16,7 @@
 				<div id="resolucion" class="flex bg-transparent">
 					<p>Elige una resolución:</p>
 					<div class="flex w-full flex-col">
-						<div class="group flex cursor-pointer items-center pl-2 pr-2" id="selected" (click)="isResolutionSelectedVisible = !isResolutionSelectedVisible" tabindex="0" (keydown.enter)="isResolutionSelectedVisible = !isResolutionSelectedVisible">
+						<div class="group flex cursor-pointer items-center pl-2 pr-2" id="selected" (click)="isResolutionSelectorVisible = !isResolutionSelectorVisible" tabindex="0" (keydown.enter)="isResolutionSelectorVisible = !isResolutionSelectorVisible">
 							<p id="value">720p HD (1280x720)</p>
 							<p class="ml-2">{{ canvasFPS }} fps</p>
 							<svg class="ml-2 hidden h-4 w-4 group-hover:block" width="800px" height="800px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,7 +24,7 @@
 							</svg>
 						</div>
 						<div class="relative w-full">
-							@if (isResolutionSelectedVisible) {
+							@if (isResolutionSelectorVisible) {
 								<div class="relative flex">
 									<div class="z-10 flex flex-col bg-transparent">
 										<div class="cursor-pointer" (click)="cambiarResolucion($event, '640x360')" tabindex="0" (keydown.enter)="cambiarResolucion($event, '640x360')"><p class="text-nowrap rounded-lg border-black pl-2 pr-2 hover:border">360p (640x360)</p></div>

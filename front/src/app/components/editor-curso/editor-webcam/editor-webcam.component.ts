@@ -11,7 +11,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	canvasWidth = 1280;
 	canvasHeight = 720;
 	canvasFPS = 30;
-	isResolutionSelectedVisible = false;
+	isResolutionSelectorVisible = false;
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	capturas: MediaStream[] = []; // Lista de capturas
@@ -53,10 +53,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	ngAfterViewInit(): void {
 		this.canvas = document.getElementById('salida') as HTMLCanvasElement;
 		this.context = this.canvas.getContext('2d');
-		const frameInterval = 1000 / this.canvasFPS; // Tiempo entre frames en milisegundos
+		let frameInterval; // Tiempo entre frames en milisegundos
 
 		const drawFrame = () => {
 			if (!this.canvas || !this.context) return;
+			frameInterval = 1000 / this.canvasFPS;
 			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.videosElements.forEach((elemento) => {
 				if (!elemento.painted || !elemento.position || !this.context) return;
@@ -368,7 +369,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		this.canvasWidth = parseInt(width);
 		this.canvasHeight = parseInt(height);
 		value.innerHTML = string;
-		this.isResolutionSelectedVisible = false;
+		this.isResolutionSelectorVisible = false;
 	}
 
 	cambiarFPS(fps: string) {
@@ -403,7 +404,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		document.body.classList.add('cursor-grabbing');
 		ghost.classList.remove('rounded-lg');
 		ghost.style.position = 'absolute';
-		ghost.style.pointerEvents = 'none'; // Para que no interfiera con eventos
+		ghost.style.pointerEvents = 'none';
 		ghost.style.zIndex = '1000';
 
 		// Ajustar dimensiones del ghost para que coincidan con el video original
@@ -527,7 +528,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			        ${((intersection.left - ghostRect.left) / ghostRect.width) * 100}% 
 			        ${((intersection.bottom - ghostRect.top) / ghostRect.height) * 100}%
 					)`;
-					// Detectar posición del cursor respecto al canvas
 
 					if (isFullyContained) {
 						ghost.style.border = '2px solid #1d4ed8';
@@ -548,6 +548,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					// Mostrar la cruz
 					this.moverCruzPosicionamiento(moveEvent.clientX, moveEvent.clientY, intersecciones);
 
+					if (intersecciones.length > 0) {
+						ghost.style.border = '2px solid #b91c1c';
+					} else {
+						ghost.style.border = '2px solid #1d4ed8';
+					}
 					intersecciones?.forEach((elemento) => {
 						if (elemento.id === 'canvas-container') {
 							if (this.canvas) {
@@ -609,6 +614,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	canvasMouseMove(event: MouseEvent) {
 		event.preventDefault();
+		console.log('canvasMouseMove');
 		const canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
 		if (!this.canvas || !canvasContainer || this.editandoDimensiones) return;
 
@@ -714,6 +720,18 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				ghostDiv.style.visibility = 'hidden';
 			}
 		});
+	}
+
+	canvasMouseLeave() {
+		const rendered = this.videosElements.filter((video) => video.painted);
+		if (rendered.length > 0) {
+			rendered.forEach((video) => {
+				const marco = document.getElementById('marco-' + video.id);
+				if (marco) {
+					marco.style.visibility = 'hidden';
+				}
+			});
+		}
 	}
 
 	redimensionado($event: MouseEvent) {
