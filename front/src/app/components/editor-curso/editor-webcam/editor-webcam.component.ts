@@ -18,7 +18,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	staticContent: File[] = []; // Lista de archivos estáticos
 	videosElements: VideoElement[] = []; // Lista de elementos de video
 	dragVideo: VideoElement | null = null; // Video que se está arrastrando
-	dragPosition = { x: 0, y: 0 }; // Posición del ratón mientras se arrastra
 	canvas: HTMLCanvasElement | null = null;
 	context: CanvasRenderingContext2D | null = null;
 	editandoDimensiones = false; // Indica si se está editando las dimensiones de un video
@@ -987,13 +986,20 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	guardaPreset() {
-		const name = prompt('Introduce el nombre del preset', 'Nuevo preset');
+		const name = prompt('Introduce el nombre del preset \n(El mismo nombre sobrescribe el preset) ', 'Nuevo preset');
 		if (name) {
-			console.log(name);
 			const videoElements: VideoElement[] = [];
 			this.videosElements.forEach((elemento) => {
 				if (elemento.painted) {
-					videoElements.push(elemento);
+					const newE: VideoElement = JSON.parse(JSON.stringify(elemento));
+					newE.element = elemento.element.cloneNode(true) as HTMLVideoElement;
+					if (elemento.element instanceof HTMLVideoElement && newE.element instanceof HTMLVideoElement) {
+						newE.element.srcObject = elemento.element.srcObject;
+						newE.element.load();
+					} else if (elemento.element instanceof HTMLImageElement && newE.element instanceof HTMLImageElement) {
+						newE.element.src = elemento.element.src;
+					}
+					videoElements.push(newE);
 				}
 			});
 			this.presets.set(name, { elements: videoElements, shortcut: 'ctrl+' + this.presets.size + 1 });
@@ -1257,6 +1263,27 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	aplicaPreset(name: string) {
+		// Primero, quitamos todas las capas
+		// quitamos las capas de cada elemento pintado
+		const elementosDiv = document.getElementById('elementosDiv') as HTMLDivElement;
+		if (!elementosDiv) return;
+		this.videosElements.forEach((elemento) => {
+			const capa = elementosDiv.querySelector('#capa-' + CSS.escape(elemento.id));
+			if (capa) {
+				capa.remove();
+			}
+		});
+
+		// Quitamos las capas de cada preset
+		const keysArray = Array.from(this.presets.keys());
+		keysArray.forEach((key) => {
+			const capa = document.getElementById('capa-' + key);
+			if (capa) {
+				capa.remove();
+			}
+		});
+
+		// Borramos todo el contenido del canvas
 		const preset = this.presets.get(name);
 		if (!preset) return;
 		this.videosElements.forEach((elemento) => {
@@ -1264,12 +1291,36 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			elemento.scale = 1;
 			elemento.position = null;
 		});
+
+		// Pintamo cada elemento del preset
 		preset.elements.forEach((element) => {
 			const ele = this.videosElements.find((el) => el.id === element.id);
 			if (!ele) return;
+
 			ele.scale = element.scale;
 			ele.position = element.position;
 			ele.painted = true;
+		});
+
+		// Añadir capa al preset activado
+		const capaBase = document.getElementById('capa') as HTMLDivElement;
+		const presetDiv = document.getElementById('preset-' + name);
+		if (!capaBase || !presetDiv) return;
+		const parentDiv = presetDiv.parentElement as HTMLDivElement;
+		const capa = capaBase.cloneNode(true) as HTMLDivElement;
+		capa.id = 'capa-' + name;
+		const xBotton = capa.querySelector('#buttonxcapa') as HTMLButtonElement;
+		xBotton.onclick = () => {
+			capa.remove();
+		};
+		capa.classList.remove('hidden');
+		capa.classList.add('z-10');
+		parentDiv.appendChild(capa);
+
+		// Añadir capa a cada elemento pintado
+		const pintados = this.videosElements.filter((elemento) => elemento.painted);
+		pintados.forEach((elemento) => {
+			this.addCapa(elemento);
 		});
 	}
 }
