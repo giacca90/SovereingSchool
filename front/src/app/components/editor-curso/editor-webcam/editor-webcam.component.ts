@@ -1319,6 +1319,18 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			ele.painted = true;
 		});
 
+		// Reorganizar los elementos
+		for (let i = 0; i < preset.elements.length; i++) {
+			const presetElement = preset.elements[i];
+			const index = this.videosElements.findIndex((el) => el.id === presetElement.id);
+
+			if (index === -1) continue;
+
+			// Mover el elemento encontrado a la posición `i`
+			const [element] = this.videosElements.splice(index, 1);
+			this.videosElements.splice(i, 0, element);
+		}
+
 		// Añadir capa al preset activado
 		const capaBase = document.getElementById('capa') as HTMLDivElement;
 		const presetDiv = document.getElementById('preset-' + name);
@@ -1343,7 +1355,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	moveElementDown(elemento: VideoElement) {
 		const index = this.videosElements.findIndex((el) => el.id === elemento.id);
-		console.log('UP ' + index);
 		if (index > 0) {
 			[this.videosElements[index - 1], this.videosElements[index]] = [this.videosElements[index], this.videosElements[index - 1]];
 		}
@@ -1351,7 +1362,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	moveElementUp(elemento: VideoElement) {
 		const index = this.videosElements.findIndex((el) => el.id === elemento.id);
-		console.log('DOWN ' + index);
 		if (index < this.videosElements.length - 1) {
 			[this.videosElements[index], this.videosElements[index + 1]] = [this.videosElements[index + 1], this.videosElements[index]];
 		}
