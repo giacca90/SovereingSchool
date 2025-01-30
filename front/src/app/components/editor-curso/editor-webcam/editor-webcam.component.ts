@@ -1076,6 +1076,23 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				}
 			};
 
+			// Botón para cambiar de posición el elemento
+			const moveElement = capa.querySelector('#moveElement') as HTMLDivElement;
+			if (!moveElement) return;
+			moveElement.classList.remove('hidden');
+			const moveElementUp = moveElement.querySelector('#moveElementUp') as HTMLButtonElement;
+			const moveElementDown = moveElement.querySelector('#moveElementDown') as HTMLButtonElement;
+			if (!moveElementUp || !moveElementDown) return;
+			moveElementUp.onclick = () => {
+				console.log('moveElementUp');
+				this.moveElementUp(elemento);
+			};
+			moveElementDown.onclick = () => {
+				console.log('moveElementDown');
+				this.moveElementDown(elemento);
+			};
+
+			// Añade los controllers si es un file de video
 			if (elemento.element instanceof HTMLVideoElement && elemento.element.src && elemento.element.src.length > 0) {
 				const control = document.getElementById('control')?.cloneNode(true) as HTMLDivElement;
 				if (!control) return;
@@ -1322,6 +1339,22 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		pintados.forEach((elemento) => {
 			this.addCapa(elemento);
 		});
+	}
+
+	moveElementDown(elemento: VideoElement) {
+		const index = this.videosElements.findIndex((el) => el.id === elemento.id);
+		console.log('UP ' + index);
+		if (index > 0) {
+			[this.videosElements[index - 1], this.videosElements[index]] = [this.videosElements[index], this.videosElements[index - 1]];
+		}
+	}
+
+	moveElementUp(elemento: VideoElement) {
+		const index = this.videosElements.findIndex((el) => el.id === elemento.id);
+		console.log('DOWN ' + index);
+		if (index < this.videosElements.length - 1) {
+			[this.videosElements[index], this.videosElements[index + 1]] = [this.videosElements[index + 1], this.videosElements[index]];
+		}
 	}
 }
 export interface VideoElement {
