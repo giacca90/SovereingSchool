@@ -14,6 +14,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	isResolutionSelectorVisible = false;
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
+	audioOutputDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de salida de audio
 	capturas: MediaStream[] = []; // Lista de capturas
 	staticContent: File[] = []; // Lista de archivos estáticos
 	videosElements: VideoElement[] = []; // Lista de elementos de video
@@ -23,6 +24,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	editandoDimensiones = false; // Indica si se está editando las dimensiones de un video
 	presets = new Map<string, { elements: VideoElement[]; shortcut: string }>(); // Presets
 	private fileUrlCache = new Map<File, string>(); // Cache de URLs de archivos
+	audioContext = new AudioContext();
+	mixedAudioDestination = this.audioContext.createMediaStreamDestination();
+	audioElement = new Audio();
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 
 	@HostListener('window:resize', ['$event'])
@@ -89,6 +93,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			} else if (device.kind === 'audioinput') {
 				this.audioDevices.push(device);
 				this.getAudioStream(device.deviceId);
+			} else if (device.kind === 'audiooutput') {
+				console.log('Audio output device found: ', device.label);
+				this.getAudioOutputStream(device);
 			}
 		});
 	}
@@ -240,6 +247,26 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 		} catch (error) {
 			console.error('Error al obtener el stream de audio:', error);
+		}
+	}
+
+	async getAudioOutputStream(device: MediaDeviceInfo) {
+		try {
+			const test = new Audio() as HTMLAudioElement & { setSinkId?: (sinkId: string) => Promise<void> };
+			// Verificar si setSinkId existe y el protocolo es seguro (HTTPS)
+			if (typeof test.setSinkId === 'function') {
+				if (location.protocol === 'https:') {
+					this.audioOutputDevices.push(device);
+					/* 	const stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: device.deviceId } } });
+					test.srcObject = stream; */
+				} else {
+					console.warn('setSinkId no es utilizable (requiere HTTPS).');
+				}
+			} else {
+				console.warn('setSinkId no es soportado en este navegador.');
+			}
+		} catch (error) {
+			console.error('Error al obtener el stream de salida de audio:', error);
 		}
 	}
 
