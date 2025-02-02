@@ -257,8 +257,16 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			if (typeof test.setSinkId === 'function') {
 				if (location.protocol === 'https:') {
 					this.audioOutputDevices.push(device);
-					/* 	const stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: device.deviceId } } });
-					test.srcObject = stream; */
+					const stream = await navigator.mediaDevices.getUserMedia({
+						audio: { deviceId: { exact: device.deviceId } },
+					});
+
+					const audioLevelElement = document.getElementById(device.deviceId) as HTMLDivElement;
+					if (audioLevelElement) {
+						this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
+					} else {
+						console.error('No se encontró el elemento con id ' + device.deviceId);
+					}
 				} else {
 					console.warn('setSinkId no es utilizable (requiere HTTPS).');
 				}
