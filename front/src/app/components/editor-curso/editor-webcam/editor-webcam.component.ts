@@ -14,6 +14,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	isResolutionSelectorVisible = false;
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
+	audiosCapturas: MediaStreamTrack[] = []; // Lista de capturas de audio
 	audioOutputDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de salida de audio
 	capturas: MediaStream[] = []; // Lista de capturas
 	staticContent: File[] = []; // Lista de archivos estáticos
@@ -307,6 +308,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				audio: true, // Opcional: captura el audio del sistema si es compatible
 			});
 			this.capturas.push(stream);
+			stream.getAudioTracks().forEach((track) => {
+				this.audiosCapturas.push(track);
+			});
 			setTimeout(() => {
 				const div = document.getElementById('div-' + stream.id);
 				if (!div) return;
@@ -327,12 +331,19 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					};
 					this.videosElements.push(ele);
 				}
+				// Añade el contról de audio
+				stream.getAudioTracks().forEach((track) => {
+					const audioLevelElement = document.getElementById(track.id) as HTMLDivElement;
+					if (!audioLevelElement) return;
+					this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
+				});
 			}, 100);
 
 			// Manejar el fin de la captura
 			stream.getVideoTracks()[0].onended = () => {
 				console.log('La captura ha terminado');
 				this.capturas = this.capturas.filter((s) => s !== stream);
+				this.audiosCapturas = this.audiosCapturas.filter((t) => t.id !== stream.id);
 				// Eliminar el objeto ele del array videosElements
 				this.videosElements = this.videosElements.filter((v) => v.id !== stream.id);
 			};
@@ -382,6 +393,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 									position: null,
 								};
 								this.videosElements.push(elemento);
+								// TODO: Añade el control de audio
 							}
 						}
 					}
@@ -1059,10 +1071,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const videoElement = div.querySelector('video') as HTMLVideoElement;
 				if (videoElement) {
 					const stream = videoElement.srcObject as MediaStream;
-					stream.getTracks().forEach((track) => track.stop());
+					stream.getVideoTracks().forEach((track) => track.stop());
+					stream.getAudioTracks().forEach((track) => {
+						track.stop();
+						this.audiosCapturas = this.audiosCapturas.filter((t) => t.id !== track.id);
+					});
 				}
 			}
 			this.capturas = this.capturas.filter((stream) => stream !== ele);
+			this.audiosCapturas = this.audiosCapturas.filter((track) => track.id !== ele.id);
 		} else if (ele instanceof File) {
 			this.staticContent = this.staticContent.filter((file) => file !== ele);
 		}
