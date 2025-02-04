@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChildren } from '@angular/core';
 
 @Component({
@@ -15,6 +16,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	audiosCapturas: MediaStreamTrack[] = []; // Lista de capturas de audio
+	audiosArchivos: string[] = []; // Lista de archivos de audio de archivos
 	audioOutputDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de salida de audio
 	capturas: MediaStream[] = []; // Lista de capturas
 	staticContent: File[] = []; // Lista de archivos estáticos
@@ -394,6 +396,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								};
 								this.videosElements.push(elemento);
 								// TODO: Añade el control de audio
+								this.audiosArchivos.push(file.name);
+								video.onplaying = () => {
+									// Obtener la MediaStream del video
+									// @ts-expect-error error
+									const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+									const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#' + CSS.escape(file.name)) as HTMLDivElement;
+									if (!audioDiv || !mediaStream) return;
+									this.visualizeAudio(mediaStream, audioDiv);
+								};
 							}
 						}
 					}
@@ -1082,6 +1093,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			this.audiosCapturas = this.audiosCapturas.filter((track) => track.id !== ele.id);
 		} else if (ele instanceof File) {
 			this.staticContent = this.staticContent.filter((file) => file !== ele);
+			this.audiosArchivos = this.audiosArchivos.filter((file) => file !== ele.name);
 		}
 	}
 
