@@ -406,6 +406,94 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 									this.visualizeAudio(mediaStream, audioDiv);
 								};
 							}
+						} else if (file.type.startsWith('audio/')) {
+							this.audiosArchivos.push(file.name);
+							const audioDiv = document.getElementById(file.name) as HTMLDivElement;
+							if (!audioDiv) return;
+							const audio = document.createElement('audio') as HTMLAudioElement;
+							audio.src = this.getFileUrl(file);
+							audio.load();
+							audio.onplaying = () => {
+								// @ts-expect-error error
+								const mediaStream = audio.captureStream ? audio.captureStream() : video.mozCaptureStream();
+								const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#' + CSS.escape(file.name)) as HTMLDivElement;
+								if (!audioDiv || !mediaStream) return;
+								this.visualizeAudio(mediaStream, audioDiv);
+							};
+
+							// Ponemos las funcionalidades a los botones de reproducción
+							const playPause = audioDiv.querySelector('#play-pause') as HTMLButtonElement;
+							const play = audioDiv.querySelector('#play') as SVGElement;
+							const pause = audioDiv.querySelector('#pause') as SVGElement;
+							const restart = audioDiv.querySelector('#restart') as HTMLButtonElement;
+							const loop = audioDiv.querySelector('#loop') as HTMLButtonElement;
+							const loopOff = audioDiv.querySelector('#loop-off') as SVGElement;
+							const loopOn = audioDiv.querySelector('#loop-on') as SVGElement;
+							const time = audioDiv.querySelector('#time') as HTMLSpanElement;
+							const progress = audioDiv.querySelector('#progress') as HTMLInputElement;
+							if (!audioDiv || !playPause || !restart || !loop || !time || !progress) return;
+							playPause.onclick = () => {
+								if (!audioDiv) return;
+								if (audio.paused) {
+									audio.play();
+									play.style.display = 'none';
+									pause.style.display = 'block';
+								} else {
+									audio.pause();
+									play.style.display = 'block';
+									pause.style.display = 'none';
+								}
+							};
+							restart.onclick = () => {
+								if (!audioDiv) return;
+								audio.currentTime = 0;
+							};
+
+							loop.onclick = () => {
+								if (!audioDiv) return;
+								if (audio.loop) {
+									audio.loop = false;
+									loopOff.style.display = 'block';
+									loopOn.style.display = 'none';
+								} else {
+									audio.loop = true;
+									loopOff.style.display = 'none';
+									loopOn.style.display = 'block';
+								}
+							};
+
+							/* Barra de progreso */
+							audio.ontimeupdate = () => {
+								if (!audioDiv) return;
+								const percentage = (audio.currentTime / audio.duration) * 100;
+								progress.value = percentage.toString();
+								// Mostrar el tiempo actual y la duración
+								const currentTime = this.formatTime(audio.currentTime);
+								const duration = this.formatTime(audio.duration);
+								time.innerText = `${currentTime} / ${duration}`;
+
+								progress.oninput = () => {
+									if (!audioDiv) return;
+									const newTime = (parseInt(progress.value) / 100) * audio.duration;
+									audio.currentTime = newTime;
+
+									// Actualizar el tiempo en el texto inmediatamente
+									const currentTime = this.formatTime(audio.currentTime);
+									const duration = this.formatTime(audio.duration);
+									time.innerText = `${currentTime} / ${duration}`;
+								};
+							};
+
+							/* Tiempo de reproducción */
+							audio.addEventListener('timeupdate', () => {
+								if (!audioDiv) return;
+								const currentTime = this.formatTime(audio.currentTime);
+								const duration = this.formatTime(audio.duration);
+								time.innerText = `${currentTime} / ${duration}`;
+							});
+							const currentTime = this.formatTime(audio.currentTime);
+							const duration = this.formatTime(audio.duration);
+							time.innerText = `${currentTime} / ${duration}`;
 						}
 					}
 				});
