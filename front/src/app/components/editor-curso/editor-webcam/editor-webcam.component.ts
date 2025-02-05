@@ -401,7 +401,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 									// Obtener la MediaStream del video
 									// @ts-expect-error error
 									const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
-									const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#' + CSS.escape(file.name)) as HTMLDivElement;
+									const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
 									if (!audioDiv || !mediaStream) return;
 									this.visualizeAudio(mediaStream, audioDiv);
 								};
@@ -416,7 +416,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 							audio.onplaying = () => {
 								// @ts-expect-error error
 								const mediaStream = audio.captureStream ? audio.captureStream() : video.mozCaptureStream();
-								const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#' + CSS.escape(file.name)) as HTMLDivElement;
+								const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
 								if (!audioDiv || !mediaStream) return;
 								this.visualizeAudio(mediaStream, audioDiv);
 							};
@@ -462,44 +462,75 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								}
 							};
 
-							/* Barra de progreso */
-							audio.ontimeupdate = () => {
-								if (!audioDiv) return;
-								const percentage = (audio.currentTime / audio.duration) * 100;
-								progress.value = percentage.toString();
-								// Mostrar el tiempo actual y la duración
-								const currentTime = this.formatTime(audio.currentTime);
-								const duration = this.formatTime(audio.duration);
-								time.innerText = `${currentTime} / ${duration}`;
-
-								progress.oninput = () => {
+							audio.onloadedmetadata = () => {
+								/* Barra de progreso */
+								audio.ontimeupdate = () => {
 									if (!audioDiv) return;
-									const newTime = (parseInt(progress.value) / 100) * audio.duration;
-									audio.currentTime = newTime;
-
-									// Actualizar el tiempo en el texto inmediatamente
+									const percentage = (audio.currentTime / audio.duration) * 100;
+									progress.value = percentage.toString();
+									// Mostrar el tiempo actual y la duración
 									const currentTime = this.formatTime(audio.currentTime);
 									const duration = this.formatTime(audio.duration);
 									time.innerText = `${currentTime} / ${duration}`;
-								};
-							};
 
-							/* Tiempo de reproducción */
-							audio.addEventListener('timeupdate', () => {
-								if (!audioDiv) return;
+									progress.oninput = () => {
+										if (!audioDiv) return;
+										const newTime = (parseInt(progress.value) / 100) * audio.duration;
+										audio.currentTime = newTime;
+
+										// Actualizar el tiempo en el texto inmediatamente
+										const currentTime = this.formatTime(audio.currentTime);
+										const duration = this.formatTime(audio.duration);
+										time.innerText = `${currentTime} / ${duration}`;
+									};
+								};
+
+								/* Tiempo de reproducción */
+								audio.addEventListener('timeupdate', () => {
+									if (!audioDiv) return;
+									const currentTime = this.formatTime(audio.currentTime);
+									const duration = this.formatTime(audio.duration);
+									time.innerText = `${currentTime} / ${duration}`;
+								});
 								const currentTime = this.formatTime(audio.currentTime);
 								const duration = this.formatTime(audio.duration);
 								time.innerText = `${currentTime} / ${duration}`;
-							});
-							const currentTime = this.formatTime(audio.currentTime);
-							const duration = this.formatTime(audio.duration);
-							time.innerText = `${currentTime} / ${duration}`;
+
+								// Dibuja el flujo de audio
+								this.pintaAudio(file);
+							};
 						}
 					}
 				});
 			}, 100);
 		};
 		input.click();
+	}
+
+	async pintaAudio(file: File) {
+		const arrayBuffer = await file.arrayBuffer();
+		const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+		const container: HTMLDivElement | null | undefined = document.getElementById('div-' + file.name)?.querySelector('#audio-stream');
+		if (!container) return;
+		const canvasWidth = container.offsetWidth;
+		const canvasHeight = container.offsetHeight;
+		const sampleData = audioBuffer.getChannelData(0); // Canal izquierdo
+		const sampleStep = Math.floor(sampleData.length / canvasWidth);
+
+		for (let i = 0; i < canvasWidth; i++) {
+			const sampleIndex = i * sampleStep;
+			const amplitude = Math.abs(sampleData[sampleIndex]);
+			const barHeight = amplitude * canvasHeight;
+
+			const bar = document.createElement('div');
+			bar.classList.add('absolute');
+			bar.style.left = `${i}px`;
+			bar.style.width = '1px';
+			bar.style.height = `${barHeight}px`;
+			bar.style.bottom = '0px';
+			bar.style.backgroundColor = '#1d4ed8';
+			container.appendChild(bar);
+		}
 	}
 
 	getFileUrl(file: File): string {
