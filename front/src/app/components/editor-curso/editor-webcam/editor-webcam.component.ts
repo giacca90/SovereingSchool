@@ -464,13 +464,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 							audio.onloadedmetadata = () => {
 								/* Barra de progreso */
+								const duration = this.formatTime(audio.duration);
+								const timeStart = this.formatTime(audio.currentTime);
+								time.innerText = `${timeStart} / ${duration}`;
 								audio.ontimeupdate = () => {
 									if (!audioDiv) return;
 									const percentage = (audio.currentTime / audio.duration) * 100;
 									progress.value = percentage.toString();
 									// Mostrar el tiempo actual y la duración
 									const currentTime = this.formatTime(audio.currentTime);
-									const duration = this.formatTime(audio.duration);
 									time.innerText = `${currentTime} / ${duration}`;
 
 									progress.oninput = () => {
@@ -480,22 +482,20 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 										// Actualizar el tiempo en el texto inmediatamente
 										const currentTime = this.formatTime(audio.currentTime);
-										const duration = this.formatTime(audio.duration);
 										time.innerText = `${currentTime} / ${duration}`;
 									};
+									// Cambia el color de las barras de audio
+									const audioStream: HTMLDivElement | null | undefined = document.getElementById('div-' + file.name)?.querySelector('#audio-stream');
+									if (!audioStream) {
+										console.error('No se encontró el elemento con id ' + 'audio-stream');
+										return;
+									}
+									const audioBars = audioStream.querySelectorAll('div');
+									const currentSample = Math.floor((audio.currentTime / audio.duration) * audioStream.offsetWidth);
+									audioBars.forEach((bar, index) => {
+										bar.style.backgroundColor = index <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
+									});
 								};
-
-								/* Tiempo de reproducción */
-								audio.addEventListener('timeupdate', () => {
-									if (!audioDiv) return;
-									const currentTime = this.formatTime(audio.currentTime);
-									const duration = this.formatTime(audio.duration);
-									time.innerText = `${currentTime} / ${duration}`;
-								});
-								const currentTime = this.formatTime(audio.currentTime);
-								const duration = this.formatTime(audio.duration);
-								time.innerText = `${currentTime} / ${duration}`;
-
 								// Dibuja el flujo de audio
 								this.pintaAudio(file);
 							};
