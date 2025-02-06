@@ -184,10 +184,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			// Obtener datos del dispositivo
 			let videoTrack = stream.getVideoTracks()[0];
-			const capabilities = videoTrack.getCapabilities(); // Capacidades del dispositivo
+			let capabilities = null;
+			if (typeof videoTrack.getCapabilities === 'function') {
+				capabilities = videoTrack.getCapabilities(); // Capacidades del dispositivo
+				console.log('Capabilities:', capabilities.width?.max, 'x', capabilities.height?.max);
+			}
 			let settings = videoTrack.getSettings(); // Configuración actual
 
-			console.log('Capabilities:', capabilities.width?.max, 'x', capabilities.height?.max);
 			console.log('Current Settings:', settings.width, 'x', settings.height);
 
 			stream.getTracks().forEach((track) => {
@@ -195,14 +198,26 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			});
 
 			// Seleccionar valores específicos dentro de las capacidades
-			const constraints: MediaStreamConstraints = {
-				video: {
-					deviceId: { ideal: deviceId },
-					width: { exact: capabilities.width?.max }, // Máximo permitido
-					height: { exact: capabilities.height?.max }, // Máximo permitido
-					frameRate: { exact: capabilities.frameRate?.max }, // Máximo permitido
-				},
-			};
+			let constraints: MediaStreamConstraints;
+			if (capabilities) {
+				constraints = {
+					video: {
+						deviceId: { ideal: deviceId },
+						width: { exact: capabilities.width?.max }, // Máximo permitido
+						height: { exact: capabilities.height?.max }, // Máximo permitido
+						frameRate: { exact: capabilities.frameRate?.max }, // Máximo permitido
+					},
+				};
+			} else {
+				constraints = {
+					video: {
+						deviceId: { ideal: deviceId },
+						width: { ideal: 7680 }, // Máximo permitido
+						height: { ideal: 4320 }, // Máximo permitido
+						frameRate: { ideal: 300 }, // Máximo permitido
+					},
+				};
+			}
 
 			stream = await navigator.mediaDevices.getUserMedia(constraints);
 			videoTrack = stream.getVideoTracks()[0];
