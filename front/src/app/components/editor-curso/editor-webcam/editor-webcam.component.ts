@@ -64,27 +64,56 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	ngAfterViewInit(): void {
 		this.canvas = document.getElementById('salida') as HTMLCanvasElement;
 		this.context = this.canvas.getContext('2d');
-		let frameInterval; // Tiempo entre frames en milisegundos
+		let frameInterval = 1000 / this.canvasFPS; // Duración entre frames
+		let lastFrameTime = 0;
 
-		const drawFrame = () => {
+		const drawFrame = (currentTime: number) => {
 			if (!this.canvas || !this.context) return;
 			frameInterval = 1000 / this.canvasFPS;
-			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			this.videosElements.forEach((elemento) => {
-				if (!elemento.painted || !elemento.position || !this.context) return;
-				if (elemento.element instanceof HTMLVideoElement) {
-					const videoWidth = elemento.element.videoWidth * elemento.scale;
-					const videoHeight = elemento.element.videoHeight * elemento.scale;
-					this.context.drawImage(elemento.element!, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
-				} else if (elemento.element instanceof HTMLImageElement) {
-					const imageWidth = elemento.element.naturalWidth * elemento.scale;
-					const imageHeight = elemento.element.naturalHeight * elemento.scale;
-					this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, imageWidth, imageHeight);
-				}
-			});
+			const deltaTime = currentTime - lastFrameTime;
+
+			if (deltaTime >= frameInterval) {
+				lastFrameTime = currentTime - (deltaTime % frameInterval); // Corrección para mantener sincronización
+
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+				this.videosElements.forEach((elemento) => {
+					if (!elemento.painted || !elemento.position || !this.context) return;
+					if (elemento.element instanceof HTMLVideoElement) {
+						const videoWidth = elemento.element.videoWidth * elemento.scale;
+						const videoHeight = elemento.element.videoHeight * elemento.scale;
+						this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
+					} else if (elemento.element instanceof HTMLImageElement) {
+						const imageWidth = elemento.element.naturalWidth * elemento.scale;
+						const imageHeight = elemento.element.naturalHeight * elemento.scale;
+						this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, imageWidth, imageHeight);
+					}
+				});
+			}
+
+			requestAnimationFrame(drawFrame);
 		};
 
-		setInterval(drawFrame, frameInterval); // Comienza el bucle de renderizado
+		requestAnimationFrame(drawFrame);
+
+		// Inicia a mostrar el audio de grabación
+		const audioGrabacion = document.getElementById('audio-recorder') as HTMLDivElement;
+		if (!audioGrabacion) return;
+		const analyser = this.audioContext.createAnalyser();
+		const source = this.audioContext.createMediaStreamSource(this.mixedAudioDestination.stream);
+		source.connect(analyser);
+		analyser.fftSize = 256;
+
+		const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+		function updateAudioLevel() {
+			analyser.getByteFrequencyData(dataArray);
+			const volume = Math.max(...dataArray) / 255;
+			const percentage = Math.min(volume * 100, 100);
+			audioGrabacion.style.width = `${percentage}%`; // Ajustar el ancho de la barra
+			requestAnimationFrame(updateAudioLevel);
+		}
+
+		updateAudioLevel();
 	}
 
 	startMedias(devices: MediaDeviceInfo[]) {
@@ -97,7 +126,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				this.audioDevices.push(device);
 				this.getAudioStream(device.deviceId);
 			} else if (device.kind === 'audiooutput') {
-				console.log('Audio output device found: ', device.label);
 				this.getAudioOutputStream(device);
 			}
 		});
@@ -263,6 +291,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			if (audioLevelElement) {
 				this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
 			}
+
+			// Añade un controlador de volumen al dispositivo
+			const gainNode = this.audioContext.createGain();
+			const source = this.audioContext.createMediaStreamSource(stream);
+			source.connect(gainNode);
+			gainNode.connect(this.mixedAudioDestination);
 		} catch (error) {
 			console.error('Error al obtener el stream de audio:', error);
 		}
@@ -296,10 +330,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		}
 	}
 
-	visualizeAudio(stream: MediaStream, audioLevel: HTMLDivElement): void {
-		const audioContext = new AudioContext();
-		const analyser = audioContext.createAnalyser();
-		const source = audioContext.createMediaStreamSource(stream);
+	async visualizeAudio(stream: MediaStream, audioLevel: HTMLDivElement) {
+		const analyser = this.audioContext.createAnalyser();
+		const source = this.audioContext.createMediaStreamSource(stream);
 
 		source.connect(analyser);
 		analyser.fftSize = 256;
@@ -1450,7 +1483,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		orizontal.style.top = `${eventY - rect.top}px`;
 	}
 
-	calculatePreset() {
+	async calculatePreset() {
 		const keysArray = Array.from(this.presets.keys());
 		keysArray.forEach((key) => {
 			const presetDiv = document.getElementById('preset-' + key);
