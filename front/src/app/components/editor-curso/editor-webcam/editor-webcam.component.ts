@@ -492,8 +492,14 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 									}
 									const audioBars = audioStream.querySelectorAll('div');
 									const currentSample = Math.floor((audio.currentTime / audio.duration) * audioStream.offsetWidth);
+									console.log('audioBars.length' + audioBars.length);
+									console.log('audioStream.offsetWidth' + audioStream.offsetWidth);
 									audioBars.forEach((bar, index) => {
-										bar.style.backgroundColor = index <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
+										if (audioBars.length < audioStream.offsetWidth * 2) {
+											bar.style.backgroundColor = index <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
+										} else {
+											bar.style.backgroundColor = index / 2 <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
+										}
 									});
 								};
 								// Dibuja el flujo de audio
@@ -514,22 +520,47 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		if (!container) return;
 		const canvasWidth = container.offsetWidth;
 		const canvasHeight = container.offsetHeight;
-		const sampleData = audioBuffer.getChannelData(0); // Canal izquierdo
-		const sampleStep = Math.floor(sampleData.length / canvasWidth);
+		const sampleDataLeft = audioBuffer.getChannelData(0); // Canal izquierdo
+		const sampleStepLeft = Math.floor(sampleDataLeft.length / canvasWidth);
+		let sampleDataRight = null;
+		let sampleStepRight = null;
+		if (audioBuffer.numberOfChannels > 1) {
+			sampleDataRight = audioBuffer.getChannelData(1); // Canal derecho
+			sampleStepRight = Math.floor(sampleDataRight.length / canvasWidth);
+		}
 
 		for (let i = 0; i < canvasWidth; i++) {
-			const sampleIndex = i * sampleStep;
-			const amplitude = Math.abs(sampleData[sampleIndex]);
-			const barHeight = amplitude * canvasHeight;
+			const sampleIndexLeft = i * sampleStepLeft;
+			const amplitudeLeft = Math.abs(sampleDataLeft[sampleIndexLeft]);
+			const barHeightLeft = amplitudeLeft * canvasHeight;
 
-			const bar = document.createElement('div');
-			bar.classList.add('absolute');
-			bar.style.left = `${i}px`;
-			bar.style.width = '1px';
-			bar.style.height = `${barHeight}px`;
-			bar.style.bottom = '0px';
-			bar.style.backgroundColor = '#1d4ed8';
-			container.appendChild(bar);
+			const barLeft = document.createElement('div');
+			barLeft.classList.add('absolute');
+			barLeft.style.left = `${i}px`;
+			barLeft.style.width = '1px';
+			if (audioBuffer.numberOfChannels === 1) {
+				barLeft.style.height = `${barHeightLeft}px`;
+				barLeft.style.bottom = '0px';
+			} else {
+				barLeft.style.height = `${barHeightLeft / 2}px`;
+				barLeft.style.bottom = '50%';
+			}
+			barLeft.style.backgroundColor = '#1d4ed8';
+			container.appendChild(barLeft);
+
+			if (sampleDataRight && sampleStepRight) {
+				const sampleIndexRight = i * sampleStepRight;
+				const amplitudeRight = Math.abs(sampleDataRight[sampleIndexRight]);
+				const barHeightRight = amplitudeRight * canvasHeight;
+				const barRight = document.createElement('div');
+				barRight.classList.add('absolute');
+				barRight.style.left = `${i}px`;
+				barRight.style.width = '1px';
+				barRight.style.height = `${barHeightRight / 2}px`;
+				barRight.style.top = '50%';
+				barRight.style.backgroundColor = '#1d4ed8';
+				container.appendChild(barRight);
+			}
 		}
 	}
 
