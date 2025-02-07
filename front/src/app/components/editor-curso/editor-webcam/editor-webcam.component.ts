@@ -287,16 +287,24 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			console.log('Audio Settings:', settings);
 
-			const audioLevelElement = document.getElementById(deviceId) as HTMLDivElement;
-			if (audioLevelElement) {
-				this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
-			}
-
 			// Añade un controlador de volumen al dispositivo
+			const volume = document.getElementById('volume-' + deviceId) as HTMLInputElement;
+			if (!volume) return;
 			const gainNode = this.audioContext.createGain();
 			const source = this.audioContext.createMediaStreamSource(stream);
 			source.connect(gainNode);
 			gainNode.connect(this.mixedAudioDestination);
+			const sample = this.audioContext.createMediaStreamDestination();
+			gainNode.connect(sample);
+
+			volume.oninput = () => {
+				gainNode.gain.value = parseInt(volume.value) / 100;
+			};
+
+			const audioLevelElement = document.getElementById(deviceId) as HTMLDivElement;
+			if (audioLevelElement) {
+				this.visualizeAudio(sample.stream, audioLevelElement); // Iniciar visualización de audio
+			}
 		} catch (error) {
 			console.error('Error al obtener el stream de audio:', error);
 		}
