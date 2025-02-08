@@ -100,7 +100,16 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		if (!audioGrabacion) return;
 		const analyser = this.audioContext.createAnalyser();
 		const source = this.audioContext.createMediaStreamSource(this.mixedAudioDestination.stream);
-		source.connect(analyser);
+		const gainNode = this.audioContext.createGain();
+		source.connect(gainNode);
+		gainNode.connect(analyser);
+
+		const volume = document.getElementById('volume-audio-recorder') as HTMLInputElement;
+		if (!volume) return;
+		volume.oninput = () => {
+			gainNode.gain.value = parseInt(volume.value) / 100;
+		};
+
 		analyser.fftSize = 256;
 
 		const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -122,10 +131,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			if (device.kind === 'videoinput') {
 				this.videoDevices.push(device);
 				this.getVideoStream(device.deviceId);
-			} else if (device.kind === 'audioinput') {
+			} else if (device.kind === 'audioinput' && device.deviceId !== 'default') {
 				this.audioDevices.push(device);
 				this.getAudioStream(device.deviceId);
-			} else if (device.kind === 'audiooutput') {
+			} else if (device.kind === 'audiooutput' && device.deviceId !== 'default') {
 				this.getAudioOutputStream(device);
 			}
 		});
@@ -393,7 +402,18 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				stream.getAudioTracks().forEach((track) => {
 					const audioLevelElement = document.getElementById(track.id) as HTMLDivElement;
 					if (!audioLevelElement) return;
-					this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
+					const gainNode = this.audioContext.createGain();
+					const source = this.audioContext.createMediaStreamSource(stream);
+					source.connect(gainNode);
+					gainNode.connect(this.mixedAudioDestination);
+					const sample = this.audioContext.createMediaStreamDestination();
+					gainNode.connect(sample);
+					const volume = document.getElementById('volume-' + stream.id) as HTMLInputElement;
+					if (!volume) return;
+					volume.oninput = () => {
+						gainNode.gain.value = parseInt(volume.value) / 100;
+					};
+					this.visualizeAudio(sample.stream, audioLevelElement); // Iniciar visualización de audio
 				});
 			}, 100);
 
@@ -459,7 +479,18 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 									const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
 									const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
 									if (!audioDiv || !mediaStream) return;
-									this.visualizeAudio(mediaStream, audioDiv);
+									const gainNode = this.audioContext.createGain();
+									const source = this.audioContext.createMediaStreamSource(mediaStream);
+									source.connect(gainNode);
+									gainNode.connect(this.mixedAudioDestination);
+									const sample = this.audioContext.createMediaStreamDestination();
+									gainNode.connect(sample);
+									const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
+									if (!volume) return;
+									volume.oninput = () => {
+										gainNode.gain.value = parseInt(volume.value) / 100;
+									};
+									this.visualizeAudio(sample.stream, audioDiv);
 								};
 							}
 						} else if (file.type.startsWith('audio/')) {
@@ -474,7 +505,18 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								const mediaStream = audio.captureStream ? audio.captureStream() : video.mozCaptureStream();
 								const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
 								if (!audioDiv || !mediaStream) return;
-								this.visualizeAudio(mediaStream, audioDiv);
+								const gainNode = this.audioContext.createGain();
+								const source = this.audioContext.createMediaStreamSource(mediaStream);
+								source.connect(gainNode);
+								gainNode.connect(this.mixedAudioDestination);
+								const sample = this.audioContext.createMediaStreamDestination();
+								gainNode.connect(sample);
+								const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
+								if (!volume) return;
+								volume.oninput = () => {
+									gainNode.gain.value = parseInt(volume.value) / 100;
+								};
+								this.visualizeAudio(sample.stream, audioDiv);
 							};
 
 							// Ponemos las funcionalidades a los botones de reproducción
