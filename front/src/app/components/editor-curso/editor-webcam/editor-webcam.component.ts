@@ -21,6 +21,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	capturas: MediaStream[] = []; // Lista de capturas
 	staticContent: File[] = []; // Lista de archivos estáticos
 	videosElements: VideoElement[] = []; // Lista de elementos de video
+	audiosElements: AudioElement[] = []; // Lista de elementos de audio
 	dragVideo: VideoElement | null = null; // Video que se está arrastrando
 	canvas: HTMLCanvasElement | null = null;
 	context: CanvasRenderingContext2D | null = null;
@@ -35,6 +36,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	@HostListener('window:resize', ['$event'])
 	onResize(): void {
 		this.calculatePreset();
+		this.drawAudioConnections();
 	}
 
 	async ngOnInit() {
@@ -125,19 +127,27 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		updateAudioLevel();
 	}
 
-	startMedias(devices: MediaDeviceInfo[]) {
+	async startMedias(devices: MediaDeviceInfo[]) {
 		// Asignar el video stream a cada dispositivo de video
+		const videoPromises: Promise<void>[] = [];
+		const audioInputPromises: Promise<void>[] = [];
+		const audioOutputPromises: Promise<void>[] = [];
+
 		devices.forEach((device) => {
 			if (device.kind === 'videoinput') {
 				this.videoDevices.push(device);
-				this.getVideoStream(device.deviceId);
+				videoPromises.push(this.getVideoStream(device.deviceId));
 			} else if (device.kind === 'audioinput' && device.deviceId !== 'default') {
 				this.audioDevices.push(device);
-				this.getAudioStream(device.deviceId);
+				audioInputPromises.push(this.getAudioStream(device.deviceId));
 			} else if (device.kind === 'audiooutput' && device.deviceId !== 'default') {
-				this.getAudioOutputStream(device);
+				audioOutputPromises.push(this.getAudioOutputStream(device));
 			}
 		});
+
+		// Espera a que todas las promesas hayan terminado
+		await Promise.all([...videoPromises, ...audioInputPromises, ...audioOutputPromises]);
+		this.drawAudioConnections();
 	}
 
 	async updateDevices() {
@@ -303,6 +313,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const source = this.audioContext.createMediaStreamSource(stream);
 			source.connect(gainNode);
 			gainNode.connect(this.mixedAudioDestination);
+			this.audiosElements.push({ idEntrada: deviceId, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
 			const sample = this.audioContext.createMediaStreamDestination();
 			gainNode.connect(sample);
 
@@ -406,6 +417,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					const source = this.audioContext.createMediaStreamSource(stream);
 					source.connect(gainNode);
 					gainNode.connect(this.mixedAudioDestination);
+					this.audiosElements.push({ idEntrada: track.id, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
+					this.drawAudioConnections();
 					const sample = this.audioContext.createMediaStreamDestination();
 					gainNode.connect(sample);
 					const volume = document.getElementById('volume-' + stream.id) as HTMLInputElement;
@@ -424,6 +437,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				this.audiosCapturas = this.audiosCapturas.filter((t) => t.id !== stream.id);
 				// Eliminar el objeto ele del array videosElements
 				this.videosElements = this.videosElements.filter((v) => v.id !== stream.id);
+				this.audiosElements = this.audiosElements.filter((element) => element.idEntrada !== stream.id);
+				this.drawAudioConnections();
 			};
 		} catch (error) {
 			console.error('Error al capturar ventana o pantalla:', error);
@@ -483,6 +498,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 									const source = this.audioContext.createMediaStreamSource(mediaStream);
 									source.connect(gainNode);
 									gainNode.connect(this.mixedAudioDestination);
+									this.audiosElements.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
+									this.drawAudioConnections();
 									const sample = this.audioContext.createMediaStreamDestination();
 									gainNode.connect(sample);
 									const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
@@ -509,6 +526,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								const source = this.audioContext.createMediaStreamSource(mediaStream);
 								source.connect(gainNode);
 								gainNode.connect(this.mixedAudioDestination);
+								this.audiosElements.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
+								this.drawAudioConnections();
 								const sample = this.audioContext.createMediaStreamDestination();
 								gainNode.connect(sample);
 								const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
@@ -1334,6 +1353,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					stream.getAudioTracks().forEach((track) => {
 						track.stop();
 						this.audiosCapturas = this.audiosCapturas.filter((t) => t.id !== track.id);
+						this.audiosElements = this.audiosElements.filter((element) => element.idEntrada !== track.id);
+						this.drawAudioConnections();
 					});
 				}
 			}
@@ -1678,11 +1699,56 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			[this.videosElements[index], this.videosElements[index + 1]] = [this.videosElements[index + 1], this.videosElements[index]];
 		}
 	}
+
+	// Función para dibujar las conexiones de audio
+	drawAudioConnections() {
+		console.log('drawAudioConnections: ' + this.audiosElements.length);
+		const audios = document.getElementById('audios') as HTMLDivElement;
+		const conexionesIzquierda = document.getElementById('conexiones-izquierda') as HTMLDivElement;
+		const conexionesDerecha = document.getElementById('conexiones-derecha') as HTMLDivElement;
+		if (!conexionesIzquierda || !conexionesDerecha || !audios) {
+			console.error('No se encontró el elemento con id ' + 'conexiones-izquierda' + ' o ' + 'conexiones-derecha');
+			return;
+		}
+		conexionesIzquierda.innerHTML = '';
+		conexionesDerecha.innerHTML = '';
+		conexionesIzquierda.style.width = `${8 * this.audiosElements.length}px`;
+		this.audiosElements.forEach((elemento, index) => {
+			const audioEntrada = document.getElementById(elemento.idEntrada) as HTMLDivElement;
+			const audioSalida = document.getElementById(elemento.idSalida) as HTMLDivElement;
+			if (!audioEntrada || !audioSalida) {
+				console.error('No se encontró el elemento con id ' + elemento.idEntrada + ' o ' + elemento.idSalida);
+				return;
+			}
+			const entradaRect = audioEntrada.getBoundingClientRect();
+			const salidaRect = audioSalida.getBoundingClientRect();
+			const audiosRect = audios.getBoundingClientRect();
+			const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 };
+			const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 };
+			const square = document.createElement('div');
+			square.classList.add('absolute', 'border-black', 'border-l-2', 'border-t-2', 'border-b-2');
+			square.style.left = `${start.x - 8 * (index + 1)}px`;
+			square.style.top = `${start.y}px`;
+			square.style.width = `${8 * (index + 1)}px`;
+			square.style.height = `${end.y - start.y}px`;
+			conexionesIzquierda.appendChild(square);
+		});
+	}
 }
+
+// Interface para el elemento de video
 export interface VideoElement {
 	id: string;
 	element: HTMLElement;
 	painted: boolean;
 	scale: number;
 	position: { x: number; y: number } | null;
+}
+
+// Interface para el elemento de audio
+export interface AudioElement {
+	idEntrada: string;
+	entrada: GainNode;
+	idSalida: string;
+	salida: MediaStreamAudioDestinationNode;
 }
