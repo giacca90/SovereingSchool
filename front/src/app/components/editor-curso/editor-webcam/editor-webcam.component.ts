@@ -480,10 +480,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				return;
 			}
 			// Convertir FileList a un array para trabajar con los archivos
-			this.staticContent = this.staticContent.concat(Array.from(target.files));
+			const list = Array.from(target.files);
+			this.staticContent = this.staticContent.concat(list);
 			// espera una decima de segundo que se renderizen en el front
 			setTimeout(() => {
-				this.staticContent.forEach((file) => {
+				list.forEach((file) => {
 					const div = document.getElementById('div-' + file.name);
 					if (!div) {
 						console.error('No se pudo encontrar el elemento con id div-' + file.name);
@@ -548,9 +549,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						}
 					} else if (file.type.startsWith('audio/')) {
 						this.audiosArchivos.push(file.name);
-						const audioDiv = document.getElementById('audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
+						const audioDiv = document.getElementById(file.name) as HTMLDivElement;
 						if (!audioDiv) {
-							console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+							console.error('!!No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
 							return;
 						}
 						const audio = document.createElement('audio') as HTMLAudioElement;
@@ -562,13 +563,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						audio.onplaying = () => {
 							// @ts-expect-error error
 							const mediaStream = audio.captureStream ? audio.captureStream() : video.mozCaptureStream();
-							const audioDiv = document.getElementById('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
+							const audioDiv = document.getElementById('audio-level-' + file.name) as HTMLDivElement;
 							if (!audioDiv) {
-								console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+								console.error('$$No se encontró el elemento con id ' + 'audio-level-' + file.name);
 								return;
 							}
 							if (!mediaStream) {
-								console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+								console.error('No se encontró el elemento con id ' + 'audio-level-' + file.name);
 								return;
 							}
 							const source = this.audioContext.createMediaStreamSource(mediaStream);
@@ -576,9 +577,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 							gainNode.connect(this.mixedAudioDestination);
 							const sample = this.audioContext.createMediaStreamDestination();
 							gainNode.connect(sample);
-							const volume = document.getElementById('volume-' + CSS.escape(file.name)) as HTMLInputElement;
+							const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
 							if (!volume) {
-								console.error('No se encontró el elemento con id ' + 'volume-' + CSS.escape(file.name));
+								console.error('No se encontró el elemento con id ' + 'volume-' + file.name);
 								return;
 							}
 							volume.oninput = () => {
@@ -658,8 +659,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								}
 								const audioBars = audioStream.querySelectorAll('div');
 								const currentSample = Math.floor((audio.currentTime / audio.duration) * audioStream.offsetWidth);
-								console.log('audioBars.length' + audioBars.length);
-								console.log('audioStream.offsetWidth' + audioStream.offsetWidth);
+								// console.log('audioBars.length' + audioBars.length);
+								// console.log('audioStream.offsetWidth' + audioStream.offsetWidth);
 								audioBars.forEach((bar, index) => {
 									if (audioBars.length < audioStream.offsetWidth * 2) {
 										bar.style.backgroundColor = index <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
@@ -1408,10 +1409,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 			this.capturas = this.capturas.filter((stream) => stream !== ele);
 			this.audiosCapturas = this.audiosCapturas.filter((track) => track.id !== ele.id);
+			this.audiosElements = this.audiosElements.filter((element) => element.idEntrada !== ele.id);
 		} else if (ele instanceof File) {
 			this.staticContent = this.staticContent.filter((file) => file !== ele);
 			this.audiosArchivos = this.audiosArchivos.filter((file) => file !== ele.name);
+			this.audiosElements = this.audiosElements.filter((element) => element.idEntrada !== ele.name);
 		}
+		this.drawAudioConnections();
 	}
 
 	fullscreen(ele: MediaDeviceInfo | MediaStream | File) {
@@ -1752,6 +1756,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	drawAudioConnections() {
 		setTimeout(() => {
 			console.log('drawAudioConnections: ' + this.audiosElements.length);
+			if (this.audiosElements.length === 0) return;
 			const audios = document.getElementById('audios') as HTMLDivElement;
 			const audiosRect = audios.getBoundingClientRect();
 			const audiosList = document.getElementById('audios-list') as HTMLDivElement;
@@ -1766,6 +1771,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			conexionesIzquierda.style.width = `${8 * this.audiosElements.length}px`;
 			audiosList.style.width = audiosRect.width - 2 - 8 * this.audiosElements.length + 'px';
 			this.audiosElements.forEach((elemento, index) => {
+				console.log('elemento.idEntrada ' + index + ': ' + elemento.idEntrada);
+				console.log('elemento.idSalida ' + index + ': ' + elemento.idSalida);
 				const audioEntrada = document.getElementById('audio-level-' + elemento.idEntrada) as HTMLDivElement;
 				const audioSalida = document.getElementById(elemento.idSalida) as HTMLDivElement;
 				if (!audioEntrada) {
@@ -1782,17 +1789,20 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 };
 				const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 };
 				const square = document.createElement('div');
-				square.classList.add('absolute', 'border-l-2', 'border-t-2', 'border-b-2');
+				square.classList.add('absolute', 'border-l-2', 'border-t-2', 'border-b-2', 'hover:border-l-4', 'hover:border-t-4', 'hover:border-b-4');
+
 				const letters = '0123456789ABCDEF';
 				let color = '#';
 				for (let i = 0; i < 6; i++) {
 					color += letters[Math.floor(Math.random() * 16)];
 				}
+				color += 'f0';
 				square.style.borderColor = color;
 				square.style.left = `${start.x - 8 * (index + 1)}px`;
 				square.style.top = `${start.y}px`;
 				square.style.width = `${8 * (index + 1)}px`;
 				square.style.height = `${end.y - start.y}px`;
+				square.style.zIndex = (500 - (index + 1) * 10).toString();
 				conexionesIzquierda.appendChild(square);
 			});
 		}, 100);
