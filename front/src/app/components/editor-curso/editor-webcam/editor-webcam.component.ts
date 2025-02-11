@@ -98,8 +98,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		requestAnimationFrame(drawFrame);
 
 		// Inicia a mostrar el audio de grabación
-		const audioGrabacion = document.getElementById('audio-recorder') as HTMLDivElement;
-		if (!audioGrabacion) return;
+		const audioGrabacion = document.getElementById('audio-level-recorder') as HTMLDivElement;
+		if (!audioGrabacion) {
+			console.error('No se pudo obtener el elemento audio-level-recorder');
+			return;
+		}
 		const analyser = this.audioContext.createAnalyser();
 		const source = this.audioContext.createMediaStreamSource(this.mixedAudioDestination.stream);
 		const gainNode = this.audioContext.createGain();
@@ -107,7 +110,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		gainNode.connect(analyser);
 
 		const volume = document.getElementById('volume-audio-recorder') as HTMLInputElement;
-		if (!volume) return;
+		if (!volume) {
+			console.error('No se pudo obtener el elemento volume-audio-recorder');
+			return;
+		}
 		volume.oninput = () => {
 			gainNode.gain.value = parseInt(volume.value) / 100;
 		};
@@ -308,12 +314,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			// Añade un controlador de volumen al dispositivo
 			const volume = document.getElementById('volume-' + deviceId) as HTMLInputElement;
-			if (!volume) return;
+			if (!volume) {
+				console.error('No se pudo obtener el elemento volume-' + deviceId);
+				return;
+			}
 			const gainNode = this.audioContext.createGain();
 			const source = this.audioContext.createMediaStreamSource(stream);
 			source.connect(gainNode);
 			gainNode.connect(this.mixedAudioDestination);
-			this.audiosElements.push({ idEntrada: deviceId, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
+			this.audiosElements.push({ idEntrada: deviceId, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
 			const sample = this.audioContext.createMediaStreamDestination();
 			gainNode.connect(sample);
 
@@ -321,10 +330,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				gainNode.gain.value = parseInt(volume.value) / 100;
 			};
 
-			const audioLevelElement = document.getElementById(deviceId) as HTMLDivElement;
-			if (audioLevelElement) {
-				this.visualizeAudio(sample.stream, audioLevelElement); // Iniciar visualización de audio
+			const audioLevelElement = document.getElementById('audio-level-' + deviceId) as HTMLDivElement;
+			if (!audioLevelElement) {
+				console.error('No se pudo obtener el elemento audio-level-' + deviceId);
+				return;
 			}
+			this.visualizeAudio(sample.stream, audioLevelElement); // Iniciar visualización de audio
 		} catch (error) {
 			console.error('Error al obtener el stream de audio:', error);
 		}
@@ -341,12 +352,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						audio: { deviceId: { exact: device.deviceId } },
 					});
 
-					const audioLevelElement = document.getElementById(device.deviceId) as HTMLDivElement;
-					if (audioLevelElement) {
-						this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
-					} else {
+					const audioLevelElement = document.getElementById('audio-level-' + device.deviceId) as HTMLDivElement;
+					if (!audioLevelElement) {
 						console.error('No se encontró el elemento con id ' + device.deviceId);
+						return;
 					}
+					this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
 				} else {
 					console.warn('setSinkId no es utilizable (requiere HTTPS).');
 				}
@@ -391,9 +402,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			});
 			setTimeout(() => {
 				const div = document.getElementById('div-' + stream.id);
-				if (!div) return;
+				if (!div) {
+					console.error('No se pudo encontrar el elemento con id div-' + stream.id);
+					return;
+				}
 				const resolution = div.querySelector('#resolution');
-				if (!resolution) return;
+				if (!resolution) {
+					console.error('No se pudo encontrar el elemento con id resolution');
+					return;
+				}
 				const settings = stream.getVideoTracks()[0].getSettings();
 				resolution.innerHTML = `${settings.width}x${settings.height} ${settings.frameRate}fps`;
 
@@ -411,18 +428,24 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				}
 				// Añade el contról de audio
 				stream.getAudioTracks().forEach((track) => {
-					const audioLevelElement = document.getElementById(track.id) as HTMLDivElement;
-					if (!audioLevelElement) return;
+					const audioLevelElement = document.getElementById('audio-level-' + track.id) as HTMLDivElement;
+					if (!audioLevelElement) {
+						console.error('No se pudo encontrar el elemento con id audio-level-' + track.id);
+						return;
+					}
 					const gainNode = this.audioContext.createGain();
 					const source = this.audioContext.createMediaStreamSource(stream);
 					source.connect(gainNode);
 					gainNode.connect(this.mixedAudioDestination);
-					this.audiosElements.push({ idEntrada: track.id, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
+					this.audiosElements.push({ idEntrada: track.id, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
 					this.drawAudioConnections();
 					const sample = this.audioContext.createMediaStreamDestination();
 					gainNode.connect(sample);
 					const volume = document.getElementById('volume-' + stream.id) as HTMLInputElement;
-					if (!volume) return;
+					if (!volume) {
+						console.error('No se pudo encontrar el elemento con id volume-' + stream.id);
+						return;
+					}
 					volume.oninput = () => {
 						gainNode.gain.value = parseInt(volume.value) / 100;
 					};
@@ -462,167 +485,192 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			setTimeout(() => {
 				this.staticContent.forEach((file) => {
 					const div = document.getElementById('div-' + file.name);
-					if (div) {
-						if (file.type.startsWith('image/')) {
-							const img = document.getElementById(file.name) as HTMLImageElement;
-							if (img) {
-								const elemento: VideoElement = {
-									id: file.name,
-									element: img,
-									painted: false,
-									scale: 1,
-									position: null,
-								};
-								this.videosElements.push(elemento);
-							}
-						} else if (file.type.startsWith('video/')) {
-							const video = document.getElementById(file.name) as HTMLVideoElement;
-							if (video) {
-								const elemento: VideoElement = {
-									id: file.name,
-									element: video,
-									painted: false,
-									scale: 1,
-									position: null,
-								};
-								this.videosElements.push(elemento);
-								// TODO: Añade el control de audio
-								this.audiosArchivos.push(file.name);
-								video.onplaying = () => {
-									// Obtener la MediaStream del video
-									// @ts-expect-error error
-									const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
-									const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
-									if (!audioDiv || !mediaStream) return;
-									const gainNode = this.audioContext.createGain();
-									const source = this.audioContext.createMediaStreamSource(mediaStream);
-									source.connect(gainNode);
-									gainNode.connect(this.mixedAudioDestination);
-									this.audiosElements.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
-									this.drawAudioConnections();
-									const sample = this.audioContext.createMediaStreamDestination();
-									gainNode.connect(sample);
-									const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
-									if (!volume) return;
-									volume.oninput = () => {
-										gainNode.gain.value = parseInt(volume.value) / 100;
-									};
-									this.visualizeAudio(sample.stream, audioDiv);
-								};
-							}
-						} else if (file.type.startsWith('audio/')) {
+					if (!div) {
+						console.error('No se pudo encontrar el elemento con id div-' + file.name);
+						return;
+					}
+					if (file.type.startsWith('image/')) {
+						const img = document.getElementById(file.name) as HTMLImageElement;
+						if (img) {
+							const elemento: VideoElement = {
+								id: file.name,
+								element: img,
+								painted: false,
+								scale: 1,
+								position: null,
+							};
+							this.videosElements.push(elemento);
+						}
+					} else if (file.type.startsWith('video/')) {
+						const video = document.getElementById(file.name) as HTMLVideoElement;
+						if (video) {
+							const elemento: VideoElement = {
+								id: file.name,
+								element: video,
+								painted: false,
+								scale: 1,
+								position: null,
+							};
+							this.videosElements.push(elemento);
+							// TODO: Añade el control de audio
 							this.audiosArchivos.push(file.name);
-							const audioDiv = document.getElementById(file.name) as HTMLDivElement;
-							if (!audioDiv) return;
-							const audio = document.createElement('audio') as HTMLAudioElement;
-							audio.src = this.getFileUrl(file);
-							audio.load();
-							audio.onplaying = () => {
+							const gainNode = this.audioContext.createGain();
+							this.audiosElements.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
+							this.drawAudioConnections();
+							video.onplaying = () => {
+								// Obtener la MediaStream del video
 								// @ts-expect-error error
-								const mediaStream = audio.captureStream ? audio.captureStream() : video.mozCaptureStream();
-								const audioDiv = (document.getElementById('audios') as HTMLDivElement).querySelector('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
-								if (!audioDiv || !mediaStream) return;
-								const gainNode = this.audioContext.createGain();
+								const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+								const audioDiv = document.getElementById('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
+								if (!audioDiv) {
+									console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+									return;
+								}
+								if (!mediaStream) {
+									console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+									return;
+								}
 								const source = this.audioContext.createMediaStreamSource(mediaStream);
 								source.connect(gainNode);
 								gainNode.connect(this.mixedAudioDestination);
-								this.audiosElements.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-recorder', salida: this.mixedAudioDestination });
-								this.drawAudioConnections();
 								const sample = this.audioContext.createMediaStreamDestination();
 								gainNode.connect(sample);
-								const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
-								if (!volume) return;
+								const volume = document.getElementById('volume-' + CSS.escape(file.name)) as HTMLInputElement;
+								if (!volume) {
+									console.error('No se encontró el elemento con id ' + 'volume-' + CSS.escape(file.name));
+									return;
+								}
 								volume.oninput = () => {
 									gainNode.gain.value = parseInt(volume.value) / 100;
 								};
 								this.visualizeAudio(sample.stream, audioDiv);
 							};
-
-							// Ponemos las funcionalidades a los botones de reproducción
-							const playPause = audioDiv.querySelector('#play-pause') as HTMLButtonElement;
-							const play = audioDiv.querySelector('#play') as SVGElement;
-							const pause = audioDiv.querySelector('#pause') as SVGElement;
-							const restart = audioDiv.querySelector('#restart') as HTMLButtonElement;
-							const loop = audioDiv.querySelector('#loop') as HTMLButtonElement;
-							const loopOff = audioDiv.querySelector('#loop-off') as SVGElement;
-							const loopOn = audioDiv.querySelector('#loop-on') as SVGElement;
-							const time = audioDiv.querySelector('#time') as HTMLSpanElement;
-							const progress = audioDiv.querySelector('#progress') as HTMLInputElement;
-							if (!audioDiv || !playPause || !restart || !loop || !time || !progress) return;
-							playPause.onclick = () => {
-								if (!audioDiv) return;
-								if (audio.paused) {
-									audio.play();
-									play.style.display = 'none';
-									pause.style.display = 'block';
-								} else {
-									audio.pause();
-									play.style.display = 'block';
-									pause.style.display = 'none';
-								}
+						}
+					} else if (file.type.startsWith('audio/')) {
+						this.audiosArchivos.push(file.name);
+						const audioDiv = document.getElementById('audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
+						if (!audioDiv) {
+							console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+							return;
+						}
+						const audio = document.createElement('audio') as HTMLAudioElement;
+						audio.src = this.getFileUrl(file);
+						audio.load();
+						const gainNode = this.audioContext.createGain();
+						this.audiosElements.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
+						this.drawAudioConnections();
+						audio.onplaying = () => {
+							// @ts-expect-error error
+							const mediaStream = audio.captureStream ? audio.captureStream() : video.mozCaptureStream();
+							const audioDiv = document.getElementById('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
+							if (!audioDiv) {
+								console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+								return;
+							}
+							if (!mediaStream) {
+								console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+								return;
+							}
+							const source = this.audioContext.createMediaStreamSource(mediaStream);
+							source.connect(gainNode);
+							gainNode.connect(this.mixedAudioDestination);
+							const sample = this.audioContext.createMediaStreamDestination();
+							gainNode.connect(sample);
+							const volume = document.getElementById('volume-' + CSS.escape(file.name)) as HTMLInputElement;
+							if (!volume) {
+								console.error('No se encontró el elemento con id ' + 'volume-' + CSS.escape(file.name));
+								return;
+							}
+							volume.oninput = () => {
+								gainNode.gain.value = parseInt(volume.value) / 100;
 							};
-							restart.onclick = () => {
-								if (!audioDiv) return;
-								audio.currentTime = 0;
-							};
+							this.visualizeAudio(sample.stream, audioDiv);
+						};
 
-							loop.onclick = () => {
-								if (!audioDiv) return;
-								if (audio.loop) {
-									audio.loop = false;
-									loopOff.style.display = 'block';
-									loopOn.style.display = 'none';
-								} else {
-									audio.loop = true;
-									loopOff.style.display = 'none';
-									loopOn.style.display = 'block';
-								}
-							};
+						// Ponemos las funcionalidades a los botones de reproducción
+						const playPause = audioDiv.querySelector('#play-pause') as HTMLButtonElement;
+						const play = audioDiv.querySelector('#play') as SVGElement;
+						const pause = audioDiv.querySelector('#pause') as SVGElement;
+						const restart = audioDiv.querySelector('#restart') as HTMLButtonElement;
+						const loop = audioDiv.querySelector('#loop') as HTMLButtonElement;
+						const loopOff = audioDiv.querySelector('#loop-off') as SVGElement;
+						const loopOn = audioDiv.querySelector('#loop-on') as SVGElement;
+						const time = audioDiv.querySelector('#time') as HTMLSpanElement;
+						const progress = audioDiv.querySelector('#progress') as HTMLInputElement;
+						if (!audioDiv || !playPause || !restart || !loop || !time || !progress) return;
+						playPause.onclick = () => {
+							if (!audioDiv) return;
+							if (audio.paused) {
+								audio.play();
+								play.style.display = 'none';
+								pause.style.display = 'block';
+							} else {
+								audio.pause();
+								play.style.display = 'block';
+								pause.style.display = 'none';
+							}
+						};
+						restart.onclick = () => {
+							if (!audioDiv) return;
+							audio.currentTime = 0;
+						};
 
-							audio.onloadedmetadata = () => {
-								/* Barra de progreso */
-								const duration = this.formatTime(audio.duration);
-								const timeStart = this.formatTime(audio.currentTime);
-								time.innerText = `${timeStart} / ${duration}`;
-								audio.ontimeupdate = () => {
+						loop.onclick = () => {
+							if (!audioDiv) return;
+							if (audio.loop) {
+								audio.loop = false;
+								loopOff.style.display = 'block';
+								loopOn.style.display = 'none';
+							} else {
+								audio.loop = true;
+								loopOff.style.display = 'none';
+								loopOn.style.display = 'block';
+							}
+						};
+
+						audio.onloadedmetadata = () => {
+							/* Barra de progreso */
+							const duration = this.formatTime(audio.duration);
+							const timeStart = this.formatTime(audio.currentTime);
+							time.innerText = `${timeStart} / ${duration}`;
+							audio.ontimeupdate = () => {
+								if (!audioDiv) return;
+								const percentage = (audio.currentTime / audio.duration) * 100;
+								progress.value = percentage.toString();
+								// Mostrar el tiempo actual y la duración
+								const currentTime = this.formatTime(audio.currentTime);
+								time.innerText = `${currentTime} / ${duration}`;
+
+								progress.oninput = () => {
 									if (!audioDiv) return;
-									const percentage = (audio.currentTime / audio.duration) * 100;
-									progress.value = percentage.toString();
-									// Mostrar el tiempo actual y la duración
+									const newTime = (parseInt(progress.value) / 100) * audio.duration;
+									audio.currentTime = newTime;
+
+									// Actualizar el tiempo en el texto inmediatamente
 									const currentTime = this.formatTime(audio.currentTime);
 									time.innerText = `${currentTime} / ${duration}`;
-
-									progress.oninput = () => {
-										if (!audioDiv) return;
-										const newTime = (parseInt(progress.value) / 100) * audio.duration;
-										audio.currentTime = newTime;
-
-										// Actualizar el tiempo en el texto inmediatamente
-										const currentTime = this.formatTime(audio.currentTime);
-										time.innerText = `${currentTime} / ${duration}`;
-									};
-									// Cambia el color de las barras de audio
-									const audioStream: HTMLDivElement | null | undefined = document.getElementById('div-' + file.name)?.querySelector('#audio-stream');
-									if (!audioStream) {
-										console.error('No se encontró el elemento con id ' + 'audio-stream');
-										return;
-									}
-									const audioBars = audioStream.querySelectorAll('div');
-									const currentSample = Math.floor((audio.currentTime / audio.duration) * audioStream.offsetWidth);
-									console.log('audioBars.length' + audioBars.length);
-									console.log('audioStream.offsetWidth' + audioStream.offsetWidth);
-									audioBars.forEach((bar, index) => {
-										if (audioBars.length < audioStream.offsetWidth * 2) {
-											bar.style.backgroundColor = index <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
-										} else {
-											bar.style.backgroundColor = index / 2 <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
-										}
-									});
 								};
-								// Dibuja el flujo de audio
-								this.pintaAudio(file);
+								// Cambia el color de las barras de audio
+								const audioStream: HTMLDivElement | null | undefined = document.getElementById('div-' + file.name)?.querySelector('#audio-stream');
+								if (!audioStream) {
+									console.error('No se encontró el elemento con id ' + 'audio-stream');
+									return;
+								}
+								const audioBars = audioStream.querySelectorAll('div');
+								const currentSample = Math.floor((audio.currentTime / audio.duration) * audioStream.offsetWidth);
+								console.log('audioBars.length' + audioBars.length);
+								console.log('audioStream.offsetWidth' + audioStream.offsetWidth);
+								audioBars.forEach((bar, index) => {
+									if (audioBars.length < audioStream.offsetWidth * 2) {
+										bar.style.backgroundColor = index <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
+									} else {
+										bar.style.backgroundColor = index / 2 <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
+									}
+								});
 							};
-						}
+							// Dibuja el flujo de audio
+							this.pintaAudio(file);
+						};
 					}
 				});
 			}, 100);
@@ -1702,37 +1750,52 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	// Función para dibujar las conexiones de audio
 	drawAudioConnections() {
-		console.log('drawAudioConnections: ' + this.audiosElements.length);
-		const audios = document.getElementById('audios') as HTMLDivElement;
-		const conexionesIzquierda = document.getElementById('conexiones-izquierda') as HTMLDivElement;
-		const conexionesDerecha = document.getElementById('conexiones-derecha') as HTMLDivElement;
-		if (!conexionesIzquierda || !conexionesDerecha || !audios) {
-			console.error('No se encontró el elemento con id ' + 'conexiones-izquierda' + ' o ' + 'conexiones-derecha');
-			return;
-		}
-		conexionesIzquierda.innerHTML = '';
-		conexionesDerecha.innerHTML = '';
-		conexionesIzquierda.style.width = `${8 * this.audiosElements.length}px`;
-		this.audiosElements.forEach((elemento, index) => {
-			const audioEntrada = document.getElementById(elemento.idEntrada) as HTMLDivElement;
-			const audioSalida = document.getElementById(elemento.idSalida) as HTMLDivElement;
-			if (!audioEntrada || !audioSalida) {
-				console.error('No se encontró el elemento con id ' + elemento.idEntrada + ' o ' + elemento.idSalida);
+		setTimeout(() => {
+			console.log('drawAudioConnections: ' + this.audiosElements.length);
+			const audios = document.getElementById('audios') as HTMLDivElement;
+			const audiosRect = audios.getBoundingClientRect();
+			const audiosList = document.getElementById('audios-list') as HTMLDivElement;
+			const conexionesIzquierda = document.getElementById('conexiones-izquierda') as HTMLDivElement;
+			const conexionesDerecha = document.getElementById('conexiones-derecha') as HTMLDivElement;
+			if (!conexionesIzquierda || !conexionesDerecha || !audios) {
+				console.error('No se encontró el elemento con id ' + 'conexiones-izquierda' + ' o ' + 'conexiones-derecha');
 				return;
 			}
-			const entradaRect = audioEntrada.getBoundingClientRect();
-			const salidaRect = audioSalida.getBoundingClientRect();
-			const audiosRect = audios.getBoundingClientRect();
-			const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 };
-			const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 };
-			const square = document.createElement('div');
-			square.classList.add('absolute', 'border-black', 'border-l-2', 'border-t-2', 'border-b-2');
-			square.style.left = `${start.x - 8 * (index + 1)}px`;
-			square.style.top = `${start.y}px`;
-			square.style.width = `${8 * (index + 1)}px`;
-			square.style.height = `${end.y - start.y}px`;
-			conexionesIzquierda.appendChild(square);
-		});
+			conexionesIzquierda.innerHTML = '';
+			conexionesDerecha.innerHTML = '';
+			conexionesIzquierda.style.width = `${8 * this.audiosElements.length}px`;
+			audiosList.style.width = audiosRect.width - 2 - 8 * this.audiosElements.length + 'px';
+			this.audiosElements.forEach((elemento, index) => {
+				const audioEntrada = document.getElementById('audio-level-' + elemento.idEntrada) as HTMLDivElement;
+				const audioSalida = document.getElementById(elemento.idSalida) as HTMLDivElement;
+				if (!audioEntrada) {
+					console.error('No se encontró el elemento con id ' + 'audio-level-' + elemento.idEntrada);
+					return;
+				}
+				if (!audioSalida) {
+					console.error('No se encontró el elemento con id ' + 'audio-level-' + elemento.idSalida);
+					return;
+				}
+
+				const entradaRect = audioEntrada.getBoundingClientRect();
+				const salidaRect = audioSalida.getBoundingClientRect();
+				const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 };
+				const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 };
+				const square = document.createElement('div');
+				square.classList.add('absolute', 'border-l-2', 'border-t-2', 'border-b-2');
+				const letters = '0123456789ABCDEF';
+				let color = '#';
+				for (let i = 0; i < 6; i++) {
+					color += letters[Math.floor(Math.random() * 16)];
+				}
+				square.style.borderColor = color;
+				square.style.left = `${start.x - 8 * (index + 1)}px`;
+				square.style.top = `${start.y}px`;
+				square.style.width = `${8 * (index + 1)}px`;
+				square.style.height = `${end.y - start.y}px`;
+				conexionesIzquierda.appendChild(square);
+			});
+		}, 100);
 	}
 }
 

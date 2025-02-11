@@ -10,7 +10,6 @@
 .audio-bar {
 	background: linear-gradient(to right, green, yellow, red);
 	position: relative;
-	overflow: hidden;
 }
 
 .audio-level {
