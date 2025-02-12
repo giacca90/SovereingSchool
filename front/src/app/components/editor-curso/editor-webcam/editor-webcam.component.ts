@@ -1807,6 +1807,62 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			});
 		}, 100);
 	}
+
+	audioDown($event: MouseEvent): void {
+		console.log('audioDown');
+		const conexionesIzquierda = document.getElementById('conexiones-izquierda') as HTMLDivElement;
+
+		const audios = document.getElementById('audios') as HTMLDivElement;
+		if (!audios || !conexionesIzquierda) return;
+
+		const audiosRect = audios.getBoundingClientRect();
+		const elementoStart = document.elementFromPoint($event.clientX, $event.clientY);
+		console.log(elementoStart);
+		const initialScrollTop = audios.scrollTop; // 📌 Guardamos el scroll al inicio
+
+		const startX = $event.clientX - audiosRect.left;
+		const startY = $event.clientY - audiosRect.top + initialScrollTop; // ✅ Se guarda con el scroll inicial
+
+		const conexionTemp = document.createElement('div');
+		conexionTemp.classList.add('absolute', 'border-l-2', 'border-t-2', 'border-b-2', 'border-dashed', 'border-black');
+
+		conexionTemp.style.left = `${startX}px`;
+		conexionTemp.style.top = `${startY}px`;
+		conexionTemp.style.width = `1px`;
+		conexionTemp.style.height = `1px`;
+
+		conexionesIzquierda.appendChild(conexionTemp);
+
+		// 🔹 Evento para mover y actualizar el tamaño del cuadrado
+		const audioMove = ($event2: MouseEvent) => {
+			const actualX = $event2.clientX - audiosRect.left;
+			const actualY = $event2.clientY - audiosRect.top + audios.scrollTop; // ✅ Se ajusta dinámicamente con el scroll actual
+			if (actualX < startX) {
+				conexionTemp.style.left = `${actualX}px`;
+				conexionTemp.style.width = `${startX - actualX}px`;
+			}
+			if (actualY < startY) {
+				conexionTemp.style.top = `${actualY}px`;
+				conexionTemp.style.height = `${startY - actualY}px`;
+			} else {
+				conexionTemp.style.top = `${startY}px`;
+				conexionTemp.style.height = `${actualY - startY}px`;
+			}
+		};
+
+		// 🔹 Evento para finalizar el dibujo cuando se suelta el mouse
+		const audioUp = ($event3: MouseEvent) => {
+			console.log('audioUp');
+			const elementoFinal = document.elementFromPoint($event3.clientX, $event3.clientY);
+			console.log(elementoFinal);
+			conexionTemp.remove();
+			audios.removeEventListener('mousemove', audioMove);
+			audios.removeEventListener('mouseup', audioUp);
+		};
+
+		audios.addEventListener('mousemove', audioMove);
+		audios.addEventListener('mouseup', audioUp);
+	}
 }
 
 // Interface para el elemento de video
