@@ -21,7 +21,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	capturas: MediaStream[] = []; // Lista de capturas
 	staticContent: File[] = []; // Lista de archivos estáticos
 	videosElements: VideoElement[] = []; // Lista de elementos de video
-	audiosElements: { id: string; ele: GainNode }[] = []; // Lista de elementos de audio
+	audiosElements: { id: string; ele: GainNode | MediaStreamAudioDestinationNode }[] = []; // Lista de elementos de audio
 	audiosConnections: AudioConnection[] = []; // Lista de conexiones de audio
 	dragVideo: VideoElement | null = null; // Video que se está arrastrando
 	canvas: HTMLCanvasElement | null = null;
@@ -30,7 +30,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	presets = new Map<string, { elements: VideoElement[]; shortcut: string }>(); // Presets
 	private fileUrlCache = new Map<File, string>(); // Cache de URLs de archivos
 	audioContext = new AudioContext();
-	mixedAudioDestination = this.audioContext.createMediaStreamDestination();
+	mixedAudioDestination: MediaStreamAudioDestinationNode = this.audioContext.createMediaStreamDestination();
 	audioElement = new Audio();
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 
@@ -107,6 +107,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const analyser = this.audioContext.createAnalyser();
 		const source = this.audioContext.createMediaStreamSource(this.mixedAudioDestination.stream);
 		const gainNode = this.audioContext.createGain();
+		this.audiosElements.push({ id: 'recorder', ele: gainNode });
 		source.connect(gainNode);
 		gainNode.connect(analyser);
 
@@ -324,7 +325,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			source.connect(gainNode);
 			gainNode.connect(this.mixedAudioDestination);
 			this.audiosElements.push({ id: deviceId, ele: gainNode });
-			this.audiosConnections.push({ idEntrada: deviceId, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
+			this.audiosConnections.push({ idEntrada: deviceId, entrada: gainNode, idSalida: 'recorder', salida: this.mixedAudioDestination });
 			const sample = this.audioContext.createMediaStreamDestination();
 			gainNode.connect(sample);
 
@@ -345,27 +346,60 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 	async getAudioOutputStream(device: MediaDeviceInfo) {
 		try {
-			const test = new Audio() as HTMLAudioElement & { setSinkId?: (sinkId: string) => Promise<void> };
-			// Verificar si setSinkId existe y el protocolo es seguro (HTTPS)
-			if (typeof test.setSinkId === 'function') {
-				if (location.protocol === 'https:') {
-					this.audioOutputDevices.push(device);
-					const stream = await navigator.mediaDevices.getUserMedia({
-						audio: { deviceId: { exact: device.deviceId } },
-					});
+			const audio = new Audio() as HTMLAudioElement & { setSinkId?: (sinkId: string) => Promise<void> };
 
-					const audioLevelElement = document.getElementById('audio-level-' + device.deviceId) as HTMLDivElement;
-					if (!audioLevelElement) {
-						console.error('No se encontró el elemento con id ' + device.deviceId);
-						return;
-					}
-					this.visualizeAudio(stream, audioLevelElement); // Iniciar visualización de audio
-				} else {
-					console.warn('setSinkId no es utilizable (requiere HTTPS).');
-				}
-			} else {
-				console.warn('setSinkId no es soportado en este navegador.');
+			// Verificar si el navegador soporta setSinkId y si estamos en HTTPS
+			if (typeof audio.setSinkId !== 'function' || location.protocol !== 'https:') {
+				console.warn('setSinkId no es soportado o HTTPS no está activo.');
+				return;
 			}
+
+			// Guardar el dispositivo en la lista
+			this.audioOutputDevices.push(device);
+
+			// Crear un nodo de destino para capturar el audio procesado
+			const destinationNode = this.audioContext.createMediaStreamDestination();
+			this.audiosElements.push({ id: device.deviceId, ele: destinationNode });
+
+			// Crear un nodo de ganancia para ajustar el volumen
+			const gainNode = this.audioContext.createGain();
+			gainNode.gain.value = 1; // Volumen inicial
+
+			// Conectar el volumen a un slider si existe
+			const volume = document.getElementById('volume-' + device.deviceId) as HTMLInputElement;
+			if (volume) {
+				volume.oninput = () => {
+					gainNode.gain.value = parseInt(volume.value) / 100;
+				};
+			} else {
+				console.warn('No se encontró el control de volumen para ' + device.deviceId);
+			}
+
+			// Conectar el nodo de ganancia al destino
+			gainNode.connect(destinationNode);
+
+			// Crear un `<audio>` para reproducir el audio procesado
+			audio.style.display = 'none';
+			audio.srcObject = destinationNode.stream;
+
+			await audio.setSinkId(device.deviceId);
+
+			// Agregar el audio al DOM para evitar bloqueos de reproducción automática
+			document.body.appendChild(audio);
+
+			// Reproducir el audio
+			audio.play().catch((err) => console.error('Error al reproducir el audio:', err));
+
+			// Visualizar los niveles de audio
+			const audioLevelElement = document.getElementById('audio-level-' + device.deviceId) as HTMLDivElement;
+			if (audioLevelElement) {
+				this.visualizeAudio(destinationNode.stream, audioLevelElement);
+			} else {
+				console.warn('No se encontró el elemento visualizador de audio para ' + device.deviceId);
+			}
+
+			// Retornar nodos para poder conectar fuentes de audio después
+			this.audiosElements.push({ id: device.deviceId, ele: gainNode });
 		} catch (error) {
 			console.error('Error al obtener el stream de salida de audio:', error);
 		}
@@ -1777,13 +1811,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 			conexionesIzquierda.innerHTML = '';
 			conexionesDerecha.innerHTML = '';
-			conexionesIzquierda.style.width = `${8 * this.audiosElements.length}px`;
-			audiosList.style.width = audiosRect.width - 2 - 8 * this.audiosElements.length + 'px';
+			conexionesIzquierda.style.width = `${8 * this.audiosConnections.length}px`;
+			audiosList.style.width = audiosRect.width - 2 - 8 * this.audiosConnections.length + 'px';
 			this.audiosConnections.forEach((elemento, index) => {
 				console.log('elemento.idEntrada ' + index + ': ' + elemento.idEntrada);
 				console.log('elemento.idSalida ' + index + ': ' + elemento.idSalida);
 				const audioEntrada = document.getElementById('audio-level-' + elemento.idEntrada) as HTMLDivElement;
-				const audioSalida = document.getElementById(elemento.idSalida) as HTMLDivElement;
+				const audioSalida = document.getElementById('audio-level-' + elemento.idSalida) as HTMLDivElement;
 				if (!audioEntrada) {
 					console.error('No se encontró el elemento con id ' + 'audio-level-' + elemento.idEntrada);
 					return;
@@ -1886,6 +1920,19 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			console.log('elemento inicial: ', idElementoStrart);
 			console.log('elemento final: ', idElementoFinal);
+
+			const startElement = this.audiosElements.find((element) => element.id === idElementoStrart);
+			const endElement = this.audiosElements.find((element) => element.id === idElementoFinal);
+			if (typeof startElement === 'undefined' || typeof endElement === 'undefined') {
+				console.error('Elementos no encontrados');
+				return;
+			}
+			if (endElement.id === 'audio-recorder') {
+				endElement.ele = this.mixedAudioDestination;
+			}
+			startElement.ele.connect(endElement.ele);
+			this.audiosConnections.push({ idEntrada: idElementoStrart, entrada: startElement.ele as GainNode, idSalida: idElementoFinal, salida: endElement.ele as MediaStreamAudioDestinationNode });
+			this.drawAudioConnections();
 			audios.removeEventListener('mousemove', audioMove);
 			audios.removeEventListener('mouseup', audioUp);
 		};
