@@ -359,7 +359,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			// Crear un nodo de destino para capturar el audio procesado
 			const destinationNode = this.audioContext.createMediaStreamDestination();
-			this.audiosElements.push({ id: device.deviceId, ele: destinationNode });
+			//this.audiosElements.push({ id: device.deviceId, ele: destinationNode });
 
 			// Crear un nodo de ganancia para ajustar el volumen
 			const gainNode = this.audioContext.createGain();
@@ -474,7 +474,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					source.connect(gainNode);
 					gainNode.connect(this.mixedAudioDestination);
 					this.audiosElements.push({ id: track.id, ele: gainNode });
-					this.audiosConnections.push({ idEntrada: track.id, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
+					this.audiosConnections.push({ idEntrada: track.id, entrada: gainNode, idSalida: 'recorder', salida: this.mixedAudioDestination });
 					this.drawAudioConnections();
 					const sample = this.audioContext.createMediaStreamDestination();
 					gainNode.connect(sample);
@@ -555,19 +555,19 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 							this.audiosArchivos.push(file.name);
 							const gainNode = this.audioContext.createGain();
 							this.audiosElements.push({ id: file.name, ele: gainNode });
-							this.audiosConnections.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
+							this.audiosConnections.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'recorder', salida: this.mixedAudioDestination });
 							this.drawAudioConnections();
 							video.onplaying = () => {
 								// Obtener la MediaStream del video
 								// @ts-expect-error error
 								const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
-								const audioDiv = document.getElementById('#audio-level-' + CSS.escape(file.name)) as HTMLDivElement;
+								const audioDiv = document.getElementById('audio-level-' + file.name) as HTMLDivElement;
 								if (!audioDiv) {
-									console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+									console.error('No se encontró el elemento con id ' + 'audio-level-' + file.name);
 									return;
 								}
 								if (!mediaStream) {
-									console.error('No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+									console.error('No se encontró el elemento con id ' + 'audio-level-' + file.name);
 									return;
 								}
 								const source = this.audioContext.createMediaStreamSource(mediaStream);
@@ -575,9 +575,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								gainNode.connect(this.mixedAudioDestination);
 								const sample = this.audioContext.createMediaStreamDestination();
 								gainNode.connect(sample);
-								const volume = document.getElementById('volume-' + CSS.escape(file.name)) as HTMLInputElement;
+								const volume = document.getElementById('volume-' + file.name) as HTMLInputElement;
 								if (!volume) {
-									console.error('No se encontró el elemento con id ' + 'volume-' + CSS.escape(file.name));
+									console.error('No se encontró el elemento con id ' + 'volume-' + file.name);
 									return;
 								}
 								volume.oninput = () => {
@@ -590,7 +590,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						this.audiosArchivos.push(file.name);
 						const audioDiv = document.getElementById(file.name) as HTMLDivElement;
 						if (!audioDiv) {
-							console.error('!!No se encontró el elemento con id ' + 'audio-level-' + CSS.escape(file.name));
+							console.error('!!No se encontró el elemento con id ' + 'audio-level-' + file.name);
 							return;
 						}
 						const audio = document.createElement('audio') as HTMLAudioElement;
@@ -598,7 +598,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						audio.load();
 						const gainNode = this.audioContext.createGain();
 						this.audiosElements.push({ id: file.name, ele: gainNode });
-						this.audiosConnections.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'audio-level-recorder', salida: this.mixedAudioDestination });
+						this.audiosConnections.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'recorder', salida: this.mixedAudioDestination });
 						this.drawAudioConnections();
 						audio.onplaying = () => {
 							// @ts-expect-error error
