@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChildren } from '@angular/core';
 
 @Component({
@@ -1798,7 +1797,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	// Función para dibujar las conexiones de audio
 	drawAudioConnections() {
 		setTimeout(() => {
-			console.log('drawAudioConnections: ' + this.audiosElements.length);
+			console.log('drawAudioConnections: ' + this.audiosConnections.length);
 			if (this.audiosElements.length === 0) return;
 			const audios = document.getElementById('audios') as HTMLDivElement;
 			const audiosRect = audios.getBoundingClientRect();
@@ -1852,7 +1851,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	}
 
 	audioDown($event: MouseEvent): void {
+		if ($event.target instanceof HTMLInputElement) return;
 		console.log('audioDown');
+
 		const conexionesIzquierda = document.getElementById('conexiones-izquierda') as HTMLDivElement;
 
 		const audios = document.getElementById('audios') as HTMLDivElement;
@@ -1860,7 +1861,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		const audiosRect = audios.getBoundingClientRect();
 		const elementoStart = document.elementFromPoint($event.clientX, $event.clientY);
-		console.log(elementoStart);
+		//(elementoStart);
 		const initialScrollTop = audios.scrollTop; // 📌 Guardamos el scroll al inicio
 
 		const startX = $event.clientX - audiosRect.left;
@@ -1895,7 +1896,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 		// 🔹 Evento para finalizar el dibujo cuando se suelta el mouse
 		const audioUp = ($event3: MouseEvent) => {
-			console.log('audioUp');
+			//console.log('audioUp');
+			audios.removeEventListener('mousemove', audioMove);
+			audios.removeEventListener('mouseup', audioUp);
 			conexionTemp.remove();
 			const elementoFinal = document.elementFromPoint($event3.clientX, $event3.clientY);
 			if (!elementoFinal || !elementoStart) return;
@@ -1918,8 +1921,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			if (idElementoStrart === idElementoFinal) return;
 
-			console.log('elemento inicial: ', idElementoStrart);
-			console.log('elemento final: ', idElementoFinal);
+			//('elemento inicial: ', idElementoStrart);
+			//console.log('elemento final: ', idElementoFinal);
 
 			const startElement = this.audiosElements.find((element) => element.id === idElementoStrart);
 			const endElement = this.audiosElements.find((element) => element.id === idElementoFinal);
@@ -1933,8 +1936,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			startElement.ele.connect(endElement.ele);
 			this.audiosConnections.push({ idEntrada: idElementoStrart, entrada: startElement.ele as GainNode, idSalida: idElementoFinal, salida: endElement.ele as MediaStreamAudioDestinationNode });
 			this.drawAudioConnections();
-			audios.removeEventListener('mousemove', audioMove);
-			audios.removeEventListener('mouseup', audioUp);
 		};
 
 		audios.addEventListener('mousemove', audioMove);
