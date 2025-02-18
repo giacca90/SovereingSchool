@@ -358,11 +358,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 			// Crear un nodo de destino para capturar el audio procesado
 			const destinationNode = this.audioContext.createMediaStreamDestination();
-			//this.audiosElements.push({ id: device.deviceId, ele: destinationNode });
 
 			// Crear un nodo de ganancia para ajustar el volumen
 			const gainNode = this.audioContext.createGain();
-			gainNode.gain.value = 1; // Volumen inicial
 
 			// Conectar el volumen a un slider si existe
 			const volume = document.getElementById('volume-' + device.deviceId) as HTMLInputElement;
@@ -505,7 +503,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		}
 	}
 
-	addFiles() {
+	// Función para añadir archivos y configurar el enrutamiento de audio
+	async addFiles() {
 		const input: HTMLInputElement = document.createElement('input');
 		input.type = 'file';
 		input.accept = 'image/* video/* audio/*';
@@ -550,26 +549,19 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								position: null,
 							};
 							this.videosElements.push(elemento);
-							// TODO: Añade el control de audio
+							// Añadir el control de audio
 							this.audiosArchivos.push(file.name);
 							const gainNode = this.audioContext.createGain();
 							this.audiosElements.push({ id: file.name, ele: gainNode });
 							this.audiosConnections.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'recorder', salida: this.mixedAudioDestination });
 							this.drawAudioConnections();
 							video.onplaying = () => {
-								// Obtener la MediaStream del video
-								// @ts-expect-error error
-								const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
 								const audioDiv = document.getElementById('audio-level-' + file.name) as HTMLDivElement;
 								if (!audioDiv) {
 									console.error('No se encontró el elemento con id ' + 'audio-level-' + file.name);
 									return;
 								}
-								if (!mediaStream) {
-									console.error('No se encontró el elemento con id ' + 'audio-level-' + file.name);
-									return;
-								}
-								const source = this.audioContext.createMediaStreamSource(mediaStream);
+								const source = this.audioContext.createMediaElementSource(video);
 								source.connect(gainNode);
 								gainNode.connect(this.mixedAudioDestination);
 								const sample = this.audioContext.createMediaStreamDestination();
@@ -589,7 +581,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						this.audiosArchivos.push(file.name);
 						const audioDiv = document.getElementById(file.name) as HTMLDivElement;
 						if (!audioDiv) {
-							console.error('!!No se encontró el elemento con id ' + 'audio-level-' + file.name);
+							console.error('No se encontró el elemento con id ' + 'audio-level-' + file.name);
 							return;
 						}
 						const audio = document.createElement('audio') as HTMLAudioElement;
@@ -600,18 +592,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 						this.audiosConnections.push({ idEntrada: file.name, entrada: gainNode, idSalida: 'recorder', salida: this.mixedAudioDestination });
 						this.drawAudioConnections();
 						audio.onplaying = () => {
-							// @ts-expect-error error
-							const mediaStream = audio.captureStream ? audio.captureStream() : video.mozCaptureStream();
 							const audioDiv = document.getElementById('audio-level-' + file.name) as HTMLDivElement;
 							if (!audioDiv) {
-								console.error('$$No se encontró el elemento con id ' + 'audio-level-' + file.name);
-								return;
-							}
-							if (!mediaStream) {
 								console.error('No se encontró el elemento con id ' + 'audio-level-' + file.name);
 								return;
 							}
-							const source = this.audioContext.createMediaStreamSource(mediaStream);
+							const source = this.audioContext.createMediaElementSource(audio);
 							source.connect(gainNode);
 							gainNode.connect(this.mixedAudioDestination);
 							const sample = this.audioContext.createMediaStreamDestination();
@@ -698,8 +684,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 								}
 								const audioBars = audioStream.querySelectorAll('div');
 								const currentSample = Math.floor((audio.currentTime / audio.duration) * audioStream.offsetWidth);
-								// console.log('audioBars.length' + audioBars.length);
-								// console.log('audioStream.offsetWidth' + audioStream.offsetWidth);
 								audioBars.forEach((bar, index) => {
 									if (audioBars.length < audioStream.offsetWidth * 2) {
 										bar.style.backgroundColor = index <= currentSample ? '#16a34a' : '#1d4ed8'; // Rojo si está en reproducción
@@ -1828,8 +1812,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 
 				const entradaRect = audioEntrada.getBoundingClientRect();
 				const salidaRect = audioSalida.getBoundingClientRect();
-				const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 };
-				const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 };
+				const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 + audios.scrollTop };
+				const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 + audios.scrollTop };
 				const square = document.createElement('div');
 				square.classList.add('absolute', 'border-l-2', 'border-t-2', 'border-b-2', 'hover:border-l-4', 'hover:border-t-4', 'hover:border-b-4');
 
