@@ -363,14 +363,16 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			const gainNode = this.audioContext.createGain();
 
 			// Conectar el volumen a un slider si existe
-			const volume = document.getElementById('volume-' + device.deviceId) as HTMLInputElement;
-			if (volume) {
-				volume.oninput = () => {
-					gainNode.gain.value = parseInt(volume.value) / 100;
-				};
-			} else {
-				console.warn('No se encontró el control de volumen para ' + device.deviceId);
-			}
+			setTimeout(() => {
+				const volume = document.getElementById('volume-' + device.deviceId) as HTMLInputElement;
+				if (volume) {
+					volume.oninput = () => {
+						gainNode.gain.value = parseInt(volume.value) / 100;
+					};
+				} else {
+					console.error('No se encontró el control de volumen para ' + device.deviceId);
+				}
+			}, 100);
 
 			// Conectar el nodo de ganancia al destino
 			gainNode.connect(destinationNode);
@@ -392,7 +394,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			if (audioLevelElement) {
 				this.visualizeAudio(destinationNode.stream, audioLevelElement);
 			} else {
-				console.warn('No se encontró el elemento visualizador de audio para ' + device.deviceId);
+				console.error('No se encontró el elemento visualizador de audio para ' + device.deviceId);
 			}
 
 			// Retornar nodos para poder conectar fuentes de audio después
