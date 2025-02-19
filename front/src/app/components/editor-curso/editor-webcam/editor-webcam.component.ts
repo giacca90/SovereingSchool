@@ -1,11 +1,11 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChildren } from '@angular/core';
 
 @Component({
-    selector: 'app-editor-webcam',
+	selector: 'app-editor-webcam',
 	standalone: true,
-    imports: [],
-    templateUrl: './editor-webcam.component.html',
-    styleUrls: ['./editor-webcam.component.css']
+	imports: [],
+	templateUrl: './editor-webcam.component.html',
+	styleUrls: ['./editor-webcam.component.css'],
 })
 export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	canvasWidth = 1280;
@@ -132,6 +132,23 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		}
 
 		updateAudioLevel();
+
+		// Escuchar eventos de teclado
+		window.addEventListener('keydown', this.handleKeydown.bind(this));
+	}
+
+	// Método para manejar eventos de teclado
+	handleKeydown(event: KeyboardEvent) {
+		console.log('Tecla presionada:', event.key);
+		event.preventDefault();
+		// Verificar si se presionó Ctrl + un número
+		if (event.ctrlKey && !isNaN(Number(event.key))) {
+			const shortcut = `ctrl+${event.key}`;
+			const preset = Array.from(this.presets.entries()).find(([_, value]) => value.shortcut === shortcut);
+			if (preset) {
+				this.aplicaPreset(preset[0]);
+			}
+		}
 	}
 
 	async startMedias(devices: MediaDeviceInfo[]) {
@@ -1401,7 +1418,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 					videoElements.push(newE);
 				}
 			});
-			this.presets.set(name, { elements: videoElements, shortcut: 'ctrl+' + this.presets.size + 1 });
+			this.presets.set(name, { elements: videoElements, shortcut: 'ctrl+' + (this.presets.size + 1) });
 			setTimeout(() => this.calculatePreset(), 100);
 		}
 	}
@@ -1817,7 +1834,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 + audios.scrollTop };
 				const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 + audios.scrollTop };
 				const square = document.createElement('div');
-				square.classList.add('absolute', 'border-l-2','group', 'border-t-2', 'border-b-2', 'hover:border-l-4', 'hover:border-t-4', 'hover:border-b-4');
+				square.classList.add('absolute', 'border-l-2', 'group', 'border-t-2', 'border-b-2', 'hover:border-l-4', 'hover:border-t-4', 'hover:border-b-4');
 
 				const letters = '0123456789ABCDEF';
 				let color = '#';
@@ -1835,7 +1852,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				// Crear botón para eliminar la conexión
 				const deleteButton = document.createElement('button');
 				deleteButton.innerText = 'X';
-				deleteButton.classList.add('absolute','hidden','left-[-2px]' ,'group-hover:block', 'rounded-full', 'w-4', 'h-4', 'flex', 'items-center', 'justify-center');
+				deleteButton.classList.add('absolute', 'hidden', 'left-[-2px]', 'group-hover:block', 'rounded-full', 'w-4', 'h-4', 'flex', 'items-center', 'justify-center');
 				deleteButton.style.top = '0';
 				deleteButton.style.right = '0';
 				deleteButton.onclick = () => {

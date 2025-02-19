@@ -52,7 +52,9 @@
 				<!-- Preset Items -->
 				@for (presetName of this.presets.keys(); track presetName) {
 					<div class="relative !aspect-video max-h-[33vh] cursor-pointer rounded-lg border-black bg-white hover:border">
-						<div id="preset-{{ presetName }}" (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="relative h-full w-full"></div>
+						<p class="absolute top-2 z-30 w-full text-center text-sm text-white">{{ presetName }}</p>
+						<p class="absolute bottom-2 z-30 w-full text-center text-sm text-white">{{ this.presets.get(presetName)?.shortcut }}</p>
+						<div id="preset-{{ presetName }}" (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="relative h-full w-full justify-center"></div>
 					</div>
 				}
 				<!-- Save Preset Button -->
