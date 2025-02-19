@@ -4,11 +4,11 @@ import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 
 @Component({
-	selector: 'app-log-modal',
+    selector: 'app-log-modal',
 	standalone: true,
-	templateUrl: './log-modal.component.html',
-	styleUrl: './log-modal.component.css',
-	imports: [LoginComponent, RegisterComponent],
+    templateUrl: './log-modal.component.html',
+    styleUrl: './log-modal.component.css',
+    imports: [LoginComponent, RegisterComponent]
 })
 export class LogModalComponent implements AfterViewInit {
 	login: HTMLButtonElement | null = null;

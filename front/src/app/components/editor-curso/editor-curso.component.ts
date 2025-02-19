@@ -12,11 +12,11 @@ import { LoginService } from '../../services/login.service';
 import { StreamingService } from '../../services/streaming.service';
 
 @Component({
-	selector: 'app-editor-curso',
+    selector: 'app-editor-curso',
 	standalone: true,
-	imports: [FormsModule],
-	templateUrl: './editor-curso.component.html',
-	styleUrl: './editor-curso.component.css',
+    imports: [FormsModule],
+    templateUrl: './editor-curso.component.html',
+    styleUrl: './editor-curso.component.css'
 })
 export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked {
 	private subscription: Subscription = new Subscription();

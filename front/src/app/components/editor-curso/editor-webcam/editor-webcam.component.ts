@@ -1,11 +1,11 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChildren } from '@angular/core';
 
 @Component({
-	selector: 'app-editor-webcam',
+    selector: 'app-editor-webcam',
 	standalone: true,
-	imports: [],
-	templateUrl: './editor-webcam.component.html',
-	styleUrls: ['./editor-webcam.component.css'],
+    imports: [],
+    templateUrl: './editor-webcam.component.html',
+    styleUrls: ['./editor-webcam.component.css']
 })
 export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	canvasWidth = 1280;

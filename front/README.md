@@ -2,7 +2,7 @@
 
 ## UI completa
 
-> Hecho con Angular 17.
+> Hecho con Angular 19.
 
 > Con Server Side Rendering.
 

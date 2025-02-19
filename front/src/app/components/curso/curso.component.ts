@@ -8,11 +8,11 @@ import { LoginService } from '../../services/login.service';
 import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
-	selector: 'app-curso',
+    selector: 'app-curso',
 	standalone: true,
-	imports: [],
-	templateUrl: './curso.component.html',
-	styleUrl: './curso.component.css',
+    imports: [],
+    templateUrl: './curso.component.html',
+    styleUrl: './curso.component.css'
 })
 export class CursoComponent implements OnDestroy {
 	private id_curso: number = 0;

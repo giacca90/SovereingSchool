@@ -3,11 +3,11 @@ import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
 
 @Component({
-	selector: 'app-login',
+    selector: 'app-login',
 	standalone: true,
-	imports: [],
-	templateUrl: './login.component.html',
-	styleUrl: './login.component.css',
+    imports: [],
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.css'
 })
 export class LoginComponent {
 	constructor(

@@ -6,11 +6,11 @@ import { InitService } from '../../services/init.service';
 import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
-	selector: 'app-home',
+    selector: 'app-home',
 	standalone: true,
-	imports: [],
-	templateUrl: './home.component.html',
-	styleUrl: './home.component.css',
+    imports: [],
+    templateUrl: './home.component.html',
+    styleUrl: './home.component.css'
 })
 export class HomeComponent {
 	vistaCursos: HTMLDivElement[] = [];

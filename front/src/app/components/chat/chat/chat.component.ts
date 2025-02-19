@@ -7,11 +7,11 @@ import { ChatService } from '../../../services/chat.service';
 import { LoginService } from '../../../services/login.service';
 
 @Component({
-	selector: 'app-chat',
+    selector: 'app-chat',
 	standalone: true,
-	imports: [],
-	templateUrl: './chat.component.html',
-	styleUrl: './chat.component.css',
+    imports: [],
+    templateUrl: './chat.component.html',
+    styleUrl: './chat.component.css'
 })
 export class ChatComponent implements OnInit, OnDestroy {
 	@Input() idCurso: number | null = null;

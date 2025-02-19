@@ -7,11 +7,11 @@ import { ChatService } from '../../../services/chat.service';
 import { LoginService } from '../../../services/login.service';
 
 @Component({
-	selector: 'app-home-chat',
+    selector: 'app-home-chat',
 	standalone: true,
-	imports: [],
-	templateUrl: './home-chat.component.html',
-	styleUrl: './home-chat.component.css',
+    imports: [],
+    templateUrl: './home-chat.component.html',
+    styleUrl: './home-chat.component.css'
 })
 export class HomeChatComponent {
 	chats: MensajeChat[] = [];

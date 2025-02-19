@@ -5,11 +5,11 @@ import { LoginService } from '../../../services/login.service';
 import { RegisterService } from '../../../services/register.service';
 
 @Component({
-	selector: 'app-register',
+    selector: 'app-register',
 	standalone: true,
-	imports: [],
-	templateUrl: './register.component.html',
-	styleUrl: './register.component.css',
+    imports: [],
+    templateUrl: './register.component.html',
+    styleUrl: './register.component.css'
 })
 export class RegisterComponent implements OnDestroy {
 	private nuevoUsuario: NuevoUsuario = new NuevoUsuario();

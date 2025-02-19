@@ -4,11 +4,11 @@ import { CursosService } from '../../services/cursos.service';
 import { LoginService } from '../../services/login.service';
 
 @Component({
-	selector: 'app-cursos-usuario',
+    selector: 'app-cursos-usuario',
 	standalone: true,
-	imports: [],
-	templateUrl: './cursos-usuario.component.html',
-	styleUrl: './cursos-usuario.component.css',
+    imports: [],
+    templateUrl: './cursos-usuario.component.html',
+    styleUrl: './cursos-usuario.component.css'
 })
 export class CursosUsuarioComponent implements OnInit {
 	constructor(
