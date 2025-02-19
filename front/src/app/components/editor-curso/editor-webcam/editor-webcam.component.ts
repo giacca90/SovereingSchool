@@ -1817,7 +1817,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				const start = { x: entradaRect.left - audiosRect.left, y: entradaRect.top - audiosRect.top + entradaRect.height / 2 + audios.scrollTop };
 				const end = { x: salidaRect.left - audiosRect.left, y: salidaRect.top - audiosRect.top + salidaRect.height / 2 + audios.scrollTop };
 				const square = document.createElement('div');
-				square.classList.add('absolute', 'border-l-2', 'border-t-2', 'border-b-2', 'hover:border-l-4', 'hover:border-t-4', 'hover:border-b-4');
+				square.classList.add('absolute', 'border-l-2','group', 'border-t-2', 'border-b-2', 'hover:border-l-4', 'hover:border-t-4', 'hover:border-b-4');
 
 				const letters = '0123456789ABCDEF';
 				let color = '#';
@@ -1831,6 +1831,23 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 				square.style.width = `${8 * (index + 1)}px`;
 				square.style.height = `${end.y - start.y}px`;
 				square.style.zIndex = (500 - (index + 1) * 10).toString();
+
+				// Crear botón para eliminar la conexión
+				const deleteButton = document.createElement('button');
+				deleteButton.innerText = 'X';
+				deleteButton.classList.add('absolute','hidden','left-[-2px]' ,'group-hover:block', 'rounded-full', 'w-4', 'h-4', 'flex', 'items-center', 'justify-center');
+				deleteButton.style.top = '0';
+				deleteButton.style.right = '0';
+				deleteButton.onclick = () => {
+					// Eliminar la conexión de la lista
+					this.audiosConnections.splice(index, 1);
+					// Desconectar los nodos de audio
+					elemento.entrada.disconnect(elemento.salida);
+					// Eliminar el elemento visual
+					square.remove();
+				};
+				square.appendChild(deleteButton);
+
 				conexionesIzquierda.appendChild(square);
 			});
 		}, 100);
@@ -1886,7 +1903,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			audios.removeEventListener('mousemove', audioMove);
 			audios.removeEventListener('mouseup', audioUp);
 			conexionTemp.remove();
-			const elementoFinal = document.elementFromPoint($event3.clientX, $event3.clientY);
+
+			// Ajustar la posición en el eje X para obtener el elemento a la derecha
+			const offsetX = 10; // Puedes ajustar este valor según sea necesario
+			const elementoFinal = document.elementFromPoint($event3.clientX + offsetX, $event3.clientY);
+
 			if (!elementoFinal || !elementoStart) return;
 			let idElementoStrart = elementoStart.id;
 			if (idElementoStrart.startsWith('audio-level-')) {
