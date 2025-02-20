@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { Observable } from 'rxjs';
 
 @Component({
 	selector: 'app-editor-webcam',
@@ -30,11 +31,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	private fileUrlCache = new Map<File, string>(); // Cache de URLs de archivos
 	audioContext = new AudioContext(); // Contexto de audio
 	mixedAudioDestination: MediaStreamAudioDestinationNode = this.audioContext.createMediaStreamDestination(); //Audio de grabación
-	audioElement = new Audio();
+	emitiendo: boolean = false;
+	tiempoGrabacion: string = '00:00:00';
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 	@Input() savedFiles?: File[]; // Files guardados del usuario
 	@Input() savedPresets?: Map<string, { elements: VideoElement[]; shortcut: string }>; //Presets guardados del usuario
-	@Output() emision?: MediaStream; // Emisión de video y audio
+	@Output() emision?: Observable<MediaStream | null>; // Emisión de video y audio
 	@Output() savePreset?: Map<string, { elements: VideoElement[]; shortcut: string }>; // Guardar preset
 
 	@HostListener('window:resize', ['$event'])
@@ -1997,11 +1999,28 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		if (!this.canvas) return;
 		const videoStream = this.canvas.captureStream(this.canvasFPS).getVideoTracks()[0];
 		const audioStream = this.mixedAudioDestination.stream.getAudioTracks()[0];
-		this.emision = new MediaStream([videoStream, audioStream]);
+		this.emision = new Observable<MediaStream | null>((subscriber) => {
+			subscriber.next(new MediaStream([videoStream, audioStream]));
+		});
+		this.emitiendo = true;
+		this.calculaTiempoGrabacion();
 	}
 
 	detenerEmision() {
+		this.emitiendo = false;
 		this.emision = undefined;
+	}
+
+	async calculaTiempoGrabacion() {
+		let tiempo = -1;
+		const updateTimer = () => {
+			if (this.emitiendo) {
+				tiempo += 1;
+				this.tiempoGrabacion = this.formatTime(tiempo);
+				setTimeout(updateTimer, 1000);
+			}
+		};
+		updateTimer();
 	}
 }
 
