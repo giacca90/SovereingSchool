@@ -433,8 +433,13 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		updateAudioLevel(); // Iniciar la visualización
 	}
 
-	emiteWebcam() {
+	emiteWebcam(event: MediaStream | null) {
 		if (this.editar) {
+			if (event === null) {
+				this.detenerEmision();
+				return;
+			}
+			this.streamWebcam = event;
 			if (this.editar.nombre_clase == null || this.editar.nombre_clase == '') {
 				alert('Debes poner un nombre para la clase');
 				return;
