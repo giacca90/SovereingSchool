@@ -10,13 +10,14 @@ import { CursosService } from '../../services/cursos.service';
 import { InitService } from '../../services/init.service';
 import { LoginService } from '../../services/login.service';
 import { StreamingService } from '../../services/streaming.service';
+import { EditorWebcamComponent } from '../editor-curso/editor-webcam/editor-webcam.component';
 
 @Component({
-    selector: 'app-editor-curso',
+	selector: 'app-editor-curso',
 	standalone: true,
-    imports: [FormsModule],
-    templateUrl: './editor-curso.component.html',
-    styleUrl: './editor-curso.component.css'
+	imports: [FormsModule, EditorWebcamComponent],
+	templateUrl: './editor-curso.component.html',
+	styleUrl: './editor-curso.component.css',
 })
 export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked {
 	private subscription: Subscription = new Subscription();

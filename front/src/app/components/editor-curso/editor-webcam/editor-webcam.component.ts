@@ -1,8 +1,7 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
-import { Observable } from 'rxjs';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 
 @Component({
-	selector: 'app-editor-webcam',
+	selector: 'WebOBS',
 	standalone: true,
 	imports: [],
 	templateUrl: './editor-webcam.component.html',
@@ -36,8 +35,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 	@Input() savedFiles?: File[]; // Files guardados del usuario
 	@Input() savedPresets?: Map<string, { elements: VideoElement[]; shortcut: string }>; //Presets guardados del usuario
-	@Output() emision?: Observable<MediaStream | null>; // Emisión de video y audio
-	@Output() savePreset?: Map<string, { elements: VideoElement[]; shortcut: string }>; // Guardar preset
+	@Output() emision: EventEmitter<MediaStream | null> = new EventEmitter(); // Emisión de video y audio
+	@Output() savePresets: EventEmitter<Map<string, { elements: VideoElement[]; shortcut: string }>> = new EventEmitter(); // Guardar presets
 
 	@HostListener('window:resize', ['$event'])
 	onResize(): void {
@@ -74,7 +73,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		}
 
 		// Añadir presets recibidos (si hay)
-		if (this.savedPresets) {
+		if (this.savedPresets !== undefined) {
 			this.presets = this.savedPresets;
 		}
 	}
@@ -1999,16 +1998,16 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		if (!this.canvas) return;
 		const videoStream = this.canvas.captureStream(this.canvasFPS).getVideoTracks()[0];
 		const audioStream = this.mixedAudioDestination.stream.getAudioTracks()[0];
-		this.emision = new Observable<MediaStream | null>((subscriber) => {
-			subscriber.next(new MediaStream([videoStream, audioStream]));
-		});
+		this.emision.emit(new MediaStream([videoStream, audioStream]));
 		this.emitiendo = true;
 		this.calculaTiempoGrabacion();
 	}
 
 	detenerEmision() {
 		this.emitiendo = false;
-		this.emision = undefined;
+		if (this.emision) {
+			this.emision.emit(null);
+		}
 	}
 
 	async calculaTiempoGrabacion() {
@@ -2021,6 +2020,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 		};
 		updateTimer();
+	}
+
+	savePresetsFunction() {
+		this.savePresets.emit(this.presets);
 	}
 }
 

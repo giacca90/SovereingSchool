@@ -59,45 +59,51 @@
 				</div>
 			}
 			<div class="flex">
-				<div class="m-2 flex w-2/5 flex-col">
-					@if (this.tipoClase === 0 || this.editar.id_clase !== 0) {
-						<video id="videoPlayer" src="" class="video-js vjs-default-skin aspect-video w-full"></video>
-						<div class="flex">
-							<label for="video-upload" id="video-upload-button" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
-							<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
-						</div>
-					}
-					@if (this.tipoClase === 1) {
-						<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
-						<div id="audio-bar">
-							<div id="audio-level"></div>
-						</div>
-						<p id="statusOBS">Cargando...</p>
-						<div id="enlaces"></div>
-						@if (this.streamingService.enGrabacion === true) {
-							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
-						} @else {
-							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteOBS()" tabindex="0" (keydown.enter)="emiteOBS()">Emitir OBS</div>
+				@if (this.tipoClase !== 2) {
+					<div class="m-2 flex w-2/5 flex-col">
+						@if (this.tipoClase === 0 || this.editar.id_clase !== 0) {
+							<video id="videoPlayer" src="" class="video-js vjs-default-skin aspect-video w-full"></video>
+							<div class="flex">
+								<label for="video-upload" id="video-upload-button" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
+								<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
+							</div>
 						}
-					}
-					@if (this.tipoClase === 2) {
-						<video id="webcam" autoplay playsinline class="border border-black"></video>
-						<div id="audio-bar">
-							<div id="audio-level"></div>
-						</div>
-						<p id="status"></p>
-						@if (this.streamingService.enGrabacion === true) {
-							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
+						@if (this.tipoClase === 1) {
+							<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
+							<div id="audio-bar">
+								<div id="audio-level"></div>
+							</div>
+							<p id="statusOBS">Cargando...</p>
+							<div id="enlaces"></div>
+							@if (this.streamingService.enGrabacion === true) {
+								<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
+							} @else {
+								<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteOBS()" tabindex="0" (keydown.enter)="emiteOBS()">Emitir OBS</div>
+							}
+						}
+
+						<!-- @if (this.tipoClase === 2) {
+							<video id="webcam" autoplay playsinline class="border border-black"></video>
+							<div id="audio-bar">
+								<div id="audio-level"></div>
+							</div>
+							<p id="status"></p>
+							@if (this.streamingService.enGrabacion === true) {
+								<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="detenerEmision()" tabindex="0" (keydown.enter)="detenerEmision()">Detener Emisión</div>
 						} @else {
 							<div class="m-2 cursor-pointer rounded-lg border border-black p-2 text-center" (click)="emiteWebcam()" tabindex="0" (keydown.enter)="emiteWebcam()">Emitir Webcam</div>
-						}
-					}
-				</div>
-				<div class="m-2 flex w-3/5 flex-col">
+							} 
+						} -->
+					</div>
+				}
+				<div class="m-2 flex flex-grow flex-col">
 					<input type="text" class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" placeholder="Pon una breve descripción de tu clase." [(ngModel)]="editar.descriccion_clase" />
 					<textarea class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2" rows="5" placeholder="Aquí es donde va todo el contenido de tu clase, todo lo que no esté en el video u en otros contenidos." [(ngModel)]="editar.contenido_clase"></textarea>
 				</div>
 			</div>
+			@if (this.tipoClase === 2) {
+				<WebOBS></WebOBS>
+			}
 			<button id="button-guardar-clase" type="button" class="m-2 rounded-lg border border-black bg-transparent p-2" (click)="guardarCambiosClase()">Guardar Cambios</button>
 		</div>
 	</div>

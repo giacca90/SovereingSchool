@@ -1,0 +1,18 @@
+version: 2
+updates:
+    - package-ecosystem: "npm"
+      directory: "../front/package.json"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "maven"
+      directory: "../back_base/pom.xml"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "maven"
+      directory: "../back_chat/pom.xml"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "maven"
+      directory: "../back_streaming/pom.xml"
+      schedule:
+          interval: "daily"
