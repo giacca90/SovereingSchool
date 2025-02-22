@@ -170,7 +170,7 @@ public class StreamingService {
         // Escribir datos en el proceso (solo WebCam)
         if (inputStream instanceof PipedInputStream && ffmpegInputStream != null) {
             InputStream inStream = (InputStream) ffmpegInputStream;
-            byte[] buffer = new byte[inStream.available() * 100];
+            byte[] buffer = new byte[inStream.available() > 50 ? inStream.available() * 100 : 50000];
             int bytesRead;
             while ((bytesRead = inStream.read(buffer)) != -1) {
                 System.out.println("Escribiendo en FFmpeg: " + bytesRead);

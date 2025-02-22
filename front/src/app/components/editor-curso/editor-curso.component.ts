@@ -1,7 +1,7 @@
 import { AfterViewChecked, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import { Clase } from '../../models/Clase';
@@ -30,6 +30,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	tipoClase: number = 0;
 	m3u8Loaded: boolean = false;
 	player: Player | null = null;
+	ready: Subject<boolean> = new Subject<boolean>();
 
 	constructor(
 		private route: ActivatedRoute,
@@ -437,24 +438,31 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		if (this.editar) {
 			if (event === null) {
 				this.detenerEmision();
+				this.ready.next(false);
 				return;
 			}
 			this.streamWebcam = event;
 			if (this.editar.nombre_clase == null || this.editar.nombre_clase == '') {
 				alert('Debes poner un nombre para la clase');
+				this.ready.next(false);
 				return;
 			}
 			if (this.editar.descriccion_clase == null || this.editar.descriccion_clase == '') {
 				alert('Debes poner una descripción para la clase');
+				this.ready.next(false);
 				return;
 			}
 			if (this.editar.contenido_clase == null || this.editar.contenido_clase == '') {
 				alert('Debes poner contenido para la clase');
+				this.ready.next(false);
 				return;
 			}
 			if (!this.streamWebcam) {
 				alert('Debes conectarte primero con la webcam');
+				this.ready.next(false);
+				return;
 			} else {
+				this.ready.next(true);
 				this.streamingService.emitirWebcam(this.streamWebcam, this.editar);
 				this.editado = true;
 			}

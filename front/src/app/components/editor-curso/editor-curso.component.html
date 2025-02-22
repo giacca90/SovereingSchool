@@ -102,7 +102,7 @@
 				</div>
 			</div>
 			@if (this.tipoClase === 2) {
-				<WebOBS (emision)="emiteWebcam($event)"></WebOBS>
+				<WebOBS (emision)="emiteWebcam($event)" [ready]="this.ready"></WebOBS>
 			}
 			<button id="button-guardar-clase" type="button" class="m-2 rounded-lg border border-black bg-transparent p-2" (click)="guardarCambiosClase()">Guardar Cambios</button>
 		</div>
