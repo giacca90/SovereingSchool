@@ -333,6 +333,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 	ngAfterViewChecked(): void {
 		if (this.editar) {
+			window.scrollTo(0, 0); // Subir la vista al inicio de la página
+			document.body.style.overflow = 'hidden';
 			const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
 			if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0 && this.editar.direccion_clase.endsWith('.m3u8')) {
 				this.player = videojs(videoPlayer, {
@@ -346,6 +348,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 					type: 'application/x-mpegURL',
 				});
 			}
+		} else {
+			document.body.style.overflow = 'auto';
 		}
 	}
 
