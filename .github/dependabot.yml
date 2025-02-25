@@ -1,18 +1,18 @@
 version: 2
 updates:
     - package-ecosystem: "npm"
-      directory: "../front/package.json"
+      directory: "/front" # Ubicación del directorio que contiene package.json
       schedule:
           interval: "daily"
     - package-ecosystem: "maven"
-      directory: "../back_base/pom.xml"
+      directory: "/back_base" # Ubicación del directorio que contiene pom.xml
       schedule:
           interval: "daily"
     - package-ecosystem: "maven"
-      directory: "../back_chat/pom.xml"
+      directory: "/back_chat" # Ubicación del directorio que contiene pom.xml
       schedule:
           interval: "daily"
     - package-ecosystem: "maven"
-      directory: "../back_streaming/pom.xml"
+      directory: "/back_streaming" # Ubicación del directorio que contiene pom.xml
       schedule:
           interval: "daily"

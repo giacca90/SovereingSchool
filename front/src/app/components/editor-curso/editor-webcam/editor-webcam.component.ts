@@ -33,10 +33,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 	mixedAudioDestination: MediaStreamAudioDestinationNode = this.audioContext.createMediaStreamDestination(); //Audio de grabación
 	emitiendo: boolean = false;
 	tiempoGrabacion: string = '00:00:00';
+	ready: boolean | undefined;
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 	@Input() savedFiles?: File[]; // Files guardados del usuario
 	@Input() savedPresets?: Map<string, { elements: VideoElement[]; shortcut: string }>; //Presets guardados del usuario
-	@Input() ready?: Observable<boolean>;
+	@Input() readyObserve?: Observable<boolean>;
 	@Output() emision: EventEmitter<MediaStream | null> = new EventEmitter(); // Emisión de video y audio
 	@Output() savePresets: EventEmitter<Map<string, { elements: VideoElement[]; shortcut: string }>> = new EventEmitter(); // Guardar presets
 
@@ -77,6 +78,13 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		// Añadir presets recibidos (si hay)
 		if (this.savedPresets !== undefined) {
 			this.presets = this.savedPresets;
+		}
+
+		// Suscrivirse al ready observable (si hay)
+		if (this.readyObserve !== undefined) {
+			this.readyObserve.subscribe((ready) => {
+				this.ready = ready;
+			});
 		}
 	}
 
@@ -2002,12 +2010,12 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		const audioStream = this.mixedAudioDestination.stream.getAudioTracks()[0];
 		this.emision.emit(new MediaStream([videoStream, audioStream]));
 		if (this.ready !== undefined) {
-			this.ready.subscribe((ready) => {
-				if (!ready) return;
+			if (this.ready) {
 				this.emitiendo = true;
 				this.calculaTiempoGrabacion();
-			});
+			}
 		} else {
+			console.log('!!no ready');
 			this.emitiendo = true;
 			this.calculaTiempoGrabacion();
 		}
