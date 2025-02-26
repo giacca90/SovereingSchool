@@ -108,6 +108,8 @@ public class CursoService implements ICursoService {
 
     /**
      * Función para actualizar o crear un nuevo curso
+     * 
+     * @param curso Curso: curso a actualizar
      */
     @Override
     public Curso updateCurso(Curso curso) {
@@ -153,6 +155,7 @@ public class CursoService implements ICursoService {
         // Crear las clases del curso si no existen
         if (clases.size() > 0) {
             for (Clase clase : clases) {
+                System.out.println("Clase: " + clase.getNombre_clase());
                 clase.setCurso_clase(curso);
                 if (clase.getId_clase().equals(0L)) {
                     clase.setId_clase(null);
@@ -378,7 +381,7 @@ public class CursoService implements ICursoService {
     }
 
     /**
-     * Función para mover una carpeta y todas sus subcarpetas y archivos
+     * Función para mover una carpeta y todas sus sub-directories y archivos
      * 
      * @param origen  origen de la carpeta
      * @param destino destino de la carpeta
