@@ -161,11 +161,12 @@ public class CursoService implements ICursoService {
                     clase.setId_clase(null);
                 }
                 // Comprueba si la clase es una emisión en directo
+                System.out.println("Tipo clase: " + clase.getTipo_clase());
+                System.out.println("Direccion clase: " + clase.getDireccion_clase());
                 if (clase.getDireccion_clase() != null && !clase.getDireccion_clase().contains("/")) {
                     clase.setDireccion_clase(this.uploadDir + "/" + clase.getDireccion_clase() + "/master.m3u8");
                 } else if (clase.getDireccion_clase() != null && !clase.getDireccion_clase()
-                        .contains("/" + curso.getId_curso() + "/" + clase.getId_clase() + "/")
-                        && clase.getTipo_clase() > 0) {
+                        .contains("/" + curso.getId_curso() + "/" + clase.getId_clase() + "/")) {
                     this.moverCarpeta(clase.getDireccion_clase(),
                             this.uploadDir + "/" + curso.getId_curso() + "/" + clase.getId_clase());
                     clase.setDireccion_clase(
