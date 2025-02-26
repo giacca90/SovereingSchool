@@ -27,7 +27,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	editado: boolean = false;
 	editar: Clase | null = null;
 	streamWebcam: MediaStream | null = null;
-	tipoClase: number = 0;
+	//tipoClase: number = 0;
 	m3u8Loaded: boolean = false;
 	player: Player | null = null;
 	ready: Subject<boolean> = new Subject<boolean>();
@@ -184,8 +184,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 	guardarCambiosClase() {
 		if (this.curso && this.editar) {
-			console.log('Tipo de clase: ' + this.tipoClase);
-			if (this.tipoClase > 0) {
+			console.log('Tipo de clase: ' + this.editar.tipo_clase);
+			if (this.editar.tipo_clase > 0) {
 				this.cursoService.getCurso(this.curso.id_curso, true).then((curso) => {
 					this.curso = curso;
 					this.editar = null;
@@ -354,6 +354,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	}
 
 	cambiaTipoClase(tipo: number) {
+		if (!this.editar) return;
 		this.streamingService.closeConnections();
 		const videoButton: HTMLButtonElement = document.getElementById('claseVideo') as HTMLButtonElement;
 		const obsButton: HTMLButtonElement = document.getElementById('claseOBS') as HTMLButtonElement;
@@ -367,14 +368,14 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 
 		switch (tipo) {
 			case 0: {
-				this.tipoClase = 0;
+				this.editar.tipo_clase = 0;
 				videoButton.classList.add('text-blue-700');
 				this.streamWebcam?.getTracks().forEach((track) => track.stop());
 				this.streamWebcam = null;
 				break;
 			}
 			case 1: {
-				this.tipoClase = 1;
+				this.editar.tipo_clase = 1;
 				obsButton.classList.add('text-blue-700');
 				this.streamWebcam?.getTracks().forEach((track) => track.stop());
 				this.streamWebcam = null;
@@ -382,7 +383,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				break;
 			}
 			case 2: {
-				this.tipoClase = 2;
+				this.editar.tipo_clase = 2;
 				webcamButton.classList.add('text-blue-700');
 				this.streamWebcam?.getTracks().forEach((track) => track.stop());
 				this.streamWebcam = null;

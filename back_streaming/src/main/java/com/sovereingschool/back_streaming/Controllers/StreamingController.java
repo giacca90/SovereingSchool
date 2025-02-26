@@ -63,11 +63,15 @@ public class StreamingController {
             @PathVariable Long id_clase,
             @PathVariable String lista,
             @RequestHeader HttpHeaders headers) throws IOException {
-        System.out.println("LOG");
+
+        System.out.println("!!!GET LISTAS!!!");
 
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
+        if (direccion_carpeta == null) {
+            System.err.println("No se encuentra la carpeta del curso: " + direccion_carpeta);
+            return ResponseEntity.notFound().build();
+        }
         direccion_carpeta = direccion_carpeta.substring(0, direccion_carpeta.lastIndexOf("/"));
-        System.out.println("LOG2: " + direccion_carpeta);
         if (direccion_carpeta == null) {
             System.err.println("El video no tiene ruta");
             return ResponseEntity.notFound().build();
@@ -77,7 +81,6 @@ public class StreamingController {
 
         Path videoPath = carpetaPath.resolve(lista);
 
-        System.out.println("LOG 3" + videoPath.toString());
         if (!Files.exists(videoPath)) {
             System.err.println("No existe el archivo: " + videoPath);
             return ResponseEntity.notFound().build();
@@ -85,7 +88,6 @@ public class StreamingController {
 
         // Obtener el tipo MIME del video
         String contentType = Files.probeContentType(videoPath);
-        System.out.println("LOG4: " + contentType);
 
         // Configurar las cabeceras de la respuesta
         HttpHeaders responseHeaders = new HttpHeaders();
@@ -110,11 +112,10 @@ public class StreamingController {
             @PathVariable String lista,
             @PathVariable String video,
             @RequestHeader HttpHeaders headers) throws IOException {
-        System.out.println("LOG");
 
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
         direccion_carpeta = direccion_carpeta.substring(0, direccion_carpeta.lastIndexOf("/"));
-        System.out.println("LOG2: " + direccion_carpeta);
+        System.out.println(" " + direccion_carpeta);
         if (direccion_carpeta == null) {
             System.err.println("El video no tiene ruta");
             return ResponseEntity.notFound().build();
@@ -126,7 +127,6 @@ public class StreamingController {
 
         videoPath = videoPath.resolve(video);
 
-        System.out.println("LOG 3" + videoPath.toString());
         if (!Files.exists(videoPath)) {
             System.err.println("No existe el archivo: " + videoPath);
             return ResponseEntity.notFound().build();
@@ -134,7 +134,6 @@ public class StreamingController {
 
         // Obtener el tipo MIME del video
         String contentType = Files.probeContentType(videoPath);
-        System.out.println("LOG4: " + contentType);
 
         // Configurar las cabeceras de la respuesta
         HttpHeaders responseHeaders = new HttpHeaders();

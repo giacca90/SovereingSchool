@@ -60,16 +60,16 @@
 			}
 			@if (this.editar.id_clase !== 2) {
 				<div class="flex">
-					@if (this.tipoClase !== 2) {
+					@if (this.editar.tipo_clase !== 2) {
 						<div class="m-2 flex w-2/5 flex-col">
-							@if (this.tipoClase === 0 || this.editar.id_clase !== 0) {
+							@if (this.editar.tipo_clase === 0 || this.editar.id_clase !== 0) {
 								<video id="videoPlayer" src="" class="video-js vjs-default-skin aspect-video w-full"></video>
 								<div class="flex">
 									<label for="video-upload" id="video-upload-button" class="m-2 flex-grow cursor-pointer rounded-lg border border-black p-2 text-center" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
 									<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
 								</div>
 							}
-							@if (this.tipoClase === 1) {
+							@if (this.editar.tipo_clase === 1) {
 								<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
 								<div id="audio-bar">
 									<div id="audio-level"></div>
@@ -90,7 +90,7 @@
 					</div>
 				</div>
 			}
-			@if (this.tipoClase === 2) {
+			@if (this.editar.tipo_clase === 2) {
 				<WebOBS class="m-2" (emision)="emiteWebcam($event)" [readyObserve]="this.ready"></WebOBS>
 			}
 			<button id="button-guardar-clase" type="button" class="m-2 rounded-lg border border-black bg-transparent p-2" (click)="guardarCambiosClase()">Guardar Cambios</button>

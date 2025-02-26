@@ -40,6 +40,7 @@ public class Clase implements Serializable {
     @Column(length = 10000)
     private String contenido_clase;
 
+    // 0 - ESTATICO, 1 - OBS - 2 - WEBCAM
     @Column(nullable = false)
     private int tipo_clase;
 

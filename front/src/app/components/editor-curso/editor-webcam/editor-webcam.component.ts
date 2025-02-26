@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -8,12 +8,13 @@ import { Observable } from 'rxjs';
 	templateUrl: './editor-webcam.component.html',
 	styleUrls: ['./editor-webcam.component.css'],
 })
-export class EditorWebcamComponent implements OnInit, AfterViewInit {
+export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 	canvasWidth = 1280;
 	canvasHeight = 720;
 	canvasFPS = 30;
 	isResolutionSelectorVisible = false;
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
+	videoStream: MediaStream[] = []; // Lista de flujos de video
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	audiosCapturas: MediaStreamTrack[] = []; // Lista de capturas de audio
 	audiosArchivos: string[] = []; // Lista de archivos de audio de archivos
@@ -172,6 +173,27 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 		}
 	}
 
+	ngOnDestroy(): void {
+		// Detener todos los flujos de video
+		this.videoStream.forEach((stream) => {
+			stream.getTracks().forEach((track) => track.stop());
+		});
+
+		// Detener todas las capturas de pantalla
+		this.capturas.forEach((stream) => {
+			stream.getTracks().forEach((track) => track.stop());
+		});
+
+		// Detener todas las capturas de audio
+		this.audiosCapturas.forEach((track) => track.stop());
+
+		// Limpiar otros recursos si es necesario
+		// ...
+
+		// Eliminar el listener de eventos de teclado
+		window.removeEventListener('keydown', this.handleKeydown.bind(this));
+	}
+
 	// Método para manejar eventos de teclado
 	handleKeydown(event: KeyboardEvent) {
 		// Verificar si se presionó Ctrl + un número
@@ -325,6 +347,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit {
 			}
 
 			stream = await navigator.mediaDevices.getUserMedia(constraints);
+			this.videoStream.push(stream);
 			videoTrack = stream.getVideoTracks()[0];
 			settings = videoTrack.getSettings();
 			console.log('New Current Settings:', settings.width, 'x', settings.height);
