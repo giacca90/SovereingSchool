@@ -27,10 +27,10 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	editado: boolean = false;
 	editar: Clase | null = null;
 	streamWebcam: MediaStream | null = null;
-	//tipoClase: number = 0;
 	m3u8Loaded: boolean = false;
 	player: Player | null = null;
 	ready: Subject<boolean> = new Subject<boolean>();
+	savedFiles: File[] = [];
 
 	constructor(
 		private route: ActivatedRoute,
@@ -50,6 +50,10 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				} else {
 					this.cursoService.getCurso(this.id_curso).then((curso) => {
 						this.curso = JSON.parse(JSON.stringify(curso));
+						// Si el curso no existe, redirige a la página de inicio
+						if (!this.curso) {
+							this.router.navigate(['']);
+						}
 					});
 				}
 			}),
@@ -180,6 +184,43 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		if (this.curso && this.curso.clases_curso) {
 			this.editar = new Clase(0, '', '', '', 0, '', this.curso.clases_curso?.length + 1, this.curso.id_curso);
 		}
+
+		// Recuperar imagenes del curso y del usuario para el componente WebOBS
+		if (this.curso && this.curso.imagen_curso) {
+			console.log('Imagen del curso:', this.curso.imagen_curso);
+			fetch(this.curso.imagen_curso).then((response) => {
+				response.blob().then((blob) => {
+					if (!this.curso) return;
+					const fileName = this.curso.imagen_curso.split('/').pop();
+					// Detectar el tipo MIME del Blob
+					const mimeType = blob.type || 'application/octet-stream';
+					if (fileName) {
+						const test = this.savedFiles?.find((file) => file.name === fileName);
+						if (!test) {
+							const file = new File([blob], fileName, { type: mimeType });
+							this.savedFiles?.push(file);
+						}
+					}
+				});
+			});
+		}
+
+		this.loginService.usuario?.foto_usuario.forEach((foto) => {
+			console.log('Foto del usuario:', foto);
+			fetch(foto).then((response) => {
+				response.blob().then((blob) => {
+					const fileName = foto.split('/').pop();
+					const mimeType = blob.type || 'application/octet-stream';
+					if (fileName) {
+						const test = this.savedFiles?.find((file) => file.name === fileName);
+						if (!test) {
+							const file = new File([blob], fileName, { type: mimeType });
+							this.savedFiles?.push(file);
+						}
+					}
+				});
+			});
+		});
 	}
 
 	guardarCambiosClase() {

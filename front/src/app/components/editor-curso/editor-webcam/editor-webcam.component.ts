@@ -36,8 +36,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 	tiempoGrabacion: string = '00:00:00';
 	ready: boolean | undefined;
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
-	@Input() savedFiles?: File[]; // Files guardados del usuario
-	@Input() savedPresets?: Map<string, { elements: VideoElement[]; shortcut: string }>; //Presets guardados del usuario
+	@Input() savedFiles?: File[] | null; // Files guardados del usuario
+	@Input() savedPresets?: Map<string, { elements: VideoElement[]; shortcut: string }> | null; //Presets guardados del usuario
 	@Input() readyObserve?: Observable<boolean>;
 	@Output() emision: EventEmitter<MediaStream | null> = new EventEmitter(); // Emisión de video y audio
 	@Output() savePresets: EventEmitter<Map<string, { elements: VideoElement[]; shortcut: string }>> = new EventEmitter(); // Guardar presets
@@ -77,7 +77,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		}
 
 		// Añadir presets recibidos (si hay)
-		if (this.savedPresets !== undefined) {
+		if (this.savedPresets) {
 			this.presets = this.savedPresets;
 		}
 
@@ -86,6 +86,17 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.readyObserve.subscribe((ready) => {
 				this.ready = ready;
 			});
+		}
+
+		console.log('Se recibieron archivos:', this.savedFiles);
+		// añadir los archivos recibidos desde la app (si hay)
+		if (this.savedFiles) {
+			this.staticContent = this.savedFiles;
+		}
+
+		// añadir los presets recibidos desde la app (si hay)
+		if (this.savedPresets) {
+			this.presets = this.savedPresets;
 		}
 	}
 
@@ -186,9 +197,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		// Detener todas las capturas de audio
 		this.audiosCapturas.forEach((track) => track.stop());
-
-		// Limpiar otros recursos si es necesario
-		// ...
 
 		// Eliminar el listener de eventos de teclado
 		window.removeEventListener('keydown', this.handleKeydown.bind(this));
@@ -1575,11 +1583,9 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			const moveElementDown = moveElement.querySelector('#moveElementDown') as HTMLButtonElement;
 			if (!moveElementUp || !moveElementDown) return;
 			moveElementUp.onclick = () => {
-				console.log('moveElementUp');
 				this.moveElementUp(elemento);
 			};
 			moveElementDown.onclick = () => {
-				console.log('moveElementDown');
 				this.moveElementDown(elemento);
 			};
 
@@ -1861,7 +1867,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 	// Función para dibujar las conexiones de audio
 	drawAudioConnections() {
 		setTimeout(() => {
-			console.log('drawAudioConnections: ' + this.audiosConnections.length);
 			if (this.audiosElements.length === 0) return;
 			const audios = document.getElementById('audios') as HTMLDivElement;
 			const audiosRect = audios.getBoundingClientRect();
@@ -1877,8 +1882,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			conexionesIzquierda.style.width = `${8 * this.audiosConnections.length}px`;
 			audiosList.style.width = audiosRect.width - 2 - 8 * this.audiosConnections.length + 'px';
 			this.audiosConnections.forEach((elemento, index) => {
-				console.log('elemento.idEntrada ' + index + ': ' + elemento.idEntrada);
-				console.log('elemento.idSalida ' + index + ': ' + elemento.idSalida);
+				//console.log('elemento.idEntrada ' + index + ': ' + elemento.idEntrada);
+				//console.log('elemento.idSalida ' + index + ': ' + elemento.idSalida);
 				const audioEntrada = document.getElementById('audio-level-' + elemento.idEntrada) as HTMLDivElement;
 				const audioSalida = document.getElementById('audio-level-' + elemento.idSalida) as HTMLDivElement;
 				if (!audioEntrada) {
@@ -1933,7 +1938,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	audioDown($event: MouseEvent): void {
 		if ($event.target instanceof HTMLInputElement) return;
-		console.log('audioDown');
 
 		const conexionesIzquierda = document.getElementById('conexiones-izquierda') as HTMLDivElement;
 
@@ -2038,7 +2042,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.calculaTiempoGrabacion();
 			}
 		} else {
-			console.log('!!no ready');
 			this.emitiendo = true;
 			this.calculaTiempoGrabacion();
 		}

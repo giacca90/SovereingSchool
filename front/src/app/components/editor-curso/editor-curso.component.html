@@ -91,7 +91,7 @@
 				</div>
 			}
 			@if (this.editar.tipo_clase === 2) {
-				<WebOBS class="m-2" (emision)="emiteWebcam($event)" [readyObserve]="this.ready"></WebOBS>
+				<WebOBS class="m-2" (emision)="emiteWebcam($event)" [readyObserve]="this.ready" [savedPresets]="null" [savedFiles]="this.savedFiles"></WebOBS>
 			}
 			<button id="button-guardar-clase" type="button" class="m-2 rounded-lg border border-black bg-transparent p-2" (click)="guardarCambiosClase()">Guardar Cambios</button>
 		</div>
