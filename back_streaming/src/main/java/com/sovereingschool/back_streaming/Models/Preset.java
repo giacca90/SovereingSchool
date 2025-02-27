@@ -25,4 +25,9 @@ public class Preset {
     public Preset(Long id_usuario) {
         this.id_usuario = id_usuario;
     }
+
+    public Preset(Long id_usuario, Map<String, PresetValue> presets) {
+        this.id_usuario = id_usuario;
+        this.presets = presets;
+    }
 }
