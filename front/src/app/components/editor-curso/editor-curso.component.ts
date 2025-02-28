@@ -585,4 +585,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	detenerEmision() {
 		this.streamingService.stopMediaStreaming();
 	}
+
+	savePresets(data: any) {
+		this.streamingService.savePresets(data);
+	}
 }

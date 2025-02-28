@@ -50,7 +50,7 @@
 			<div class="flex items-center">
 				<p class="mb-2 mt-2">Presets:</p>
 				@if (this.savedPresets !== undefined) {
-					<button class="m-2 rounded-lg border border-black bg-gray-400 p-2 hover:border-2">Guardar presets</button>
+					<button (click)="this.savePresetsFunction()" class="m-2 rounded-lg border border-black bg-gray-400 p-2 hover:border-2">Guardar presets</button>
 				}
 			</div>
 			<div id="presets" class="grid grid-cols-[repeat(auto-fill,minmax(45%,1fr))] gap-2">

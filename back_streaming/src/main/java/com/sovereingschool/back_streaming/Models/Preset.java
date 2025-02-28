@@ -17,6 +17,21 @@ public class Preset {
         private String shortcut;
     }
 
+    @Data
+    public static class VideoElement {
+        private String id;
+        private Object element;
+        private boolean painted;
+        private double scale;
+        private Position position;
+    }
+
+    @Data
+    public static class Position {
+        private int x;
+        private int y;
+    }
+
     @Id
     private String id;
     private Long id_usuario;

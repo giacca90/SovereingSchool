@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { VideoElement } from '../components/editor-curso/editor-webcam/editor-webcam.component';
 import { Clase } from '../models/Clase';
 import { CursosService } from './cursos.service';
 import { LoginService } from './login.service';
@@ -399,5 +400,15 @@ export class StreamingService {
 		if (this.ws?.OPEN) {
 			this.ws.close();
 		}
+	}
+
+	savePresets(presets: Map<string, { elements: VideoElement[]; shortcut: string }>) {
+		const presetsObj = Object.fromEntries(presets);
+		console.log('Presets:', presets);
+		console.log('Presets JSON:', JSON.stringify(presetsObj));
+		console.log('URL:', `${this.URL}/presets/save/${this.loginService.usuario?.id_usuario}`);
+		this.http.put(`${this.URL}/presets/save/${this.loginService.usuario?.id_usuario}`, JSON.stringify(presetsObj)).subscribe((response) => {
+			console.log('Respuesta:', response);
+		});
 	}
 }
