@@ -74,6 +74,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		// Añadir archivos recibidos (si hay)
 		if (this.savedFiles) {
 			this.staticContent = this.savedFiles;
+			setTimeout(() => this.loadFiles(this.staticContent), 100);
 		}
 
 		// Añadir presets recibidos (si hay)
