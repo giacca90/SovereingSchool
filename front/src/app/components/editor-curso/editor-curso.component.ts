@@ -10,7 +10,7 @@ import { CursosService } from '../../services/cursos.service';
 import { InitService } from '../../services/init.service';
 import { LoginService } from '../../services/login.service';
 import { StreamingService } from '../../services/streaming.service';
-import { EditorWebcamComponent } from '../editor-curso/editor-webcam/editor-webcam.component';
+import { EditorWebcamComponent, VideoElement } from '../editor-curso/editor-webcam/editor-webcam.component';
 
 @Component({
 	selector: 'app-editor-curso',
@@ -31,6 +31,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 	player: Player | null = null;
 	ready: Subject<boolean> = new Subject<boolean>();
 	savedFiles: File[] = [];
+	savedPresets: Map<string, { elements: VideoElement[]; shortcut: string }> = new Map();
 
 	constructor(
 		private route: ActivatedRoute,
@@ -72,6 +73,11 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				}
 			}),
 		);
+
+		this.streamingService.getPresets().subscribe((res) => {
+			this.savedPresets = new Map(Object.entries(res));
+			console.log('Presets recibidos:', this.savedPresets);
+		});
 	}
 
 	ngOnDestroy(): void {
@@ -220,6 +226,16 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 					}
 				});
 			});
+		});
+
+		// Recuperar los presets del usuario
+		this.streamingService.getPresets().subscribe((res) => {
+			try {
+				console.log('Presets recibidos:', res);
+				this.savedPresets = new Map(Object.entries(res));
+			} catch (error) {
+				console.error('Error al parsear los presets:', error);
+			}
 		});
 	}
 

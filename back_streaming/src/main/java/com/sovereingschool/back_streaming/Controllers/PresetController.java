@@ -39,8 +39,9 @@ public class PresetController {
     @GetMapping("/get/{id_usuario}")
     public ResponseEntity<?> getPresets(@PathVariable Long id_usuario) {
         try {
-            Map<String, Preset> result = this.usuarioPresetsService.getPresetsForUser(id_usuario);
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            Preset result = this.usuarioPresetsService.getPresetsForUser(id_usuario);
+            Map<String, PresetValue> presetsMap = result.getPresets();
+            return new ResponseEntity<>(presetsMap, HttpStatus.OK);
         } catch (Exception e) {
             System.err.println("Error en obtener presets para usuario " + id_usuario + ": " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

@@ -36,7 +36,7 @@ public class UsuarioPresetsService {
         }
     }
 
-    public Map<String, Preset> getPresetsForUser(Long id_usuario) {
+    public Preset getPresetsForUser(Long id_usuario) {
         return this.presetRepository.findByIdUsuario(id_usuario);
     }
 

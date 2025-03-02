@@ -97,7 +97,15 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		// añadir los presets recibidos desde la app (si hay)
 		if (this.savedPresets) {
+			console.log('Se recibieron presets:', this.savedPresets);
 			this.presets = this.savedPresets;
+			Array.from(this.presets.keys()).forEach((key) => {
+				const preset = this.presets.get(key);
+				preset?.elements.forEach((element) => {
+					console.log('Elemento:', document.getElementById(element.id));
+					element.element = document.getElementById(element.id);
+				});
+			});
 		}
 	}
 
@@ -1365,7 +1373,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		const mouseup = () => {
 			if (!this.canvas) return;
 			const elemento: VideoElement | undefined = this.videosElements.find((el) => el.id === ghostId.substring(6));
-			if (!elemento) return;
+			if (!elemento || !elemento.element) return;
 			const ghostRect = ghostDiv.getBoundingClientRect();
 			const result: VideoElement | undefined = this.paintInCanvas(elemento.element, ghostRect.width, ghostRect.height, ghostRect.left + ghostRect.width / 2, ghostRect.top + ghostRect.height / 2);
 			// Guardar datos en el objeto VideoElement
@@ -1476,7 +1484,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (name) {
 			const videoElements: VideoElement[] = [];
 			this.videosElements.forEach((elemento) => {
-				if (elemento.painted) {
+				if (elemento.painted && elemento.element) {
 					const newE: VideoElement = JSON.parse(JSON.stringify(elemento));
 					newE.element = elemento.element.cloneNode(true) as HTMLVideoElement;
 					if (elemento.element instanceof HTMLVideoElement && newE.element instanceof HTMLVideoElement) {
@@ -2075,7 +2083,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 // Interface para el elemento de video
 export interface VideoElement {
 	id: string;
-	element: HTMLElement;
+	element: HTMLElement | null;
 	painted: boolean;
 	scale: number;
 	position: { x: number; y: number } | null;

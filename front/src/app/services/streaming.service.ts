@@ -402,6 +402,10 @@ export class StreamingService {
 		}
 	}
 
+	getPresets() {
+		return this.http.get(`${this.URL}/presets/get/${this.loginService.usuario?.id_usuario}`, { responseType: 'json' });
+	}
+
 	savePresets(presets: Map<string, { elements: VideoElement[]; shortcut: string }>) {
 		const presetsObj = Object.fromEntries(presets);
 		console.log('Presets:', presets);

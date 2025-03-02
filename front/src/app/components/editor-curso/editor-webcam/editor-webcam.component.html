@@ -56,10 +56,11 @@
 			<div id="presets" class="grid grid-cols-[repeat(auto-fill,minmax(45%,1fr))] gap-2">
 				<!-- Preset Items -->
 				@for (presetName of this.presets.keys(); track presetName) {
-					<div class="relative !aspect-video max-h-[33vh] cursor-pointer rounded-lg border-black bg-white hover:border">
-						<p class="absolute top-2 z-30 w-full text-center text-sm text-white">{{ presetName }}</p>
-						<p class="absolute bottom-2 z-30 w-full text-center text-sm text-white">{{ this.presets.get(presetName)?.shortcut }}</p>
-						<div id="preset-{{ presetName }}" (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="relative h-full w-full justify-center"></div>
+					<div class="group relative !aspect-video max-h-[33vh] cursor-pointer rounded-lg border-black bg-white hover:border">
+						<div id="preset-{{ presetName }}" (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="relative h-full w-full justify-center group-hover:border-black">
+							<p class="absolute top-2 z-30 w-full text-center text-sm text-white group-hover:text-black">{{ presetName }}</p>
+							<p class="absolute bottom-2 z-30 w-full text-center text-sm text-white group-hover:text-black">{{ this.presets.get(presetName)?.shortcut }}</p>
+						</div>
 					</div>
 				}
 				<!-- Save Preset Button -->
