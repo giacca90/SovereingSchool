@@ -99,17 +99,11 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (this.savedPresets) {
 			console.log('Se recibieron presets:', this.savedPresets);
 			this.presets = this.savedPresets;
-			Array.from(this.presets.keys()).forEach((key) => {
-				const preset = this.presets.get(key);
-				preset?.elements.forEach((element) => {
-					console.log('Elemento:', document.getElementById(element.id));
-					element.element = document.getElementById(element.id);
-				});
-			});
 		}
 	}
 
 	ngAfterViewInit(): void {
+		console.log('After view init');
 		this.canvas = document.getElementById('salida') as HTMLCanvasElement;
 		this.context = this.canvas.getContext('2d');
 		let frameInterval = 1000 / this.canvasFPS; // Duración entre frames
@@ -191,6 +185,17 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (this.presets.size > 0) {
 			this.calculatePreset();
 		}
+
+		setTimeout(() => {
+			Array.from(this.presets.keys()).forEach((key) => {
+				const preset = this.presets.get(key);
+				preset?.elements.forEach((element) => {
+					console.log('Elemento:', document.getElementById(element.id));
+					element.element = document.getElementById(element.id);
+				});
+			});
+			this.calculatePreset();
+		}, 2000);
 	}
 
 	ngOnDestroy(): void {

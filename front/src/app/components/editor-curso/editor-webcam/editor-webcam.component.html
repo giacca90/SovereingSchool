@@ -56,17 +56,16 @@
 			<div id="presets" class="grid grid-cols-[repeat(auto-fill,minmax(45%,1fr))] gap-2">
 				<!-- Preset Items -->
 				@for (presetName of this.presets.keys(); track presetName) {
-					<div class="group relative !aspect-video max-h-[33vh] cursor-pointer rounded-lg border-black bg-white hover:border">
-						<div id="preset-{{ presetName }}" (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="relative h-full w-full justify-center group-hover:border-black">
-							<p class="absolute top-2 z-30 w-full text-center text-sm text-white group-hover:text-black">{{ presetName }}</p>
-							<p class="absolute bottom-2 z-30 w-full text-center text-sm text-white group-hover:text-black">{{ this.presets.get(presetName)?.shortcut }}</p>
-						</div>
+					<div class="group relative !aspect-video max-h-[33vh] cursor-pointer rounded-lg border border-black bg-white hover:border-2">
+						<div id="preset-{{ presetName }}" (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="relative h-full w-full justify-center group-hover:border-black"></div>
+						<p (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="absolute top-2 w-full text-center text-sm text-white">{{ presetName }}</p>
+						<p (click)="this.aplicaPreset(presetName)" (keydown.enter)="this.aplicaPreset(presetName)" tabindex="0" class="absolute bottom-2 w-full text-center text-sm text-white">{{ this.presets.get(presetName)?.shortcut }}</p>
 					</div>
 				}
 				<!-- Save Preset Button -->
-				<div (click)="guardaPreset()" tabindex="0" (keydown.enter)="guardaPreset()" class="relative flex !aspect-video max-h-[33vh] items-center justify-between overflow-hidden rounded-lg border-black bg-gray-400 px-2 hover:border">
+				<div (click)="guardaPreset()" tabindex="0" (keydown.enter)="guardaPreset()" class="group relative flex !aspect-video max-h-[33vh] items-center justify-between overflow-hidden rounded-lg border border-black bg-gray-400 px-2 hover:border-2">
 					<p class="truncate">Guardar preset actual</p>
-					<svg class="h-8 w-8 flex-shrink-0 text-gray-700 hover:text-black" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<svg class="h-8 w-8 flex-shrink-0 text-gray-700 group-hover:text-black" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 					</svg>
 				</div>
@@ -258,15 +257,15 @@
 		}
 
 		<div class="relative flex w-1/6 flex-col justify-between">
-			<div class="relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
+			<div class="group relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
 				<p class="p-2 text-center">Añadir pantalla</p>
-				<svg class="h-10 w-10 text-gray-700 hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<svg class="h-10 w-10 text-gray-700 group-hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
 			</div>
-			<div class="relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2" (click)="addFiles()" tabindex="0" (keydown.enter)="addFiles()">
+			<div class="group relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2" (click)="addFiles()" tabindex="0" (keydown.enter)="addFiles()">
 				<p class="p-2 text-center">Añadir archivo</p>
-				<svg class="h-10 w-10 text-gray-700 hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<svg class="h-10 w-10 text-gray-700 group-hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
 			</div>
