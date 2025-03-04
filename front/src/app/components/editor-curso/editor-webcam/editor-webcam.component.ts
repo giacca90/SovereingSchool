@@ -237,8 +237,10 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		devices.forEach((device) => {
 			if (device.kind === 'videoinput') {
-				this.videoDevices.push(device);
-				videoPromises.push(this.getVideoStream(device.deviceId));
+				if (!this.videoDevices.some((d) => d.deviceId === device.deviceId)) {
+					this.videoDevices.push(device);
+					videoPromises.push(this.getVideoStream(device.deviceId));
+				}
 			} else if (device.kind === 'audioinput' && device.deviceId !== 'default') {
 				this.audioDevices.push(device);
 				audioInputPromises.push(this.getAudioStream(device.deviceId));
