@@ -227,7 +227,7 @@ export class StreamingService {
 						const tooltip = document.createElement('div');
 						tooltip.id = 'tooltip';
 						tooltip.textContent = 'Haz click para copiar';
-						tooltip.classList.add('absolute', 'bg-black', 'text-white', 'text-xs', 'p-1', 'rounded', 'tooltip');
+						tooltip.classList.add('absolute', 'bg-black', 'text-white', 'text-xs', 'p-1', 'rounded-sm', 'tooltip');
 						// Posicionar el tooltip basado en la posición del ratón
 						tooltip.style.position = 'fixed'; // Usamos 'fixed' para que funcione con las coordenadas del mouse
 						tooltip.style.top = `${event.clientY - 30}px`; // Ajustar posición encima del ratón
@@ -263,7 +263,7 @@ export class StreamingService {
 						const tooltip = document.createElement('div');
 						tooltip.id = 'tooltip';
 						tooltip.textContent = 'Haz click para copiar';
-						tooltip.classList.add('absolute', 'bg-black', 'text-white', 'text-xs', 'p-1', 'rounded', 'tooltip');
+						tooltip.classList.add('absolute', 'bg-black', 'text-white', 'text-xs', 'p-1', 'rounded-sm', 'tooltip');
 						// Posicionar el tooltip basado en la posición del ratón
 						tooltip.style.position = 'fixed'; // Usamos 'fixed' para que funcione con las coordenadas del mouse
 						tooltip.style.top = `${event.clientY - 40}px`; // Ajustar posición encima del ratón

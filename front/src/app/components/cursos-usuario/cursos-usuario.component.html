@@ -1,4 +1,4 @@
-<div class="m-2 flex flex-grow flex-col items-center rounded-lg border border-black p-2">
+<div class="m-2 flex grow flex-col items-center rounded-lg border border-black p-2">
 	<h2 class="font-bold text-blue-500">Tus Cursos</h2>
 	<br />
 	@if (this.loginService.usuario) {
@@ -8,9 +8,9 @@
 			} @else {
 				@for (curso of this.loginService.usuario.cursos_usuario; track curso) {
 					<div class="flex w-full">
-						<div class="m-2 flex flex-grow rounded-lg border border-black p-2">
+						<div class="m-2 flex grow rounded-lg border border-black p-2">
 							<p>{{ curso.nombre_curso }}</p>
-							<p class="ml-2 flex-grow text-gray-500">{{ curso.descriccion_corta }}</p>
+							<p class="ml-2 grow text-gray-500">{{ curso.descriccion_corta }}</p>
 						</div>
 						@if (this.loginService.usuario.id_usuario !== null) {
 							<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['repro/' + this.loginService.usuario.id_usuario + '/' + curso.id_curso])">Ir al curso</button>
@@ -24,9 +24,9 @@
 			} @else {
 				@for (curso of this.cursoService.getCursosProfe(this.loginService.usuario); track curso) {
 					<div class="flex w-full">
-						<div class="m-2 flex flex-grow rounded-lg border border-black p-2">
+						<div class="m-2 flex grow rounded-lg border border-black p-2">
 							<p>{{ curso.nombre_curso }}</p>
-							<p class="ml-2 flex-grow text-gray-500">{{ curso.descriccion_corta }}</p>
+							<p class="ml-2 grow text-gray-500">{{ curso.descriccion_corta }}</p>
 						</div>
 						@if (this.loginService.usuario.id_usuario !== null) {
 							<button class="m-2 rounded-lg border border-black p-2" (click)="this.router.navigate(['editorCurso/' + curso.id_curso])">Editar este curso</button>

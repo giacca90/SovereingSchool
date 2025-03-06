@@ -1,4 +1,4 @@
-<div class="m-2 flex flex-grow flex-col items-center rounded-lg border border-black p-2">
+<div class="m-2 flex grow flex-col items-center rounded-lg border border-black p-2">
 	<h2 class="font-bold text-blue-500">Tu Perfil</h2>
 	<br />
 	@if (usuario) {
@@ -26,7 +26,7 @@
 					</div>
 				}
 			</div>
-			<div class="flex flex-grow flex-col items-center">
+			<div class="flex grow flex-col items-center">
 				<span>Nombre: </span>
 				@if (editable) {
 					<input class="border-2 border-black bg-transparent" id="nombre" type="text" placeholder="Tu nombre" [(ngModel)]="usuario.nombre_usuario" />
@@ -35,7 +35,7 @@
 				}
 				<br />
 				<span>Presentación: </span>
-				<div class="flex-grow">
+				<div class="grow">
 					@if (editable) {
 						<textarea class="w-full border-2 border-black bg-transparent p-2" id="presentacion" placeholder="Tu Presentación" maxlength="255" cols="64" rows="4" [(ngModel)]="usuario.presentacion"></textarea>
 					} @else {

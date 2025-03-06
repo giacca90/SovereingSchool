@@ -23,6 +23,7 @@
 		"@angular/router": "^19.2.1",
 		"@angular/ssr": "^19.2.1",
 		"@stomp/stompjs": "^7.0.0",
+		"@tailwindcss/postcss": "^4.0.11",
 		"@types/sockjs-client": "^1.5.4",
 		"@types/video.js": "^7.3.58",
 		"@videojs/http-streaming": "^3.15.0",
@@ -58,7 +59,12 @@
 		"postcss": "^8.5.3",
 		"prettier": "^3.5.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
-		"tailwindcss": "^3.4.17",
+		"tailwindcss": "^4.0.0",
 		"typescript": "~5.8.2"
+	},
+	"overrides": {
+		"@angular-devkit/build-angular": {
+			"tailwindcss": "^4.0.0"
+		}
 	}
 }
