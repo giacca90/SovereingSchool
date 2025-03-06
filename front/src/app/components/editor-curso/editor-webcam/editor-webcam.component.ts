@@ -182,10 +182,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		}
 
 		// Carga los presets recibidos (si hay)
-		if (this.presets.size > 0) {
-			this.calculatePreset();
-		}
-
 		setTimeout(() => {
 			Array.from(this.presets.keys()).forEach((key) => {
 				const preset = this.presets.get(key);

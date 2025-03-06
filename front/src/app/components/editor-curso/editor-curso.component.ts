@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
@@ -19,7 +19,7 @@ import { EditorWebcamComponent, VideoElement } from '../editor-curso/editor-webc
 	templateUrl: './editor-curso.component.html',
 	styleUrl: './editor-curso.component.css',
 })
-export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class EditorCursoComponent implements OnInit, OnDestroy {
 	private subscription: Subscription = new Subscription();
 	id_curso: number = 0;
 	curso: Curso | null = null;
@@ -271,6 +271,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		this.streamWebcam?.getTracks().forEach((track) => track.stop());
 		this.streamWebcam = null;
 		this.player?.dispose();
+		document.body.style.overflow = 'auto';
 	}
 
 	eliminaClase(clase: Clase) {
@@ -388,28 +389,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 		}
 	}
 
-	ngAfterViewChecked(): void {
-		if (this.editar) {
-			window.scrollTo(0, 0); // Subir la vista al inicio de la página
-			document.body.style.overflow = 'hidden';
-			const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
-			if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0 && this.editar.direccion_clase.endsWith('.m3u8')) {
-				this.player = videojs(videoPlayer, {
-					aspectRatio: '16:9',
-					controls: true,
-					autoplay: false,
-					preload: 'auto',
-				});
-				this.player.src({
-					src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
-					type: 'application/x-mpegURL',
-				});
-			}
-		} else {
-			document.body.style.overflow = 'auto';
-		}
-	}
-
 	cambiaTipoClase(tipo: number) {
 		if (!this.editar) return;
 		this.streamingService.closeConnections();
@@ -429,6 +408,21 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewChecked
 				videoButton.classList.add('text-blue-700');
 				this.streamWebcam?.getTracks().forEach((track) => track.stop());
 				this.streamWebcam = null;
+				window.scrollTo(0, 0); // Subir la vista al inicio de la página
+				document.body.style.overflow = 'hidden';
+				const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
+				if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0 && this.editar.direccion_clase.endsWith('.m3u8')) {
+					this.player = videojs(videoPlayer, {
+						aspectRatio: '16:9',
+						controls: true,
+						autoplay: false,
+						preload: 'auto',
+					});
+					this.player.src({
+						src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
+						type: 'application/x-mpegURL',
+					});
+				}
 				break;
 			}
 			case 1: {
