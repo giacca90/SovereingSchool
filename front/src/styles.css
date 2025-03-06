@@ -1,17 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
 @import 'tailwindcss';
 
-@theme {
-  --animate-slide-in: slideIn 40s ease-out infinite;
+@keyframes slideIn {
+	0% {
+		transform: translateX(1300%);
+	}
+	100% {
+		transform: translateX(-200%);
+	}
+}
 
-  @keyframes slideIn {
-    0% {
-      transform: translateX(1300%);
-    }
-    100% {
-      transform: translateX(-200%);
-    }
-  }
+.animate-slideIn {
+	animation: slideIn 40s ease-out infinite;
 }
 
 /*
@@ -23,13 +23,13 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentColor);
+	}
 }
 
 html,
