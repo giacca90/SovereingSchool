@@ -386,7 +386,7 @@ public class StreamingService {
             ffprobeThread = new Thread(() -> {
                 BufferedOutputStream ffprobeInput = new BufferedOutputStream(process.getOutputStream());
                 try {
-                    byte[] buffer = new byte[inputStream.available() * 100];
+                    byte[] buffer = new byte[inputStream.available() < 1000 ? 1000 : inputStream.available()];
                     int bytesRead;
                     while ((bytesRead = inputStream.read(buffer)) != -1) {
                         System.out.println("Escribiendo en FFprobe: " + bytesRead);

@@ -237,6 +237,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				console.error('Error al parsear los presets:', error);
 			}
 		});
+
+		this.cambiaTipoClase(0);
 	}
 
 	guardarCambiosClase() {
@@ -390,82 +392,75 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	cambiaTipoClase(tipo: number) {
-		if (!this.editar) return;
 		this.streamingService.closeConnections();
-		const videoButton: HTMLButtonElement = document.getElementById('claseVideo') as HTMLButtonElement;
-		const obsButton: HTMLButtonElement = document.getElementById('claseOBS') as HTMLButtonElement;
-		const webcamButton: HTMLButtonElement = document.getElementById('claseWebCam') as HTMLButtonElement;
-		videoButton.classList.remove('text-blue-700');
-		obsButton.classList.remove('text-blue-700');
-		webcamButton.classList.remove('text-blue-700');
+		setTimeout(() => {
+			if (!this.editar) return;
+			const videoButton: HTMLButtonElement = document.getElementById('claseVideo') as HTMLButtonElement;
+			const obsButton: HTMLButtonElement = document.getElementById('claseOBS') as HTMLButtonElement;
+			const webcamButton: HTMLButtonElement = document.getElementById('claseWebCam') as HTMLButtonElement;
+			if (videoButton) {
+				videoButton.classList.remove('text-blue-700');
+			}
+			if (obsButton) {
+				obsButton.classList.remove('text-blue-700');
+			}
+			if (webcamButton) {
+				webcamButton.classList.remove('text-blue-700');
+			}
+			window.scrollTo(0, 0); // Subir la vista al inicio de la página
+			document.body.style.overflow = 'hidden';
 
-		this.player?.dispose();
-		this.player = null;
+			this.player?.dispose();
+			this.player = null;
 
-		switch (tipo) {
-			case 0: {
-				this.editar.tipo_clase = 0;
-				videoButton.classList.add('text-blue-700');
-				this.streamWebcam?.getTracks().forEach((track) => track.stop());
-				this.streamWebcam = null;
-				window.scrollTo(0, 0); // Subir la vista al inicio de la página
-				document.body.style.overflow = 'hidden';
-				const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
-				if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0 && this.editar.direccion_clase.endsWith('.m3u8')) {
-					this.player = videojs(videoPlayer, {
-						aspectRatio: '16:9',
-						controls: true,
-						autoplay: false,
-						preload: 'auto',
-					});
-					this.player.src({
-						src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
-						type: 'application/x-mpegURL',
-					});
+			switch (tipo) {
+				case 0: {
+					this.editar.tipo_clase = 0;
+					videoButton.classList.add('text-blue-700');
+					this.streamWebcam?.getTracks().forEach((track) => track.stop());
+					this.streamWebcam = null;
+					break;
 				}
-				break;
+				case 1: {
+					this.editar.tipo_clase = 1;
+					obsButton.classList.add('text-blue-700');
+					this.streamWebcam?.getTracks().forEach((track) => track.stop());
+					this.streamWebcam = null;
+					this.startOBS();
+					break;
+				}
+				case 2: {
+					this.editar.tipo_clase = 2;
+					webcamButton.classList.add('text-blue-700');
+					this.streamWebcam?.getTracks().forEach((track) => track.stop());
+					this.streamWebcam = null;
+					break;
+				}
 			}
-			case 1: {
-				this.editar.tipo_clase = 1;
-				obsButton.classList.add('text-blue-700');
-				this.streamWebcam?.getTracks().forEach((track) => track.stop());
-				this.streamWebcam = null;
-				this.startOBS();
-				break;
-			}
-			case 2: {
-				this.editar.tipo_clase = 2;
-				webcamButton.classList.add('text-blue-700');
-				this.streamWebcam?.getTracks().forEach((track) => track.stop());
-				this.streamWebcam = null;
-				setTimeout(() => this.startMedia(), 300);
-				break;
-			}
-		}
+		}, 100);
 	}
 
-	async startMedia() {
-		const status = document.getElementById('status') as HTMLParagraphElement;
-		const video = document.getElementById('webcam') as HTMLVideoElement;
-		const audioLevel = document.getElementById('audio-level') as HTMLDivElement;
-
-		if (status && video && audioLevel) {
-			try {
-				// Solicitar acceso a la cámara y micrófono
-				this.streamWebcam = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-
-				// Mostrar el stream de video en el elemento <video>
-				video.srcObject = this.streamWebcam;
-
-				// Configurar visualización de audio
-				this.visualizeAudio(this.streamWebcam, audioLevel);
-
-				status.textContent = 'Acceso concedido a la cámara y el micrófono.';
-			} catch (err) {
-				console.error('Error al obtener acceso:', err);
-				status.textContent = 'Error al acceder a la cámara y el micrófono: ' + err;
+	startVideoJS() {
+		setTimeout(() => {
+			if (!this.editar) return;
+			window.scrollTo(0, 0); // Subir la vista al inicio de la página
+			document.body.style.overflow = 'hidden';
+			const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
+			if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0 && this.editar.direccion_clase.endsWith('.m3u8')) {
+				this.player = videojs(videoPlayer, {
+					aspectRatio: '16:9',
+					controls: true,
+					autoplay: false,
+					preload: 'auto',
+				});
+				this.player.src({
+					src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
+					type: 'application/x-mpegURL',
+				});
+			} else {
+				console.error('No se pudo obtener video.js');
 			}
-		}
+		}, 100);
 	}
 
 	visualizeAudio(stream: MediaStream, audioLevel: HTMLDivElement) {
