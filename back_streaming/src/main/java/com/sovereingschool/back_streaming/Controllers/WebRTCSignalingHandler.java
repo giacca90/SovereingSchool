@@ -102,9 +102,9 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
 
         UserStreams userStreams = userSessions.computeIfAbsent(session.getId(), key -> {
             try {
-                PipedInputStream ffprobeInputStream = new PipedInputStream(payload.length * 100);
+                PipedInputStream ffprobeInputStream = new PipedInputStream(1024 * 1024);
                 PipedOutputStream ffprobeOutputStream = new PipedOutputStream(ffprobeInputStream);
-                PipedInputStream ffmpegInputStream = new PipedInputStream(payload.length * 100);
+                PipedInputStream ffmpegInputStream = new PipedInputStream(1024 * 1024);
                 PipedOutputStream ffmpegOutputStream = new PipedOutputStream(ffmpegInputStream);
                 startFFmpegProcessForUser(this.sessionIdToStreamId.remove(session.getId()), ffprobeInputStream,
                         ffmpegInputStream);

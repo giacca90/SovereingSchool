@@ -14,7 +14,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 	canvasFPS = 30;
 	isResolutionSelectorVisible = false;
 	videoDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de video
-	videoStream: MediaStream[] = []; // Lista de flujos de video
+	streams: MediaStream[] = []; // Lista de streams para el destroy
 	audioDevices: MediaDeviceInfo[] = []; // Lista de dispositivos de audio
 	audiosCapturas: MediaStreamTrack[] = []; // Lista de capturas de audio
 	audiosArchivos: string[] = []; // Lista de archivos de audio de archivos
@@ -196,7 +196,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	ngOnDestroy(): void {
 		// Detener todos los flujos de video
-		this.videoStream.forEach((stream) => {
+		this.streams.forEach((stream) => {
 			stream.getTracks().forEach((track) => track.stop());
 		});
 
@@ -367,7 +367,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			}
 
 			stream = await navigator.mediaDevices.getUserMedia(constraints);
-			this.videoStream.push(stream);
+			this.streams.push(stream);
 			videoTrack = stream.getVideoTracks()[0];
 			settings = videoTrack.getSettings();
 			console.log('New Current Settings:', settings.width, 'x', settings.height);
@@ -401,6 +401,8 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			const stream = await navigator.mediaDevices.getUserMedia({
 				audio: { deviceId: { exact: deviceId } },
 			});
+
+			this.streams.push(stream);
 
 			const audioTrack = stream.getAudioTracks()[0];
 			const settings = audioTrack.getSettings();
