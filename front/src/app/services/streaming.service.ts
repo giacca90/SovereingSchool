@@ -37,16 +37,10 @@ export class StreamingService {
 	 * @param clase Objeto Clase
 	 */
 	async emitirWebcam(stream: MediaStream, clase: Clase | null) {
-		const status = document.getElementById('status') as HTMLParagraphElement;
-
 		if (!window.WebSocket) {
 			console.error('WebSocket no es compatible con este navegador.');
-			if (status) {
-				status.textContent = 'WebSocket no es compatible con este navegador.';
-			}
 			return;
 		}
-
 		// Abrir conexión WebSocket
 		this.ws = new WebSocket(this.webSocketUrlWebcam);
 		this.mediaRecorder = new MediaRecorder(stream, {
@@ -62,12 +56,14 @@ export class StreamingService {
 
 				// Comenzar a grabar y enviar los datos
 				if (this.mediaRecorder) {
-					this.mediaRecorder.start(200); // Fragmentos de 200 ms
+					console.log('frame in service: ' + this.mediaRecorder?.stream.getVideoTracks()[0].getSettings().frameRate);
+					this.mediaRecorder.start(100); // Fragmentos de 100 ms
 					console.log('Grabación iniciada.');
 
 					this.mediaRecorder.ondataavailable = (event) => {
 						if (event.data.size > 0) {
-							this.ws?.send(event.data);
+							const blob = new Blob([event.data], { type: 'video/webm' });
+							this.ws?.send(blob);
 						}
 					};
 				}
@@ -98,23 +94,14 @@ export class StreamingService {
 
 		this.mediaRecorder.onstop = () => {
 			console.log('Grabación detenida.');
-			if (status) {
-				status.textContent = 'Grabación detenida.';
-			}
 		};
 
 		this.mediaRecorder.onerror = (event) => {
 			console.error('Error en MediaRecorder:', event);
-			if (status) {
-				status.textContent = 'Error en MediaRecorder: ' + event;
-			}
 		};
 
 		this.ws.onopen = () => {
 			console.log('Conexión WebSocket establecida.');
-			if (status) {
-				status.textContent = 'Conexión WebSocket establecida. Enviando id del usuario...';
-			}
 			// Enviar el ID del usuario al servidor
 			const message = { type: 'userId', userId: this.loginService.usuario?.id_usuario };
 			this.ws?.send(JSON.stringify(message));
@@ -122,9 +109,6 @@ export class StreamingService {
 
 		this.ws.onerror = (error) => {
 			console.error('Error en WebSocket:', error);
-			if (status) {
-				status.textContent = 'Error en WebSocket: ' + error;
-			}
 			this.enGrabacion = false;
 		};
 
@@ -133,10 +117,6 @@ export class StreamingService {
 			if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
 				this.mediaRecorder.stop();
 			}
-			if (status) {
-				status.textContent = 'Conexión WebSocket cerrada.';
-			}
-
 			this.enGrabacion = false;
 		};
 	}
@@ -391,7 +371,7 @@ export class StreamingService {
 		} else {
 			console.error('No se pudo detener WebRTC');
 			if (status) {
-				status.textContent = 'No se pudo detener WenRTC';
+				status.textContent = 'No se pudo detener WebRTC';
 			}
 		}
 	}

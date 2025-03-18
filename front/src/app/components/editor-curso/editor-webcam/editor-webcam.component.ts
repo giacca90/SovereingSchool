@@ -35,6 +35,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 	emitiendo: boolean = false;
 	tiempoGrabacion: string = '00:00:00';
 	ready: boolean | undefined;
+	private drawInterval: any;
 	@ViewChildren('videoElement') videoElements!: QueryList<ElementRef<HTMLVideoElement>>;
 	@Input() savedFiles?: File[] | null; // Files guardados del usuario
 	@Input() savedPresets?: Map<string, { elements: VideoElement[]; shortcut: string }> | null; //Presets guardados del usuario
@@ -89,7 +90,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			});
 		}
 
-		console.log('Se recibieron archivos:', this.savedFiles);
 		// añadir los archivos recibidos desde la app (si hay)
 		if (this.savedFiles) {
 			this.staticContent = this.savedFiles;
@@ -97,45 +97,32 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		// añadir los presets recibidos desde la app (si hay)
 		if (this.savedPresets) {
-			console.log('Se recibieron presets:', this.savedPresets);
 			this.presets = this.savedPresets;
 		}
 	}
 
 	ngAfterViewInit(): void {
-		console.log('After view init');
 		this.canvas = document.getElementById('salida') as HTMLCanvasElement;
 		this.context = this.canvas.getContext('2d');
-		let frameInterval = 1000 / this.canvasFPS; // Duración entre frames
-		let lastFrameTime = 0;
 
-		const drawFrame = (currentTime: number) => {
+		const drawFrame = () => {
 			if (!this.canvas || !this.context) return;
-			frameInterval = 1000 / this.canvasFPS;
-			const deltaTime = currentTime - lastFrameTime;
-
-			if (deltaTime >= frameInterval) {
-				lastFrameTime = currentTime - (deltaTime % frameInterval); // Corrección para mantener sincronización
-
-				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-				this.videosElements.forEach((elemento) => {
-					if (!elemento.painted || !elemento.position || !this.context) return;
-					if (elemento.element instanceof HTMLVideoElement) {
-						const videoWidth = elemento.element.videoWidth * elemento.scale;
-						const videoHeight = elemento.element.videoHeight * elemento.scale;
-						this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
-					} else if (elemento.element instanceof HTMLImageElement) {
-						const imageWidth = elemento.element.naturalWidth * elemento.scale;
-						const imageHeight = elemento.element.naturalHeight * elemento.scale;
-						this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, imageWidth, imageHeight);
-					}
-				});
-			}
-
-			requestAnimationFrame(drawFrame);
+			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.videosElements.forEach((elemento) => {
+				if (!elemento.painted || !elemento.position || !this.context) return;
+				if (elemento.element instanceof HTMLVideoElement) {
+					const videoWidth = elemento.element.videoWidth * elemento.scale;
+					const videoHeight = elemento.element.videoHeight * elemento.scale;
+					this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
+				} else if (elemento.element instanceof HTMLImageElement) {
+					const imageWidth = elemento.element.naturalWidth * elemento.scale;
+					const imageHeight = elemento.element.naturalHeight * elemento.scale;
+					this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, imageWidth, imageHeight);
+				}
+			});
 		};
 
-		requestAnimationFrame(drawFrame);
+		this.drawInterval = setInterval(drawFrame, 1000 / this.canvasFPS);
 
 		// Inicia a mostrar el audio de grabación
 		const audioGrabacion = document.getElementById('audio-level-recorder') as HTMLDivElement;
@@ -186,7 +173,6 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			Array.from(this.presets.keys()).forEach((key) => {
 				const preset = this.presets.get(key);
 				preset?.elements.forEach((element) => {
-					console.log('Elemento:', document.getElementById(element.id));
 					element.element = document.getElementById(element.id);
 				});
 			});
@@ -877,6 +863,27 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	cambiarFPS(fps: string) {
 		this.canvasFPS = parseInt(fps);
+		if (this.drawInterval) {
+			clearInterval(this.drawInterval);
+		}
+
+		const drawFrame = () => {
+			if (!this.canvas || !this.context) return;
+			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.videosElements.forEach((elemento) => {
+				if (!elemento.painted || !elemento.position || !this.context) return;
+				if (elemento.element instanceof HTMLVideoElement) {
+					const videoWidth = elemento.element.videoWidth * elemento.scale;
+					const videoHeight = elemento.element.videoHeight * elemento.scale;
+					this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, videoWidth, videoHeight);
+				} else if (elemento.element instanceof HTMLImageElement) {
+					const imageWidth = elemento.element.naturalWidth * elemento.scale;
+					const imageHeight = elemento.element.naturalHeight * elemento.scale;
+					this.context.drawImage(elemento.element, elemento.position.x, elemento.position.y, imageWidth, imageHeight);
+				}
+			});
+		};
+		this.drawInterval = setInterval(drawFrame, 1000 / this.canvasFPS);
 	}
 
 	// Empieza el arrastre de un elemento
@@ -2048,6 +2055,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 	emitir() {
 		if (!this.canvas) return;
 		const videoStream = this.canvas.captureStream(this.canvasFPS).getVideoTracks()[0];
+		console.log('Constrain: ' + videoStream.getSettings().frameRate);
 		const audioStream = this.mixedAudioDestination.stream.getAudioTracks()[0];
 		this.emision.emit(new MediaStream([videoStream, audioStream]));
 		if (this.ready !== undefined) {

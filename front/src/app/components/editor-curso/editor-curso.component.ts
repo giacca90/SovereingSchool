@@ -73,11 +73,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				}
 			}),
 		);
-
-		this.streamingService.getPresets().subscribe((res) => {
-			this.savedPresets = new Map(Object.entries(res));
-			console.log('Presets recibidos:', this.savedPresets);
-		});
 	}
 
 	ngOnDestroy(): void {

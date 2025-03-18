@@ -80,16 +80,15 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             try {
                 session.sendMessage(new TextMessage("{\"type\":\"streamId\",\"streamId\":\"" + streamId + "\"}"));
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.err.println("Error al enviar streamId: " + e.getMessage());
             }
         } else if (payload.contains("detenerStreamWebcam")) {
             String streamId = this.extractStreamId(payload);
             try {
                 this.streamingService.stopFFmpegProcessForUser(streamId);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.err.println(
+                        "Error al detener el proceso FFmpeg para el usuario " + streamId + ": " + e.getMessage());
             }
         }
 
@@ -130,6 +129,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 userStreams.getFFprobeOutputStream().write(payload.clone());
                 userStreams.getFFprobeOutputStream().flush();
             } catch (IOException e) {
+                userStreams.getFFprobeOutputStream().close();
             }
 
             // Escribir en el flujo de FFmpeg
@@ -137,7 +137,9 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 userStreams.getFFmpegOutputStream().write(payload.clone());
                 userStreams.getFFmpegOutputStream().flush();
             } catch (IOException e) {
+                System.err.println("Error al escribir en el flujo de FFmpeg: " + e.getMessage());
             }
+
         } catch (Exception e) {
             System.err.println("Error general al escribir en los flujos: " + e.getMessage());
             try {
@@ -163,8 +165,6 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 Thread currentThread = Thread.currentThread();
                 ffmpegThreads.put(userId, currentThread); // Añadir el hilo al mapa
 
-            } catch (IOException e) {
-                System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             } catch (Exception e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }
@@ -195,10 +195,8 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             try {
                 jsonNode = objectMapper.readTree(payload);
                 return jsonNode.get("streamId").asText();
-            } catch (JsonMappingException e) {
-                e.printStackTrace();
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                System.err.println("Error al extraer streamId: " + e.getMessage());
             }
         }
         return null;

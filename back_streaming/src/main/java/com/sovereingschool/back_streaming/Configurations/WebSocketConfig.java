@@ -48,8 +48,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
 
         // Incrementar tamaño del buffer para manejar mensajes grandes
-        container.setMaxTextMessageBufferSize(512 * 1024); // 512 KB para mensajes de texto
-        container.setMaxBinaryMessageBufferSize(512 * 1024); // 512 KB para mensajes binarios
+        container.setMaxTextMessageBufferSize(1024 * 1024); // 512 KB para mensajes de texto
+        container.setMaxBinaryMessageBufferSize(1024 * 1024); // 512 KB para mensajes binarios
 
         // Configurar tiempo de espera y heartbeats
         container.setAsyncSendTimeout(30_000L); // 30 segundos para enviar mensajes asíncronos

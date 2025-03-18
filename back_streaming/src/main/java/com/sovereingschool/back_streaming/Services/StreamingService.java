@@ -159,7 +159,7 @@ public class StreamingService {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println("FFmpeg: " + line);
+                    System.err.println("FFmpeg: " + line);
                 }
             } catch (IOException e) {
                 System.err.println("Error leyendo salida de FFmpeg: " + e.getMessage());
@@ -170,7 +170,7 @@ public class StreamingService {
         // Escribir datos en el proceso (solo WebCam)
         if (inputStream instanceof PipedInputStream && ffmpegInputStream != null) {
             InputStream inStream = (InputStream) ffmpegInputStream;
-            byte[] buffer = new byte[inStream.available() > 50 ? inStream.available() * 100 : 50000];
+            byte[] buffer = new byte[1024 * 1024];
             int bytesRead;
             while ((bytesRead = inStream.read(buffer)) != -1) {
                 System.out.println("Escribiendo en FFmpeg: " + bytesRead);
@@ -427,6 +427,7 @@ public class StreamingService {
             }
             break;
         }
+
         if (ffprobeThread != null) {
             ffprobeThread.join();
         }
