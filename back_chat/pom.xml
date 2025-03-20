@@ -107,7 +107,7 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webflux</artifactId>
 			<scope>test</scope>
-			<version>6.2.4</version>
+			<version>6.2.5</version>
 		</dependency>
 
 		<dependency>
