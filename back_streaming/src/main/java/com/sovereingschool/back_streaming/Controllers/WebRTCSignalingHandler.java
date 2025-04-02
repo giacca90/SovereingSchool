@@ -138,6 +138,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 userStreams.getFFmpegOutputStream().flush();
             } catch (IOException e) {
                 System.err.println("Error al escribir en el flujo de FFmpeg: " + e.getMessage());
+                userStreams.getFFmpegOutputStream().close();
             }
 
         } catch (Exception e) {
