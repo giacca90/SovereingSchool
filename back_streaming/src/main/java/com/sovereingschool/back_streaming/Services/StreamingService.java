@@ -483,57 +483,11 @@ public class StreamingService {
         filters.add(filtro);
 
         for (int i = 0; i < resolutionPairs.size(); i++) {
-            int Width = resolutionPairs.get(i).getKey();
-            int Height = resolutionPairs.get(i).getValue();
             int fpsn = Integer.parseInt(fps);
-
-            // Calculamos el área del video (ancho * alto)
-            int videoArea = Width * Height;
-            /*
-             * // Calculamos el bitrate según la resolución y fps (valores rebajados para
-             * // compatibilidad)
-             * String videoBitrate = (videoArea >= 3840 * 2160)
-             * ? (fpsn <= 30 ? "10M" : (fpsn <= 60 ? "15M" : (fpsn <= 90 ? "20M" : "25M")))
-             * : // 4K
-             * (videoArea >= 2560 * 1440)
-             * ? (fpsn <= 30 ? "6M" : (fpsn <= 60 ? "9M" : (fpsn <= 90 ? "12M" : "15M")))
-             * : // 1440p
-             * (videoArea >= 1920 * 1080)
-             * ? (fpsn <= 30 ? "4M" : (fpsn <= 60 ? "6M" : (fpsn <= 90 ? "8M" : "10M")))
-             * : // 1080p
-             * (videoArea >= 1280 * 720) ? (fpsn <= 30 ? "2.5M"
-             * : (fpsn <= 60 ? "3.5M" : (fpsn <= 90 ? "4.5M" : "5.5M"))) : // 720p
-             * (videoArea >= 854 * 480) ? (fpsn <= 30 ? "1M"
-             * : (fpsn <= 60 ? "1.4M" : (fpsn <= 90 ? "1.8M" : "2M"))) : // 480p
-             * (videoArea >= 640 * 360) ? (fpsn <= 30 ? "800k"
-             * : (fpsn <= 60 ? "1M" : (fpsn <= 90 ? "1.2M" : "1.4M"))) : // 360p
-             * (fpsn <= 30 ? "500k"
-             * : (fpsn <= 60 ? "600k"
-             * : (fpsn <= 90 ? "700k" : "800k"))); // 240p
-             * // o
-             * // menos
-             */
-            // Calculamos el -level según la resolución y fps
-            String level = (videoArea >= 3840 * 2160) ? (fpsn <= 30 ? "6.0" : (fpsn <= 60 ? "6.1" : "6.2")) : // 4K
-                    (videoArea >= 2560 * 1440) ? (fpsn <= 30 ? "5.2" : (fpsn <= 60 ? "6.0" : "6.1")) : // 1440p
-                            (videoArea >= 1920 * 1080) ? (fpsn <= 30 ? "5.0" : (fpsn <= 60 ? "5.1" : "5.2")) : // 1080p
-                                    (videoArea >= 1280 * 720) ? (fpsn <= 30 ? "4.1" : (fpsn <= 60 ? "4.2" : "5.0")) : // 720p
-                                            (videoArea >= 854 * 480)
-                                                    ? (fpsn <= 30 ? "3.1" : (fpsn <= 60 ? "4.0" : "4.1"))
-                                                    : // 480p
-                                                    (videoArea >= 640 * 360)
-                                                            ? (fpsn <= 30 ? "3.0" : (fpsn <= 60 ? "3.1" : "3.2"))
-                                                            : // 360p
-                                                            "2.0"; // 240p o menos
 
             filters.addAll(Arrays.asList(
                     "-map", "[v" + (i + 1) + "out]",
                     "-c:v:" + i, "libx264",
-                    "-level:v:" + i, level,
-                    // "-b:v:" + i, videoBitrate,
-                    // "-maxrate:v:" + i, videoBitrate,
-                    // "-minrate:v:" + i, videoBitrate,
-                    // "-bufsize:v:" + i, videoBitrate,
                     "-preset", preset,
                     "-g", String.valueOf(fps), // Conversión explícita de fps a String
                     "-sc_threshold", "0",
@@ -558,7 +512,7 @@ public class StreamingService {
         // Crea el comando FFmpeg
         List<String> ffmpegCommand = new ArrayList<>();
         ffmpegCommand = new ArrayList<>(List.of(
-                "ffmpeg", "-loglevel", "warning", "-vsync", "cfr"));
+                "ffmpeg", "-loglevel", "warning"));
         if (live) {
             ffmpegCommand.add("-re");
         }
