@@ -41,6 +41,13 @@ export class StreamingService {
 			console.error('WebSocket no es compatible con este navegador.');
 			return;
 		}
+
+		// Obterer lod datos del mediaStream
+		const width = stream.getVideoTracks()[0].getSettings().width;
+		const height = stream.getVideoTracks()[0].getSettings().height;
+		const fps = stream.getVideoTracks()[0].getSettings().frameRate;
+		if (!width || !height || !fps) return;
+
 		// Abrir conexión WebSocket
 		this.ws = new WebSocket(this.webSocketUrlWebcam);
 		this.mediaRecorder = new MediaRecorder(stream, {
@@ -57,7 +64,7 @@ export class StreamingService {
 				// Comenzar a grabar y enviar los datos
 				if (this.mediaRecorder) {
 					console.log('frame in service: ' + this.mediaRecorder?.stream.getVideoTracks()[0].getSettings().frameRate);
-					this.mediaRecorder.start(100); // Fragmentos de 100 ms
+					this.mediaRecorder.start(fps * 0.1); // Fragmentos de 100 ms
 					console.log('Grabación iniciada.');
 
 					this.mediaRecorder.ondataavailable = (event) => {
@@ -103,7 +110,7 @@ export class StreamingService {
 		this.ws.onopen = () => {
 			console.log('Conexión WebSocket establecida.');
 			// Enviar el ID del usuario al servidor
-			const message = { type: 'userId', userId: this.loginService.usuario?.id_usuario };
+			const message = { type: 'userId', userId: this.loginService.usuario?.id_usuario, videoSettings: { width: width, height: height, fps: fps } };
 			this.ws?.send(JSON.stringify(message));
 		};
 

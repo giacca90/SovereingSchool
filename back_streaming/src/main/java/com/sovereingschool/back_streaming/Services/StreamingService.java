@@ -76,7 +76,7 @@ public class StreamingService {
                     }
                     List<String> ffmpegCommand = null;
                     try {
-                        ffmpegCommand = this.creaComandoFFmpeg(destino.getAbsolutePath(), false, null);
+                        ffmpegCommand = this.creaComandoFFmpeg(destino.getAbsolutePath(), false, null, null);
                     } catch (IOException | InterruptedException e) {
                         System.err.println("Error al generar el comando FFmpeg: " + e.getMessage());
                     }
@@ -119,8 +119,10 @@ public class StreamingService {
      * @param inputStream
      * @throws Exception
      */
-    public void startLiveStreamingFromStream(String userId, Object inputStream, PipedInputStream ffmpegInputStream)
+    public void startLiveStreamingFromStream(String[] streamIdAndSettings, Object inputStream,
+            PipedInputStream ffmpegInputStream)
             throws Exception {
+        String userId = streamIdAndSettings[0];
         Path outputDir = baseUploadDir.resolve(userId);
         System.out.println("Salida: " + outputDir);
 
@@ -135,10 +137,14 @@ public class StreamingService {
         List<String> ffmpegCommand = null;
         if (inputStream instanceof PipedInputStream) {
             inputSpecifier = "pipe:0"; // Entrada desde el pipe
-            ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, (InputStream) inputStream);
+            ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, (InputStream) inputStream,
+                    streamIdAndSettings);
+        } else if (inputStream == null) {
+            inputSpecifier = "pipe:0"; // Entrada desde el pipe
+            ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, ffmpegInputStream, streamIdAndSettings);
         } else if (inputStream instanceof String) {
             inputSpecifier = "rtmp://localhost:8060/live/" + userId;// Entrada desde una URL RTMP
-            ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, null);
+            ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, null, streamIdAndSettings);
         } else {
             throw new IllegalArgumentException("Fuente de entrada no soportada");
         }
@@ -168,7 +174,7 @@ public class StreamingService {
         logReader.start();
 
         // Escribir datos en el proceso (solo WebCam)
-        if (inputStream instanceof PipedInputStream && ffmpegInputStream != null) {
+        if (inputStream instanceof PipedInputStream || inputStream == null && ffmpegInputStream != null) {
             InputStream inStream = (InputStream) ffmpegInputStream;
             byte[] buffer = new byte[1024 * 1024];
             int bytesRead;
@@ -364,85 +370,94 @@ public class StreamingService {
      * @throws IOException
      * @throws InterruptedException
      */
-    private List<String> creaComandoFFmpeg(String inputFilePath, Boolean live, InputStream inputStream)
+    private List<String> creaComandoFFmpeg(String inputFilePath, Boolean live, InputStream inputStream,
+            String[] streamIdAndSettings)
             throws IOException, InterruptedException {
         System.out.println("Generando comando FFmpeg para " + inputFilePath);
         System.out.println("Live: " + live);
         String hls_playlist_type = live ? "event" : "vod";
         String hls_flags = live ? "independent_segments+append_list+program_date_time" : "independent_segments";
         String preset = live ? "veryfast" : "fast";
+        String width = null;
+        String height = null;
+        String fps = null;
+        if (streamIdAndSettings != null) {
+            width = streamIdAndSettings[1];
+            height = streamIdAndSettings[2];
+            fps = streamIdAndSettings[3];
+        }
         // Obtener la resolución del video
-        ProcessBuilder processBuilder = new ProcessBuilder("ffprobe",
-                "-v", "error",
-                "-select_streams", "v:0",
-                "-show_entries", "stream=width,height,r_frame_rate",
-                "-of", "csv=p=0", inputFilePath);
-        processBuilder.redirectErrorStream(true);
-        Process process = processBuilder.start();
-        Thread ffprobeThread = null;
+        if (width == null || height == null || fps == null) {
 
-        // Escribe datos en el proceso (solo webcam)
-        if (inputFilePath.contains("pipe:0")) {
-            ffprobeThread = new Thread(() -> {
-                BufferedOutputStream ffprobeInput = new BufferedOutputStream(process.getOutputStream());
-                try {
-                    byte[] buffer = new byte[1024 * 1024];
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        System.out.println("Escribiendo en FFprobe: " + bytesRead);
-                        ffprobeInput.write(buffer, 0, bytesRead);
-                        ffprobeInput.flush();
-                    }
-                    ffprobeInput.close();
-                } catch (IOException e) {
-                    System.err.println("Error en escribir datos a ffprobe: " + e.getMessage());
+            ProcessBuilder processBuilder = new ProcessBuilder("ffprobe",
+                    "-v", "error",
+                    "-select_streams", "v:0",
+                    "-show_entries", "stream=width,height,r_frame_rate",
+                    "-of", "csv=p=0", inputFilePath);
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+            Thread ffprobeThread = null;
+
+            // Escribe datos en el proceso (solo webcam)
+            if (inputFilePath.contains("pipe:0")) {
+                ffprobeThread = new Thread(() -> {
+                    BufferedOutputStream ffprobeInput = new BufferedOutputStream(process.getOutputStream());
                     try {
+                        byte[] buffer = new byte[1024 * 1024];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            System.out.println("Escribiendo en FFprobe: " + bytesRead);
+                            ffprobeInput.write(buffer, 0, bytesRead);
+                            ffprobeInput.flush();
+                        }
                         ffprobeInput.close();
-                    } catch (IOException e1) {
-                        System.err.println("Error en cerrar flujo de escritura: " + e1.getMessage());
+                    } catch (IOException e) {
+                        System.err.println("Error en escribir datos a ffprobe: " + e.getMessage());
+                        try {
+                            ffprobeInput.close();
+                        } catch (IOException e1) {
+                            System.err.println("Error en cerrar flujo de escritura: " + e1.getMessage());
+                        }
                     }
-                }
-            });
-            ffprobeThread.start();
-        }
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
-        int width = 0;
-        int height = 0;
-        int fps = 0;
-
-        while ((line = reader.readLine()) != null) {
-            System.out.println("ffprobe: " + line);
-            String[] parts = line.split(",");
-            width = Integer.parseInt(parts[0]);
-            height = Integer.parseInt(parts[1]);
-
-            // Para calcular los fps, "r_frame_rate" devuelve un formato como"30000/1001"
-            String[] frameRateParts = parts[2].split("/");
-            if (frameRateParts.length == 2) {
-                // Redondear el fps a entero
-                fps = (int) Math.round(Double.parseDouble(frameRateParts[0]) /
-                        Double.parseDouble(frameRateParts[1]));
+                });
+                ffprobeThread.start();
             }
-            break;
-        }
 
-        if (ffprobeThread != null) {
-            ffprobeThread.join();
-        }
-        process.waitFor();
-        System.out.println("Resolución: " + width + "x" + height + ", FPS: " + fps);
-        if (width == 0 || height == 0 || fps == 0) {
-            System.err.println("La resolución es 0");
-            return null;
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                System.out.println("ffprobe: " + line);
+                String[] parts = line.split(",");
+                width = parts[0];
+                height = parts[1];
+
+                // Para calcular los fps, "r_frame_rate" devuelve un formato como"30000/1001"
+                String[] frameRateParts = parts[2].split("/");
+                if (frameRateParts.length == 2) {
+                    // Redondear el fps a entero
+                    fps = String.valueOf((int) Math.round(Double.parseDouble(frameRateParts[0]) /
+                            Double.parseDouble(frameRateParts[1])));
+                }
+                break;
+            }
+
+            if (ffprobeThread != null) {
+                ffprobeThread.join();
+            }
+            process.waitFor();
+            System.out.println("Resolución: " + width + "x" + height + ", FPS: " + fps);
+            if (width == "0" || height == "0" || fps == "0") {
+                System.err.println("La resolución es 0");
+                return null;
+            }
         }
 
         // Calcular las partes necesarias según la resolución
         List<Map.Entry<Integer, Integer>> resolutionPairs = new ArrayList<>();
-        resolutionPairs.add(new AbstractMap.SimpleEntry<>(width, height));
-        int tempWidth = width;
-        int tempHeight = height;
+        resolutionPairs.add(new AbstractMap.SimpleEntry<>(Integer.parseInt(width), Integer.parseInt(height)));
+        int tempWidth = Integer.parseInt(width);
+        int tempHeight = Integer.parseInt(height);
         while (tempWidth / 2 >= 320 && tempHeight / 2 >= 180) {
             tempWidth /= 2;
             tempHeight /= 2;
@@ -470,17 +485,55 @@ public class StreamingService {
         for (int i = 0; i < resolutionPairs.size(); i++) {
             int Width = resolutionPairs.get(i).getKey();
             int Height = resolutionPairs.get(i).getValue();
-            String videoBitrate = (Width * Height >= 1920 * 1080) ? "10M"
-                    : (Width * Height >= 1280 * 720) ? "5M"
-                            : (Width * Height >= 854 * 480) ? "3M" : "1M";
+            int fpsn = Integer.parseInt(fps);
+
+            // Calculamos el área del video (ancho * alto)
+            int videoArea = Width * Height;
+            /*
+             * // Calculamos el bitrate según la resolución y fps (valores rebajados para
+             * // compatibilidad)
+             * String videoBitrate = (videoArea >= 3840 * 2160)
+             * ? (fpsn <= 30 ? "10M" : (fpsn <= 60 ? "15M" : (fpsn <= 90 ? "20M" : "25M")))
+             * : // 4K
+             * (videoArea >= 2560 * 1440)
+             * ? (fpsn <= 30 ? "6M" : (fpsn <= 60 ? "9M" : (fpsn <= 90 ? "12M" : "15M")))
+             * : // 1440p
+             * (videoArea >= 1920 * 1080)
+             * ? (fpsn <= 30 ? "4M" : (fpsn <= 60 ? "6M" : (fpsn <= 90 ? "8M" : "10M")))
+             * : // 1080p
+             * (videoArea >= 1280 * 720) ? (fpsn <= 30 ? "2.5M"
+             * : (fpsn <= 60 ? "3.5M" : (fpsn <= 90 ? "4.5M" : "5.5M"))) : // 720p
+             * (videoArea >= 854 * 480) ? (fpsn <= 30 ? "1M"
+             * : (fpsn <= 60 ? "1.4M" : (fpsn <= 90 ? "1.8M" : "2M"))) : // 480p
+             * (videoArea >= 640 * 360) ? (fpsn <= 30 ? "800k"
+             * : (fpsn <= 60 ? "1M" : (fpsn <= 90 ? "1.2M" : "1.4M"))) : // 360p
+             * (fpsn <= 30 ? "500k"
+             * : (fpsn <= 60 ? "600k"
+             * : (fpsn <= 90 ? "700k" : "800k"))); // 240p
+             * // o
+             * // menos
+             */
+            // Calculamos el -level según la resolución y fps
+            String level = (videoArea >= 3840 * 2160) ? (fpsn <= 30 ? "6.0" : (fpsn <= 60 ? "6.1" : "6.2")) : // 4K
+                    (videoArea >= 2560 * 1440) ? (fpsn <= 30 ? "5.2" : (fpsn <= 60 ? "6.0" : "6.1")) : // 1440p
+                            (videoArea >= 1920 * 1080) ? (fpsn <= 30 ? "5.0" : (fpsn <= 60 ? "5.1" : "5.2")) : // 1080p
+                                    (videoArea >= 1280 * 720) ? (fpsn <= 30 ? "4.1" : (fpsn <= 60 ? "4.2" : "5.0")) : // 720p
+                                            (videoArea >= 854 * 480)
+                                                    ? (fpsn <= 30 ? "3.1" : (fpsn <= 60 ? "4.0" : "4.1"))
+                                                    : // 480p
+                                                    (videoArea >= 640 * 360)
+                                                            ? (fpsn <= 30 ? "3.0" : (fpsn <= 60 ? "3.1" : "3.2"))
+                                                            : // 360p
+                                                            "2.0"; // 240p o menos
 
             filters.addAll(Arrays.asList(
                     "-map", "[v" + (i + 1) + "out]",
                     "-c:v:" + i, "libx264",
-                    "-b:v:" + i, videoBitrate,
-                    "-maxrate:v:" + i, videoBitrate,
-                    "-minrate:v:" + i, videoBitrate,
-                    "-bufsize:v:" + i, videoBitrate,
+                    "-level:v:" + i, level,
+                    // "-b:v:" + i, videoBitrate,
+                    // "-maxrate:v:" + i, videoBitrate,
+                    // "-minrate:v:" + i, videoBitrate,
+                    // "-bufsize:v:" + i, videoBitrate,
                     "-preset", preset,
                     "-g", String.valueOf(fps), // Conversión explícita de fps a String
                     "-sc_threshold", "0",
@@ -496,13 +549,16 @@ public class StreamingService {
                     : (Width * Height >= 1280 * 720) ? "64k" : "48k";
 
             filters.addAll(Arrays.asList(
-                    "-map", "a:0", "-c:a:" + i, "aac", "-b:a:" + i, audioBitrate, "-ac", "2"));
+                    "-map", "a:0", "-c:a:" + i, "aac", "-b:a:" + i, audioBitrate));
+            if (i == 0) {
+                filters.addAll(Arrays.asList("-ac", "2"));
+            }
         }
 
         // Crea el comando FFmpeg
         List<String> ffmpegCommand = new ArrayList<>();
         ffmpegCommand = new ArrayList<>(List.of(
-                "ffmpeg", "-loglevel", "warning"));
+                "ffmpeg", "-loglevel", "warning", "-vsync", "cfr"));
         if (live) {
             ffmpegCommand.add("-re");
         }

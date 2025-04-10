@@ -26,7 +26,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, UserStreams> userSessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
-    private final Map<String, String> sessionIdToStreamId = new ConcurrentHashMap<>();
+    private final Map<String, String[]> sessionIdToStreamId = new ConcurrentHashMap<>();
     private final Executor executor; // Executor inyectado
     private final StreamingService streamingService;
 
@@ -74,9 +74,22 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             // Extraer userId
             String userId = extractUserId(payload);
             System.out.println("userId: " + userId);
+            // Extraer videoSettings
+            String[] videoSettings = extractVideoSettings(payload);
+            String width = null;
+            String height = null;
+            String fps = null;
+            if (videoSettings != null) {
+                width = videoSettings[0];
+                height = videoSettings[1];
+                fps = videoSettings[2];
+                System.out.println("width: " + width + ", height: " + height + ", fps: " + fps);
+            }
             // Generar streamId
             String streamId = userId + "_" + session.getId();
-            this.sessionIdToStreamId.put(session.getId(), streamId);
+            // Crear el array con el streamId y los settings
+            String[] streamIdAndSettings = new String[] { streamId, width, height, fps };
+            this.sessionIdToStreamId.put(session.getId(), streamIdAndSettings);
             try {
                 session.sendMessage(new TextMessage("{\"type\":\"streamId\",\"streamId\":\"" + streamId + "\"}"));
             } catch (IOException e) {
@@ -101,12 +114,17 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
 
         UserStreams userStreams = userSessions.computeIfAbsent(session.getId(), key -> {
             try {
-                PipedInputStream ffprobeInputStream = new PipedInputStream(1024 * 1024);
-                PipedOutputStream ffprobeOutputStream = new PipedOutputStream(ffprobeInputStream);
+                String[] streamIdAndSettings = this.sessionIdToStreamId.remove(session.getId());
+                PipedInputStream ffprobeInputStream = null;
+                PipedOutputStream ffprobeOutputStream = null;
+                if (streamIdAndSettings[1] == null || streamIdAndSettings[2] == null
+                        || streamIdAndSettings[3] == null) {
+                    ffprobeInputStream = new PipedInputStream(1024 * 1024);
+                    ffprobeOutputStream = new PipedOutputStream(ffprobeInputStream);
+                }
                 PipedInputStream ffmpegInputStream = new PipedInputStream(1024 * 1024);
                 PipedOutputStream ffmpegOutputStream = new PipedOutputStream(ffmpegInputStream);
-                startFFmpegProcessForUser(this.sessionIdToStreamId.remove(session.getId()), ffprobeInputStream,
-                        ffmpegInputStream);
+                startFFmpegProcessForUser(streamIdAndSettings, ffprobeInputStream, ffmpegInputStream);
                 return new UserStreams(ffprobeInputStream, ffprobeOutputStream, ffmpegInputStream, ffmpegOutputStream);
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + session.getId() + ": " + e.getMessage());
@@ -125,11 +143,14 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
 
         try {
             // Escribir en el flujo de FFprobe
-            try {
-                userStreams.getFFprobeOutputStream().write(payload.clone());
-                userStreams.getFFprobeOutputStream().flush();
-            } catch (IOException e) {
-                userStreams.getFFprobeOutputStream().close();
+            if (userStreams.getFFprobeOutputStream() != null) {
+                try {
+                    userStreams.getFFprobeOutputStream().write(payload.clone());
+                    userStreams.getFFprobeOutputStream().flush();
+                } catch (IOException e) {
+                    System.err.println("Error al escribir en el flujo de FFprobe: " + e.getMessage());
+                    userStreams.getFFprobeOutputStream().close();
+                }
             }
 
             // Escribir en el flujo de FFmpeg
@@ -151,8 +172,9 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         }
     }
 
-    private void startFFmpegProcessForUser(String userId, PipedInputStream ffprobeInputStream,
+    private void startFFmpegProcessForUser(String[] streamIdAndSettings, PipedInputStream ffprobeInputStream,
             PipedInputStream ffmpegInputStream) {
+        String userId = streamIdAndSettings[0];
         if (ffmpegThreads.containsKey(userId)) {
             System.out.println("El proceso FFmpeg ya está corriendo para el usuario " + userId);
             return;
@@ -161,7 +183,8 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
         // Usar el Executor para ejecutar el proceso FFmpeg en un hilo separado
         executor.execute(() -> {
             try {
-                this.streamingService.startLiveStreamingFromStream(userId, ffprobeInputStream, ffmpegInputStream);
+                this.streamingService.startLiveStreamingFromStream(streamIdAndSettings, ffprobeInputStream,
+                        ffmpegInputStream);
                 // Registrar el hilo en el mapa después de iniciar el proceso FFmpeg
                 Thread currentThread = Thread.currentThread();
                 ffmpegThreads.put(userId, currentThread); // Añadir el hilo al mapa
@@ -198,6 +221,26 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 return jsonNode.get("streamId").asText();
             } catch (JsonProcessingException e) {
                 System.err.println("Error al extraer streamId: " + e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private String[] extractVideoSettings(String payload) {
+        // {"type":"userId","userId":1,"videoSettings":{"width":1280,"height":720,"fps":30}}
+        if (payload.contains("videoSettings")) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode;
+            try {
+                jsonNode = objectMapper.readTree(payload);
+                String width = jsonNode.get("videoSettings").get("width").asText();
+                String height = jsonNode.get("videoSettings").get("height").asText();
+                String fps = jsonNode.get("videoSettings").get("fps").asText();
+                return new String[] { width, height, fps };
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
             }
         }
         return null;

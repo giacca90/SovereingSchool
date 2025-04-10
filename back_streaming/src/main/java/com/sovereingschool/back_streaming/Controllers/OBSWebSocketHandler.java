@@ -94,7 +94,8 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
             Thread currentThread = Thread.currentThread();
             ffmpegThreads.put(userId.substring(userId.lastIndexOf("_") + 1), currentThread); // Añadir el hilo al mapa
             try {
-                this.streamingService.startLiveStreamingFromStream(userId, rtmpUrl, null);
+                String[] streamIdAndSettings = { userId, null, null, null };
+                this.streamingService.startLiveStreamingFromStream(streamIdAndSettings, rtmpUrl, null);
             } catch (IOException e) {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             } catch (Exception e) {
