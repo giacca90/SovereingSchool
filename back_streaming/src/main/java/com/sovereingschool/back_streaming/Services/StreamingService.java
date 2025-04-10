@@ -483,7 +483,8 @@ public class StreamingService {
         filters.add(filtro);
 
         for (int i = 0; i < resolutionPairs.size(); i++) {
-            int fpsn = Integer.parseInt(fps);
+            int Width = resolutionPairs.get(i).getKey();
+            int Height = resolutionPairs.get(i).getValue();
 
             filters.addAll(Arrays.asList(
                     "-map", "[v" + (i + 1) + "out]",
@@ -492,8 +493,8 @@ public class StreamingService {
                     "-g", String.valueOf(fps), // Conversión explícita de fps a String
                     "-sc_threshold", "0",
                     "-keyint_min", String.valueOf(fps),
-                    "-hls_segment_filename", "stream_%v/data%02d.ts",
-                    "-hls_base_url", "stream_" + i + "/"));
+                    "-hls_segment_filename", Width + "x" + Height + "@" + fps + "_%v/data%02d.ts",
+                    "-hls_base_url", Width + "x" + Height + "@" + fps + "_" + i + "/"));
         }
 
         for (int i = 0; i < resolutionPairs.size(); i++) {
