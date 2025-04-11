@@ -11,7 +11,6 @@ import java.io.PipedInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -454,14 +453,60 @@ public class StreamingService {
         }
 
         // Calcular las partes necesarias según la resolución
-        List<Map.Entry<Integer, Integer>> resolutionPairs = new ArrayList<>();
-        resolutionPairs.add(new AbstractMap.SimpleEntry<>(Integer.parseInt(width), Integer.parseInt(height)));
+        List<String> resolutionPairs = new ArrayList<>();
+        resolutionPairs.add(width + "," + height + "," + fps);
         int tempWidth = Integer.parseInt(width);
         int tempHeight = Integer.parseInt(height);
-        while (tempWidth / 2 >= 320 && tempHeight / 2 >= 180) {
-            tempWidth /= 2;
-            tempHeight /= 2;
-            resolutionPairs.add(new AbstractMap.SimpleEntry<>(tempWidth, tempHeight));
+        while ((tempWidth - tempWidth / 3) * (tempHeight - tempHeight / 3) >= 320 * 180) {
+            tempWidth = tempWidth - tempWidth / 3;
+            tempHeight = tempHeight - tempHeight / 3;
+
+            // Asegurarse de que las dimensiones sean pares
+            if (tempWidth % 2 != 0) {
+                tempWidth--;
+            }
+            if (tempHeight % 2 != 0) {
+                tempHeight--;
+            }
+
+            resolutionPairs.add(tempWidth + "," + tempHeight + "," + fps);
+        }
+
+        if (Integer.parseInt(fps) > 90) {
+            int tempWidth2 = Integer.parseInt(width);
+            int tempHeight2 = Integer.parseInt(height);
+            resolutionPairs.add(tempWidth2 + "," + tempHeight2 + "," + "90");
+            while ((tempWidth2 - tempWidth2 / 3) * (tempHeight2 - tempHeight2 / 3) >= 320 * 180) {
+                tempWidth2 = tempWidth2 - tempWidth2 / 3;
+                tempHeight2 = tempHeight2 - tempHeight2 / 3;
+                // Asegurarse de que las dimensiones sean pares
+                if (tempWidth2 % 2 != 0) {
+                    tempWidth2--;
+                }
+                if (tempHeight2 % 2 != 0) {
+                    tempHeight2--;
+                }
+                resolutionPairs.add(tempWidth2 + "," + tempHeight2 + "," + "90");
+            }
+
+        }
+
+        if (Integer.parseInt(fps) > 60) {
+            int tempWidth2 = Integer.parseInt(width);
+            int tempHeight2 = Integer.parseInt(height);
+            resolutionPairs.add(tempWidth2 + "," + tempHeight2 + "," + "60");
+            while ((tempWidth2 - tempWidth2 / 3) * (tempHeight2 - tempHeight2 / 3) >= 320 * 180) {
+                tempWidth2 = tempWidth2 - tempWidth2 / 3;
+                tempHeight2 = tempHeight2 - tempHeight2 / 3;
+                // Asegurarse de que las dimensiones sean pares
+                if (tempWidth2 % 2 != 0) {
+                    tempWidth2--;
+                }
+                if (tempHeight2 % 2 != 0) {
+                    tempHeight2--;
+                }
+                resolutionPairs.add(tempWidth2 + "," + tempHeight2 + "," + "60");
+            }
         }
 
         // Crear los filtros
@@ -476,35 +521,56 @@ public class StreamingService {
             if (i == 0) {
                 filtro += " [v1]copy[v1out]";
             } else {
-                filtro += "; [v" + (i + 1) + "]scale=w=" + resolutionPairs.get(i).getKey() + ":h="
-                        + resolutionPairs.get(i).getValue() + "[v" + (i + 1) + "out]";
+                filtro += "; [v" + (i + 1) + "]scale=w=" + resolutionPairs.get(i).split(",")[0] + ":h="
+                        + resolutionPairs.get(i).split(",")[1] + "[v" + (i + 1) + "out]";
             }
         }
         filters.add(filtro);
 
         for (int i = 0; i < resolutionPairs.size(); i++) {
-            int Width = resolutionPairs.get(i).getKey();
-            int Height = resolutionPairs.get(i).getValue();
+            int Width = Integer.parseInt(resolutionPairs.get(i).split(",")[0]);
+            int Height = Integer.parseInt(resolutionPairs.get(i).split(",")[1]);
+            int fpsn = Integer.parseInt(resolutionPairs.get(i).split(",")[2]);
 
-            filters.addAll(Arrays.asList(
-                    "-map", "[v" + (i + 1) + "out]",
-                    "-c:v:" + i, "libx264",
-                    "-preset", preset,
-                    "-g", String.valueOf(fps), // Conversión explícita de fps a String
-                    "-sc_threshold", "0",
-                    "-keyint_min", String.valueOf(fps),
-                    "-hls_segment_filename", Width + "x" + Height + "@" + fps + "_%v/data%02d.ts",
-                    "-hls_base_url", Width + "x" + Height + "@" + fps + "_" + i + "/"));
+            if (fpsn > 60 || Width * Height >= 3840 * 2160) {
+                filters.addAll(Arrays.asList(
+                        "-map", "[v" + (i + 1) + "out]",
+                        "-c:v:" + i, "libaom-av1",
+                        "-crf", "30",
+                        "-b:v:" + i, "0",
+                        "-cpu-used", "4",
+                        "-g", String.valueOf(fpsn), // Conversión explícita de fps a String
+                        "-sc_threshold", "0",
+                        "-keyint_min", String.valueOf(fpsn),
+                        "-hls_segment_filename", Width + "x" + Height + "@" + fpsn + "_%v/data%02d.ts",
+                        "-hls_base_url", Width + "x" + Height + "@" + fpsn + "_" + i + "/"));
+            } else {
+                filters.addAll(Arrays.asList(
+                        "-map", "[v" + (i + 1) + "out]",
+                        "-c:v:" + i, "libx264",
+                        "-preset", preset,
+                        "-g", String.valueOf(fpsn), // Conversión explícita de fps a String
+                        "-sc_threshold", "0",
+                        "-keyint_min", String.valueOf(fpsn),
+                        "-hls_segment_filename", Width + "x" + Height + "@" + fpsn + "_%v/data%02d.ts",
+                        "-hls_base_url", Width + "x" + Height + "@" + fpsn + "_" + i + "/"));
+            }
         }
 
         for (int i = 0; i < resolutionPairs.size(); i++) {
-            int Width = resolutionPairs.get(i).getKey();
-            int Height = resolutionPairs.get(i).getValue();
+            int Width = Integer.parseInt(resolutionPairs.get(i).split(",")[0]);
+            int Height = Integer.parseInt(resolutionPairs.get(i).split(",")[1]);
+            int fpsn = Integer.parseInt(resolutionPairs.get(i).split(",")[2]);
             String audioBitrate = (Width * Height >= 1920 * 1080) ? "96k"
                     : (Width * Height >= 1280 * 720) ? "64k" : "48k";
 
-            filters.addAll(Arrays.asList(
-                    "-map", "a:0", "-c:a:" + i, "aac", "-b:a:" + i, audioBitrate));
+            if (fpsn > 60) {
+                filters.addAll(Arrays.asList(
+                        "-map", "a:0", "-c:a:" + i, "aac", "-b:a:" + i, audioBitrate));
+            } else {
+                filters.addAll(Arrays.asList(
+                        "-map", "a:0", "-c:a:" + i, "aac", "-b:a:" + i, audioBitrate));
+            }
             if (i == 0) {
                 filters.addAll(Arrays.asList("-ac", "2"));
             }
