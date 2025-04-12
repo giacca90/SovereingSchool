@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectorRef, Component } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router } from '@angular/router';
 import { Usuario } from '../../models/Usuario';
 import { CursosService } from '../../services/cursos.service';
@@ -9,13 +9,37 @@ import { UsuariosService } from '../../services/usuarios.service';
 	selector: 'app-home',
 	standalone: true,
 	imports: [],
+	schemas: [CUSTOM_ELEMENTS_SCHEMA],
+
 	templateUrl: './home.component.html',
 	styleUrl: './home.component.css',
 })
 export class HomeComponent {
 	vistaCursos: HTMLDivElement[] = [];
-	anchoVista: number = 0;
 	vista: HTMLDivElement | null = null;
+	responsiveOptions = JSON.stringify({
+		0: {
+			slidesPerView: 1,
+		},
+		320: {
+			slidesPerView: 2,
+		},
+		640: {
+			slidesPerView: 3,
+		},
+		960: {
+			slidesPerView: 4,
+		},
+		1280: {
+			slidesPerView: 5,
+		},
+	});
+
+	autoplayOptions = JSON.stringify({
+		delay: 3000, // 3 segundos entre slides
+		disableOnInteraction: false, // sigue reproduciendo aunque el usuario interactúe
+		pauseOnMouseEnter: true, // pausa cuando el mouse está encima (ideal en desktop)
+	});
 	constructor(
 		public cursoService: CursosService,
 		private usuarioService: UsuariosService,

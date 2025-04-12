@@ -1,4 +1,22 @@
-<div id="carousel" class="mt-2 grid h-60 grid-cols-2 overflow-hidden md:grid-cols-3 lg:grid-cols-4">
+<swiper-container [attr.breakpoints]="responsiveOptions" [attr.autoplay]="autoplayOptions" loop="true" style="width: 100%; height: 250px">
+	@for (curso of this.cursoService.cursos; track curso.id_curso) {
+		<swiper-slide>
+			<div class="relative m-2 h-11/12 cursor-pointer border border-black" (click)="router.navigate(['/curso/' + curso.id_curso])" tabindex="0" (keydown.enter)="router.navigate(['/curso/' + curso.id_curso])">
+				<div style="background-image: url('{{ curso.imagen_curso }}')" class="absolute inset-0 bg-cover bg-center opacity-20 transition-opacity duration-300 hover:opacity-30"></div>
+				<h4 class="text-center font-bold text-blue-700">{{ curso.nombre_curso }}</h4>
+				<div class="m-3 flex items-center justify-between">
+					@for (profe of curso.profesores_curso; track profe) {
+						<span class="font-bold">Por: {{ profe.nombre_usuario }}</span>
+						<img src="{{ profe.foto_usuario[0] }}" alt="logo" class="h-12 w-12 object-contain" />
+					}
+				</div>
+				<p class="mr-3 ml-3">{{ curso.descriccion_corta }}</p>
+			</div>
+		</swiper-slide>
+	}
+</swiper-container>
+
+<!-- <div id="carousel" class="mt-2 grid h-60 grid-cols-2 overflow-hidden md:grid-cols-3 lg:grid-cols-4">
 	@for (curso of this.cursoService.cursos; track curso.id_curso) {
 		<div class="relative m-2 cursor-pointer border border-black" (click)="router.navigate(['/curso/' + curso.id_curso])" tabindex="0" (keydown.enter)="router.navigate(['/curso/' + curso.id_curso])">
 			<div style="background-image: url('{{ curso.imagen_curso }}')" class="absolute inset-0 bg-cover bg-center opacity-20 transition-opacity duration-300 hover:opacity-30"></div>
@@ -9,10 +27,10 @@
 					<img src="{{ profe.foto_usuario[0] }}" alt="logo" class="h-12 w-12 object-contain" />
 				}
 			</div>
-			<p class="ml-3 mr-3">{{ curso.descriccion_corta }}</p>
+			<p class="mr-3 ml-3">{{ curso.descriccion_corta }}</p>
 		</div>
 	}
-</div>
+</div> -->
 <div id="descripcion" class="relative m-2 border border-black p-4">
 	<div class="absolute inset-0 bg-white bg-cover bg-center opacity-20" tabindex="0" style="background-image: url('../../../assets/montserrat.webp')"></div>
 	<h2 class="mb-4 font-bold text-blue-700">EL MEJOR LUGAR PARA APRENDER SOBERANÍA ES ESPAÑOL!!</h2>
