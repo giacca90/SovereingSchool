@@ -4,9 +4,9 @@
 		<h3>CARGANDO...</h3>
 	} @else {
 		<h3 class="text-center font-bold text-green-700">{{ this.chat.nombre_curso }} (CHAT)</h3>
-		<div class="m-2 flex flex-col rounded-lg border border-black p-2">
+		<div class="m-2 flex flex-col rounded-lg border border-black p-2 dark:border-gray-400">
 			@for (clase of this.chat.clases; track $index) {
-				<button class="m-2 flex rounded-lg border border-black p-2" (click)="abreChatClase(clase.id_clase)">
+				<button class="m-2 flex rounded-lg border border-black p-2 dark:border-gray-400" (click)="abreChatClase(clase.id_clase)">
 					<p class="grow">{{ clase.nombre_clase }}</p>
 					<img class="h-6 w-6" src="../../../../assets/arrow-down.svg" alt="open" />
 				</button>
@@ -15,7 +15,7 @@
 						<p class="text-center text-gray-500">No hay mensajes en esta clase</p>
 					}
 					@for (mex of clase.mensajes; track $index) {
-						<div id="mex-{{ mex.id_mensaje }}" class="m-2 flex rounded-lg border border-black p-2">
+						<div id="mex-{{ mex.id_mensaje }}" class="m-2 flex rounded-lg border border-black p-2 dark:border-gray-400">
 							<div class="grow flex-col">
 								<div class="flex">
 									<p class="text-gray-500">Mensaje de: {{ mex.nombre_usuario }}</p>
@@ -41,7 +41,7 @@
 					}
 					<br />
 					@if (respuestaClase !== null) {
-						<div class="rounded-t-lg border border-black border-b-transparent p-2">
+						<div class="rounded-t-lg border border-black border-b-transparent p-2 dark:border-gray-400">
 							<div class="flex">
 								<div class="flex">
 									<p class="grow text-gray-500">En respuesta a: {{ respuestaClase.nombre_usuario }}</p>
@@ -53,7 +53,7 @@
 						</div>
 					}
 					@if (pregunta !== null) {
-						<div class="rounded-t-lg border border-black border-b-transparent p-2">
+						<div class="rounded-t-lg border border-black border-b-transparent p-2 dark:border-gray-400">
 							<div class="flex">
 								<p class="grow text-gray-500">Pregunta en el momento {{ pregunta.minute }}:{{ pregunta.second }}</p>
 								<button (click)="cierraPregunta(clase.id_clase)"><img src="../../../../assets/close.svg" alt="close" class="h-6 w-6" /></button>
@@ -61,15 +61,15 @@
 						</div>
 					}
 					<div class="flex">
-						<input id="mexc-{{ clase.id_clase }}" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black" placeholder="Escribe tu mensaje en la clase..." />
-						<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black" (click)="this.enviarMensaje(clase.id_clase)">Enviar</button>
+						<input id="mexc-{{ clase.id_clase }}" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" placeholder="Escribe tu mensaje en la clase..." />
+						<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" (click)="this.enviarMensaje(clase.id_clase)">Enviar</button>
 					</div>
 				</div>
 			}
 		</div>
 		<br />
 		@for (mensaje of this.chat.mensajes; track $index) {
-			<div id="mex-{{ mensaje.id_mensaje }}" class="m-2 flex rounded-lg border border-black p-2">
+			<div id="mex-{{ mensaje.id_mensaje }}" class="m-2 flex rounded-lg border border-black p-2 dark:border-gray-400">
 				<div class="grow flex-col">
 					<div class="flex">
 						<p class="text-gray-500">Mensaje de: {{ mensaje.nombre_usuario }}</p>
@@ -89,7 +89,7 @@
 		}
 		<br />
 		@if (respuesta !== null) {
-			<div class="rounded-t-lg border border-black border-b-transparent p-2">
+			<div class="rounded-t-lg border border-black border-b-transparent p-2 dark:border-gray-400">
 				<div class="flex">
 					<div class="flex">
 						<p class="grow text-gray-500">En respuesta a: {{ respuesta.nombre_usuario }}</p>
@@ -101,8 +101,8 @@
 			</div>
 		}
 		<div class="flex">
-			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black" placeholder="Escribe tu mensaje en el curso..." />
-			<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black" (click)="this.enviarMensaje()">Enviar</button>
+			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" placeholder="Escribe tu mensaje en el curso..." />
+			<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" (click)="this.enviarMensaje()">Enviar</button>
 		</div>
 	}
 </div>

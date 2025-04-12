@@ -9,11 +9,11 @@ import { LoginModalService } from './services/login-modal.service';
 import { LoginService } from './services/login.service';
 
 @Component({
-    selector: 'app-root',
+	selector: 'app-root',
 	standalone: true,
-    templateUrl: './app.component.html',
-    styleUrl: './app.component.css',
-    imports: [RouterOutlet, SearchComponent, LogModalComponent, CommonModule]
+	templateUrl: './app.component.html',
+	styleUrl: './app.component.css',
+	imports: [RouterOutlet, SearchComponent, LogModalComponent, CommonModule],
 })
 export class AppComponent implements OnInit, OnDestroy {
 	title = 'Sovereign School';
@@ -48,5 +48,9 @@ export class AppComponent implements OnInit, OnDestroy {
 	}
 	ngOnDestroy(): void {
 		this.subscription.unsubscribe();
+	}
+
+	prueba() {
+		window.matchMedia('(prefers-color-scheme: dark)').dispatchEvent(new Event('change'));
 	}
 }
