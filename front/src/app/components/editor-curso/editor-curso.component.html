@@ -47,7 +47,7 @@
 	}
 </div>
 @if (editar) {
-	<div class="absolute top-0 left-0 z-10 flex h-screen w-full overflow-y-auto bg-white/90">
+	<div class="absolute top-0 left-0 z-10 flex h-screen w-full overflow-y-auto bg-white/90 dark:bg-black/90">
 		<div class="m-2 mt-2 mb-2 flex h-fit min-h-screen grow flex-col rounded-lg border border-black p-2 dark:border-gray-400">
 			<input class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" type="text" placeholder="Pon un nombre a tu Clase" [(ngModel)]="editar.nombre_clase" />
 			@if (editar.id_clase === 0) {
@@ -61,14 +61,14 @@
 					@if (this.editar.tipo_clase !== 2) {
 						<div class="m-2 flex w-2/5 flex-col">
 							@if (this.editar.tipo_clase === 0 || this.editar.id_clase !== 0) {
-								<video id="videoPlayer" controls src="" class="vjs-default-skin w-full bg-black"></video>
+								<video id="videoPlayer" controls src="" class="vjs-default-skin w-full bg-black dark:border-gray-400"></video>
 								<div class="flex">
 									<label for="video-upload" id="video-upload-button" class="m-2 grow cursor-pointer rounded-lg border border-black p-2 text-center dark:border-gray-400" tabindex="0" (keydown)="keyEvent($event)"> Sube un Video </label>
 									<input id="video-upload" type="file" accept="video/mp4,video/x-m4v,video/avi,video/webm" class="hidden" (change)="cargaVideo($event)" />
 								</div>
 							}
 							@if (this.editar.tipo_clase === 1) {
-								<video id="OBS" src="" class="video-js vjs-default-skin w-full"></video>
+								<video id="OBS" src="" class="video-js vjs-default-skin w-full dark:border-gray-400"></video>
 								<div id="audio-bar">
 									<div id="audio-level"></div>
 								</div>

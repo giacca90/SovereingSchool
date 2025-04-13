@@ -29,6 +29,13 @@ export class AppComponent implements OnInit, OnDestroy {
 	) {}
 
 	ngOnInit() {
+		// Suscribirse a los cambios del tema del sistema
+		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+			if (!('theme' in localStorage)) {
+				document.documentElement.classList.toggle('dark', e.matches);
+			}
+		});
+
 		this.subscription.add(
 			this.modalService.isVisible$.subscribe((isVisible) => {
 				this.isModalVisible = isVisible;
@@ -50,7 +57,10 @@ export class AppComponent implements OnInit, OnDestroy {
 		this.subscription.unsubscribe();
 	}
 
-	prueba() {
-		window.matchMedia('(prefers-color-scheme: dark)').dispatchEvent(new Event('change'));
+	changeTheme() {
+		const isDark = localStorage.getItem('theme') === 'dark';
+		const newTheme = isDark ? 'light' : 'dark';
+		localStorage.setItem('theme', newTheme);
+		document.documentElement.classList.toggle('dark', newTheme === 'dark');
 	}
 }

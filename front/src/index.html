@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="es">
 	<head>
+		<script>
+			// Detecta el tema del sistema y aplica la clase dark si es necesario
+			if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+				document.documentElement.classList.add('dark');
+			} else {
+				document.documentElement.classList.remove('dark');
+			}
+		</script>
 		<meta charset="utf-8" />
 		<title>Sovereign School</title>
 		<base href="/" />
@@ -8,7 +16,7 @@
 		<meta
 			name="description"
 			content="El mejor lugar para aprender Soberanía!!! Los mayores expertos en Soberanía, Ley Natural, Derecho Consuetudinario, Derecho Marítimo y Derecho Canónico,
-			Juntos en una sola plataforma, ofreciendo sus conocimientos a todo Hombre/Mujer interesados en la libertad."
+		Juntos en una sola plataforma, ofreciendo sus conocimientos a todo Hombre/Mujer interesados en la libertad."
 		/>
 		<link rel="icon" type="image/x-icon" href="favicon.ico" />
 	</head>

@@ -39,10 +39,8 @@
 	z-index: -10;
 }
 
-@media (prefers-color-scheme: dark) {
-	:host::before {
-		background-color: black;
-		background-image: url('/assets/night.webp');
-		opacity: 1;
-	}
+html.dark :host::before {
+	background-color: black;
+	background-image: url('/assets/night.webp');
+	opacity: 1;
 }

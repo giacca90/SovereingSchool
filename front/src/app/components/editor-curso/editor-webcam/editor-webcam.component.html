@@ -50,7 +50,7 @@
 			<div class="flex items-center">
 				<p class="mt-2 mb-2">Presets:</p>
 				@if (this.savedPresets !== undefined) {
-					<button (click)="this.savePresetsFunction()" class="m-2 rounded-lg border border-black bg-gray-400 p-2 hover:border-2 dark:border-gray-400">Guardar presets</button>
+					<button (click)="this.savePresetsFunction()" class="m-2 rounded-lg border border-black bg-gray-400 p-2 text-black hover:border-2">Guardar presets</button>
 				}
 			</div>
 			<div id="presets" class="grid grid-cols-[repeat(auto-fill,minmax(45%,1fr))] gap-2">
@@ -63,7 +63,7 @@
 					</div>
 				}
 				<!-- Save Preset Button -->
-				<div (click)="guardaPreset()" tabindex="0" (keydown.enter)="guardaPreset()" class="group relative flex aspect-video! max-h-[33vh] items-center justify-between overflow-hidden rounded-lg border border-black bg-gray-400 px-2 hover:border-2 dark:border-gray-400">
+				<div (click)="guardaPreset()" tabindex="0" (keydown.enter)="guardaPreset()" class="group relative flex aspect-video! max-h-[33vh] items-center justify-between overflow-hidden rounded-lg border border-black bg-gray-400 px-2 text-black hover:border-2">
 					<p class="truncate">Guardar preset actual</p>
 					<svg class="h-8 w-8 shrink-0 text-gray-700 group-hover:text-black" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -74,17 +74,17 @@
 	</div>
 	<div class="flex items-center">
 		@if (this.emitiendo) {
-			<button (click)="this.detenerEmision()" class="w-fix m-2 h-6 cursor-pointer rounded-lg border border-black bg-gray-400 px-2 text-center hover:border-2 dark:border-gray-400">Detener emisión</button>
+			<button (click)="this.detenerEmision()" class="w-fix m-2 h-6 cursor-pointer rounded-lg border border-black bg-gray-400 px-2 text-center text-black hover:border-2">Detener emisión</button>
 			<p class="ml-4">Tiempo de grabación: {{ this.tiempoGrabacion }}</p>
 		} @else {
-			<button (click)="this.emitir()" class="w-fix m-2 h-6 cursor-pointer rounded-lg border border-black bg-gray-400 px-2 text-center hover:border-2 dark:border-gray-400">Empezar a emitir</button>
+			<button (click)="this.emitir()" class="w-fix m-2 h-6 cursor-pointer rounded-lg border border-black bg-gray-400 px-2 text-center text-black hover:border-2">Empezar a emitir</button>
 		}
 	</div>
 	<div id="elementosDiv" class="relative flex h-1/4 pb-4">
 		<div id="audios" class="scrollbar-thin scrollbar-thumb-gray-400 scrollbar-thumb-rounded flex w-1/5 overflow-x-hidden overflow-y-auto">
 			<div id="conexiones-izquierda" class="relative"></div>
 			<!-- Lista de entradas de audio de archivos -->
-			<div id="audios-list" class="flex flex-col">
+			<div id="audios-list" class="flex flex-col text-black">
 				@for (fileName of this.audiosArchivos; track fileName) {
 					<div [id]="'audio-' + fileName" (mousedown)="audioDown($event)" class="audio-bar group m-2 flex h-10 min-h-6 items-center justify-center rounded-lg border border-black bg-transparent text-center hover:border-2 active:cursor-grabbing dark:border-gray-400">
 						<p class="m-2 w-full truncate overflow-hidden text-ellipsis whitespace-nowrap">{{ fileName }}</p>
@@ -257,13 +257,13 @@
 		}
 
 		<div class="relative flex w-1/6 flex-col justify-between">
-			<div class="group relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2 dark:border-gray-400" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
+			<div class="group relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center text-black hover:border-2" (click)="addScrean()" tabindex="0" (keydown.enter)="addScrean()">
 				<p class="p-2 text-center">Añadir pantalla</p>
 				<svg class="h-10 w-10 text-gray-700 group-hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
 			</div>
-			<div class="group relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center hover:border-2 dark:border-gray-400" (click)="addFiles()" tabindex="0" (keydown.enter)="addFiles()">
+			<div class="group relative m-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-black bg-gray-400 text-center text-black hover:border-2" (click)="addFiles()" tabindex="0" (keydown.enter)="addFiles()">
 				<p class="p-2 text-center">Añadir archivo</p>
 				<svg class="h-10 w-10 text-gray-700 group-hover:text-black" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M6 12H18M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
