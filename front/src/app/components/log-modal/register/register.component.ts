@@ -5,11 +5,11 @@ import { LoginService } from '../../../services/login.service';
 import { RegisterService } from '../../../services/register.service';
 
 @Component({
-    selector: 'app-register',
+	selector: 'app-register',
 	standalone: true,
-    imports: [],
-    templateUrl: './register.component.html',
-    styleUrl: './register.component.css'
+	imports: [],
+	templateUrl: './register.component.html',
+	styleUrl: './register.component.css',
 })
 export class RegisterComponent implements OnDestroy {
 	private nuevoUsuario: NuevoUsuario = new NuevoUsuario();
@@ -68,8 +68,8 @@ export class RegisterComponent implements OnDestroy {
 				<br />
 				<input type="password" id="password2" class="m-4 rounded-lg border border-black p-1" placeholder="Repite la contraseña" />
 				<br />
-				<button id="nextButton2" class="m-4 rounded-lg border border-black bg-green-300 p-1" >Siguiente</button>
-				<button id="cancelButton2" class="m-4 rounded-lg border border-black bg-red-300 p-1" >Cancelar</button>
+				<button id="nextButton2" class="m-4 rounded-lg border text-black border-black bg-green-300 p-1" >Siguiente</button>
+				<button id="cancelButton2" class="m-4 rounded-lg border text-black border-black bg-red-300 p-1" >Cancelar</button>
 			`;
 			const nextButton = document.getElementById('nextButton2') as HTMLButtonElement;
 			const cancelButton = document.getElementById('cancelButton2') as HTMLButtonElement;

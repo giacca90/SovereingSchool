@@ -4,11 +4,11 @@ import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 
 @Component({
-    selector: 'app-log-modal',
+	selector: 'app-log-modal',
 	standalone: true,
-    templateUrl: './log-modal.component.html',
-    styleUrl: './log-modal.component.css',
-    imports: [LoginComponent, RegisterComponent]
+	templateUrl: './log-modal.component.html',
+	styleUrl: './log-modal.component.css',
+	imports: [LoginComponent, RegisterComponent],
 })
 export class LogModalComponent implements AfterViewInit {
 	login: HTMLButtonElement | null = null;
@@ -24,21 +24,24 @@ export class LogModalComponent implements AfterViewInit {
 
 	clickLogin() {
 		this.isLoginHidden = false;
-		if (this.register?.classList.contains('bg-white')) {
-			this.register.classList.remove('bg-white');
+		const isDarkMode = document.documentElement.classList.contains('dark');
+		if (this.register?.classList.contains(isDarkMode ? 'dark:border-b-black' : 'bg-white')) {
+			this.register.classList.remove(isDarkMode ? 'dark:border-b-black' : 'bg-white');
 		}
-		if (this.login?.classList.contains('bg-white') == false) {
-			this.login.classList.add('bg-white');
+		if (this.login?.classList.contains(isDarkMode ? 'dark:border-b-black' : 'bg-white') == false) {
+			this.login.classList.add(isDarkMode ? 'dark:border-b-black' : 'bg-white');
 		}
 	}
 
 	clickRegister() {
 		this.isLoginHidden = true;
-		if (this.login?.classList.contains('bg-white')) {
-			this.login.classList.remove('bg-white');
+		const isDarkMode = document.documentElement.classList.contains('dark');
+
+		if (this.login?.classList.contains(isDarkMode ? 'dark:border-b-black' : 'bg-white')) {
+			this.login.classList.remove(isDarkMode ? 'dark:border-b-black' : 'bg-white');
 		}
-		if (this.register?.classList.contains('bg-white') == false) {
-			this.register.classList.add('bg-white');
+		if (this.register?.classList.contains(isDarkMode ? 'dark:border-b-black' : 'bg-white') == false) {
+			this.register.classList.add(isDarkMode ? 'dark:border-b-black' : 'bg-white');
 		}
 	}
 

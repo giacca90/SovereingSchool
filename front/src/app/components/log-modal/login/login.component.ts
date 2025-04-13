@@ -3,11 +3,11 @@ import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
 
 @Component({
-    selector: 'app-login',
+	selector: 'app-login',
 	standalone: true,
-    imports: [],
-    templateUrl: './login.component.html',
-    styleUrl: './login.component.css'
+	imports: [],
+	templateUrl: './login.component.html',
+	styleUrl: './login.component.css',
 })
 export class LoginComponent {
 	constructor(
@@ -45,8 +45,8 @@ export class LoginComponent {
 				<br />
 				<input type="password" id="password" class="m-4 rounded-lg border border-black p-1" placeholder="Password" />
 				<br />
-				<button id="nextButton" class="m-4 rounded-lg border border-black bg-green-300 p-1" (click)="compruebaCorreo()">Siguiente</button>
-				<button id="cancelButton" class="m-4 rounded-lg border border-black bg-red-300 p-1" (click)="close()">Cancelar</button>
+				<button id="nextButton" class="m-4 rounded-lg text-black border border-black bg-green-300 p-1" (click)="compruebaCorreo()">Siguiente</button>
+				<button id="cancelButton" class="m-4 rounded-lg text-black border border-black bg-red-300 p-1" (click)="close()">Cancelar</button>
 			`;
 			const nextButton = document.getElementById('nextButton') as HTMLButtonElement;
 			const cancelButton = document.getElementById('cancelButton') as HTMLButtonElement;
