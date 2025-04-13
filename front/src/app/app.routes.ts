@@ -4,9 +4,9 @@ import { HomeChatComponent } from './components/chat/home-chat/home-chat.compone
 import { CursoComponent } from './components/curso/curso.component';
 import { CursosUsuarioComponent } from './components/cursos-usuario/cursos-usuario.component';
 import { EditorCursoComponent } from './components/editor-curso/editor-curso.component';
-import { EditorWebcamComponent } from './components/editor-curso/editor-webcam/editor-webcam.component';
 import { HomeComponent } from './components/home/home.component';
 import { PerfilUsuarioComponent } from './components/perfil-usuario/perfil-usuario.component';
+import { PrivacyComponent } from './components/privacy/privacy.component';
 import { ReproductionComponent } from './components/reproduction/reproduction.component';
 export const routes: Routes = [
 	{ path: '', component: HomeComponent },
@@ -18,6 +18,6 @@ export const routes: Routes = [
 	{ path: 'repro/:id_usuario/:id_curso/:id_clase', component: ReproductionComponent },
 	{ path: 'editorCurso/:id_curso', component: EditorCursoComponent },
 	{ path: 'perfil', component: PerfilUsuarioComponent },
-	{ path: 'prueba', component: EditorWebcamComponent },
+	{ path: 'privacy', component: PrivacyComponent },
 	{ path: '**', redirectTo: '' },
 ];

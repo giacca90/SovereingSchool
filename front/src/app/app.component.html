@@ -31,9 +31,7 @@
 			<p>Copyright© <span id="fecha_copyright">2024</span></p>
 			<p>Todos los derechos reservados.</p>
 		</div>
-		<div class="align-center flex flex-1 items-center justify-center p-2">
-			<a href="">Política de privacidad</a>
-		</div>
+		<div class="align-center flex flex-1 cursor-pointer items-center justify-center p-2" (click)="this.router.navigate(['/privacy'])">Política de privacidad</div>
 		<div class="flex flex-1 items-center justify-end p-2">
 			<button type="button" class="cursor-pointer justify-end" (click)="changeTheme()">Cambio estilo</button>
 		</div>
