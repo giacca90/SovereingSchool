@@ -1,4 +1,4 @@
-<swiper-container [attr.breakpoints]="responsiveOptions" [attr.autoplay]="autoplayOptions" loop="true" style="width: 100%; height: 250px">
+<swiper-container [attr.breakpoints]="responsiveOptions" [attr.autoplay]="autoplayOptions" loop="true" class="h-80 w-full sm:h-64">
 	@for (curso of this.cursoService.cursos; track curso.id_curso) {
 		<swiper-slide>
 			<div class="relative m-2 h-11/12 cursor-pointer border border-black dark:border-gray-400" (click)="router.navigate(['/curso/' + curso.id_curso])" tabindex="0" (keydown.enter)="router.navigate(['/curso/' + curso.id_curso])">
@@ -28,7 +28,7 @@
 	<p>Que esperas?? Regístrate, compra el curso que mas te guste o elige un plan de estudios!</p>
 </div>
 
-<div id="profesores" class="relative m-2 flex h-40 flex-col border border-black p-4 dark:border-gray-400" tabindex="0">
+<div id="profesores" class="relative m-2 flex h-80 flex-col border border-black p-4 sm:h-60 md:h-40 dark:border-gray-400" tabindex="0">
 	<div class="absolute inset-0 bg-white bg-cover bg-center opacity-20 dark:hidden" style="background-image: url('../../../assets/oceano.webp')"></div>
 	<h2 class="font-bold text-blue-700">LOS PROFESORES:</h2>
 	<div id="profes" class="h-5/6 flex-1 p-2"></div>

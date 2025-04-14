@@ -19,6 +19,7 @@ export class AppComponent implements OnInit, OnDestroy {
 	title = 'Sovereign School';
 	isModalVisible: boolean = false;
 	vistaMenu: boolean = false;
+	currentYear: string = new Date().getFullYear().toString();
 	private subscription: Subscription = new Subscription();
 
 	constructor(

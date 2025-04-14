@@ -1,4 +1,4 @@
-<div class="flex grow flex-col overflow-auto">
+<div class="flex grow flex-col overflow-auto dark:text-gray-500">
 	<img class="absolute -z-50 h-full w-full object-cover object-center opacity-20" [src]="this.chat?.foto_curso" alt="curso" />
 	@if (this.chat === null) {
 		<h3>CARGANDO...</h3>
@@ -61,8 +61,8 @@
 						</div>
 					}
 					<div class="flex">
-						<input id="mexc-{{ clase.id_clase }}" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" placeholder="Escribe tu mensaje en la clase..." />
-						<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" (click)="this.enviarMensaje(clase.id_clase)">Enviar</button>
+						<input id="mexc-{{ clase.id_clase }}" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" placeholder="Escribe tu mensaje en la clase..." />
+						<button type="button" class="rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" (click)="this.enviarMensaje(clase.id_clase)">Enviar</button>
 					</div>
 				</div>
 			}
@@ -101,8 +101,8 @@
 			</div>
 		}
 		<div class="flex">
-			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" placeholder="Escribe tu mensaje en el curso..." />
-			<button type="button" class="rounded-lg border border-black bg-transparent p-2 text-black dark:border-gray-400" (click)="this.enviarMensaje()">Enviar</button>
+			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" placeholder="Escribe tu mensaje en el curso..." />
+			<button type="button" class="rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" (click)="this.enviarMensaje()">Enviar</button>
 		</div>
 	}
 </div>

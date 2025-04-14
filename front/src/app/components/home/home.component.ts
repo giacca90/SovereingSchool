@@ -57,13 +57,13 @@ export class HomeComponent {
 				const div: HTMLDivElement = document.createElement('div') as HTMLDivElement;
 				const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 				if (isDarkMode) {
-					div.classList.add('border', 'border-gray-400', 'rounded-lg', 'flex', 'h-full', 'p-2', 'flex-1', 'opacity-0', 'transition-opacity', 'duration-1000');
+					div.classList.add('border', 'border-gray-400', 'rounded-lg', 'flex', 'h-full', 'p-2', 'flex-1', 'opacity-0', 'transition-opacity', 'duration-1000', 'items-center');
 				} else {
-					div.classList.add('border', 'border-black', 'rounded-lg', 'flex', 'h-full', 'p-2', 'flex-1', 'opacity-0', 'transition-opacity', 'duration-1000');
+					div.classList.add('border', 'border-black', 'rounded-lg', 'flex', 'h-full', 'p-2', 'flex-1', 'opacity-0', 'transition-opacity', 'duration-1000', 'items-center');
 				}
 
 				const img: HTMLImageElement = document.createElement('img') as HTMLImageElement;
-				img.classList.add('h-full', 'w-auto', 'object-contain', 'mr-4');
+				img.classList.add('h-1/2', 'sm:h-full', 'w-auto', 'object-contain', 'mr-4');
 				img.src = profe.foto_usuario[0];
 				img.alt = 'profe';
 				div.appendChild(img);

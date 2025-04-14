@@ -8,7 +8,8 @@
 			} @else {
 				@for (curso of this.loginService.usuario.cursos_usuario; track curso) {
 					<div class="flex w-full">
-						<div class="m-2 flex grow rounded-lg border border-black p-2 dark:border-gray-400">
+						<div class="relative m-2 flex grow rounded-lg border border-black p-2 dark:border-gray-400">
+							<div style="background-image: url('{{ curso.imagen_curso }}')" class="absolute inset-0 bg-cover bg-center opacity-20 transition-opacity duration-300 hover:opacity-30"></div>
 							<p>{{ curso.nombre_curso }}</p>
 							<p class="ml-2 grow text-gray-500">{{ curso.descriccion_corta }}</p>
 						</div>
@@ -24,12 +25,13 @@
 			} @else {
 				@for (curso of this.cursoService.getCursosProfe(this.loginService.usuario); track curso) {
 					<div class="flex w-full">
-						<div class="m-2 flex grow rounded-lg border border-black p-2 dark:border-gray-400">
+						<div class="relative m-2 flex grow items-center rounded-lg border border-black p-2 dark:border-gray-400">
+							<div style="background-image: url('{{ curso.imagen_curso }}')" class="absolute inset-0 bg-cover bg-center opacity-20 transition-opacity duration-300 hover:opacity-30"></div>
 							<p>{{ curso.nombre_curso }}</p>
-							<p class="ml-2 grow text-gray-500">{{ curso.descriccion_corta }}</p>
+							<p class="ml-2 grow text-sm text-gray-500">{{ curso.descriccion_corta }}</p>
 						</div>
 						@if (this.loginService.usuario.id_usuario !== null) {
-							<button class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="this.router.navigate(['editorCurso/' + curso.id_curso])">Editar este curso</button>
+							<button class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="this.router.navigate(['editorCurso/' + curso.id_curso])">Editar <span class="hidden md:inline">este curso</span></button>
 						}
 					</div>
 				}
