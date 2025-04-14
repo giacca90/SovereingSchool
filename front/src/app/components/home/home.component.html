@@ -1,4 +1,4 @@
-<swiper-container [attr.breakpoints]="responsiveOptions" [attr.autoplay]="autoplayOptions" loop="true" class="h-80 w-full sm:h-64">
+<swiper-container #swiper [breakpoints]="responsiveOptions" [autoplay]="autoplayOptions" loop="true" class="h-80 w-full sm:h-64">
 	@for (curso of this.cursoService.cursos; track curso.id_curso) {
 		<swiper-slide>
 			<div class="relative m-2 h-11/12 cursor-pointer border border-black dark:border-gray-400" (click)="router.navigate(['/curso/' + curso.id_curso])" tabindex="0" (keydown.enter)="router.navigate(['/curso/' + curso.id_curso])">

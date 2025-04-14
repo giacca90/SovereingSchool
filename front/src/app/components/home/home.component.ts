@@ -1,23 +1,28 @@
-import { afterNextRender, ChangeDetectorRef, Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { SwiperContainer } from 'swiper/element';
+import { register } from 'swiper/element/bundle';
 import { Usuario } from '../../models/Usuario';
 import { CursosService } from '../../services/cursos.service';
 import { InitService } from '../../services/init.service';
 import { UsuariosService } from '../../services/usuarios.service';
+
+register(); // Registrar Swiper al inicio
 
 @Component({
 	selector: 'app-home',
 	standalone: true,
 	imports: [],
 	schemas: [CUSTOM_ELEMENTS_SCHEMA],
-
 	templateUrl: './home.component.html',
 	styleUrl: './home.component.css',
 })
 export class HomeComponent {
+	@ViewChild('swiper') swiper?: ElementRef<SwiperContainer>;
+
 	vistaCursos: HTMLDivElement[] = [];
 	vista: HTMLDivElement | null = null;
-	responsiveOptions = JSON.stringify({
+	responsiveOptions = {
 		0: {
 			slidesPerView: 1,
 		},
@@ -33,13 +38,14 @@ export class HomeComponent {
 		1280: {
 			slidesPerView: 5,
 		},
-	});
+	};
 
-	autoplayOptions = JSON.stringify({
+	autoplayOptions = {
 		delay: 3000, // 3 segundos entre slides
 		disableOnInteraction: false, // sigue reproduciendo aunque el usuario interactúe
 		pauseOnMouseEnter: true, // pausa cuando el mouse está encima (ideal en desktop)
-	});
+	};
+
 	constructor(
 		public cursoService: CursosService,
 		private usuarioService: UsuariosService,
@@ -47,7 +53,30 @@ export class HomeComponent {
 		private cdr: ChangeDetectorRef,
 		public router: Router,
 	) {
-		afterNextRender(() => this.carouselProfes());
+		afterNextRender(() => {
+			this.carouselProfes();
+			this.initSwiper();
+		});
+	}
+
+	private initSwiper() {
+		if (this.swiper?.nativeElement) {
+			const swiperEl = this.swiper.nativeElement;
+			const swiperParams = {
+				...this.responsiveOptions,
+				autoplay: this.autoplayOptions,
+				navigation: {
+					enabled: false,
+				},
+				pagination: {
+					enabled: false,
+				},
+				loop: true,
+			};
+
+			Object.assign(swiperEl, swiperParams);
+			swiperEl.initialize();
+		}
 	}
 
 	async carouselProfes() {
