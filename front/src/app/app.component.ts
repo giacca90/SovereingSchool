@@ -31,7 +31,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	ngOnInit() {
 		// Suscribirse a los cambios del tema del sistema
-		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+		window?.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
 			if (!('theme' in localStorage)) {
 				document.documentElement.classList.toggle('dark', e.matches);
 			}

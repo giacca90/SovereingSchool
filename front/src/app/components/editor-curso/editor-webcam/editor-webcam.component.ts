@@ -43,7 +43,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 	@Output() emision: EventEmitter<MediaStream | null> = new EventEmitter(); // Emisión de video y audio
 	@Output() savePresets: EventEmitter<Map<string, { elements: VideoElement[]; shortcut: string }>> = new EventEmitter(); // Guardar presets
 
-	@HostListener('window:resize', ['$event'])
+	@HostListener('window?:resize', ['$event'])
 	onResize(): void {
 		this.calculatePreset();
 		this.drawAudioConnections();
@@ -161,7 +161,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		updateAudioLevel();
 
 		// Escuchar eventos de teclado
-		window.addEventListener('keydown', this.handleKeydown.bind(this));
+		window?.addEventListener('keydown', this.handleKeydown.bind(this));
 
 		// Carga los files recibidos (si hay)
 		if (this.staticContent.length > 0) {
@@ -195,7 +195,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.audiosCapturas.forEach((track) => track.stop());
 
 		// Eliminar el listener de eventos de teclado
-		window.removeEventListener('keydown', this.handleKeydown.bind(this));
+		window?.removeEventListener('keydown', this.handleKeydown.bind(this));
 	}
 
 	// Método para manejar eventos de teclado
@@ -964,7 +964,7 @@ export class EditorWebcamComponent implements OnInit, AfterViewInit, OnDestroy {
 			if (isMouseOverCanvas) {
 				wheelEvent.preventDefault();
 				// Obtener tamaño actual del ghost
-				const ghostStyles = window.getComputedStyle(ghost);
+				const ghostStyles = window?.getComputedStyle(ghost);
 				const currentWidth = parseFloat(ghostStyles.width);
 				const currentHeight = parseFloat(ghostStyles.height);
 

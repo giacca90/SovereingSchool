@@ -33,7 +33,7 @@
 								{
 									"type": "initial",
 									"maximumWarning": "500kb",
-									"maximumError": "1mb"
+									"maximumError": "2mb"
 								},
 								{
 									"type": "anyComponentStyle",
@@ -89,9 +89,7 @@
 		}
 	},
 	"cli": {
-    "schematicCollections": [
-      "@angular-eslint/schematics"
-    ],
-    "analytics": false
+		"schematicCollections": ["@angular-eslint/schematics"],
+		"analytics": false
 	}
 }

@@ -66,7 +66,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 			this.router.events.subscribe((event) => {
 				if (event instanceof NavigationStart && this.editado) {
 					this.cursoService.getCurso(this.id_curso).then((curso) => (this.curso = curso));
-					const userConfirmed = window.confirm('Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?');
+					const userConfirmed = window?.confirm('Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?');
 					if (!userConfirmed) {
 						this.router.navigateByUrl(this.router.url); // Mantén al usuario en la misma página
 					}
@@ -81,7 +81,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		this.streamWebcam = null;
 	}
 
-	@HostListener('window:beforeunload', ['$event'])
+	@HostListener('window?:beforeunload', ['$event'])
 	unloadNotification($event: { returnValue: string }): void {
 		if (this.editado) {
 			$event.returnValue = 'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?';
@@ -361,9 +361,9 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	}
 
 	deleteCurso() {
-		const confirm = window.confirm('Esta acción borrará definitivamente este curso, incluida todas sus clases con su contenido. \n Tampoco el administrador de la plataforma podrá recuperar el curso una vez borrado.');
+		const confirm = window?.confirm('Esta acción borrará definitivamente este curso, incluida todas sus clases con su contenido. \n Tampoco el administrador de la plataforma podrá recuperar el curso una vez borrado.');
 		if (confirm) {
-			const confirm2 = window.confirm('ESTÁS ABSOLUTAMENTE SEGURO DE LO QUE HACES??');
+			const confirm2 = window?.confirm('ESTÁS ABSOLUTAMENTE SEGURO DE LO QUE HACES??');
 			if (confirm2 && this.curso) {
 				this.cursoService.deleteCurso(this.curso).subscribe({
 					next: (result: boolean) => {
@@ -402,7 +402,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 			if (webcamButton) {
 				webcamButton.classList.remove('text-blue-700');
 			}
-			window.scrollTo(0, 0); // Subir la vista al inicio de la página
+			window?.scrollTo(0, 0); // Subir la vista al inicio de la página
 			document.body.style.overflow = 'hidden';
 
 			this.player?.dispose();
@@ -438,7 +438,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	startVideoJS() {
 		setTimeout(() => {
 			if (!this.editar) return;
-			window.scrollTo(0, 0); // Subir la vista al inicio de la página
+			window?.scrollTo(0, 0); // Subir la vista al inicio de la página
 			document.body.style.overflow = 'hidden';
 			const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
 			if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0 && this.editar.direccion_clase.endsWith('.m3u8')) {

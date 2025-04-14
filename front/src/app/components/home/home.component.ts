@@ -84,7 +84,7 @@ export class HomeComponent {
 			const carouselProfes: HTMLDivElement[] = [];
 			this.usuarioService.profes.forEach((profe: Usuario) => {
 				const div: HTMLDivElement = document.createElement('div') as HTMLDivElement;
-				const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+				const isDarkMode = window?.matchMedia && window?.matchMedia('(prefers-color-scheme: dark)').matches;
 				if (isDarkMode) {
 					div.classList.add('border', 'border-gray-400', 'rounded-lg', 'flex', 'h-full', 'p-2', 'flex-1', 'opacity-0', 'transition-opacity', 'duration-1000', 'items-center');
 				} else {

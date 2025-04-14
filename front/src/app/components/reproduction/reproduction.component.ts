@@ -11,11 +11,11 @@ import { CursosService } from '../../services/cursos.service';
 import { ChatComponent } from '../chat/chat/chat.component';
 
 @Component({
-    selector: 'app-reproduction',
+	selector: 'app-reproduction',
 	standalone: true,
-    imports: [ChatComponent],
-    templateUrl: './reproduction.component.html',
-    styleUrl: './reproduction.component.css'
+	imports: [ChatComponent],
+	templateUrl: './reproduction.component.html',
+	styleUrl: './reproduction.component.css',
 })
 export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	public id_usuario: number = 0;
@@ -208,7 +208,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 		document.body.appendChild(curtain);
 
 		// Cierra la cortina al hacer clic fuera de ella
-		window.addEventListener(
+		window?.addEventListener(
 			'click',
 			(event) => {
 				if (!curtain.contains(event.target as Node)) {
