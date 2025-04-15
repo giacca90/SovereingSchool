@@ -35,9 +35,9 @@
 						}
 					</div>
 				}
-				@if (this.loginService.usuario.id_usuario !== null) {
-					<button class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="this.router.navigate(['editorCurso/' + 0])">Crea un nuevo curso</button>
-				}
+			}
+			@if (this.loginService.usuario.id_usuario !== null) {
+				<button class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="this.router.navigate(['editorCurso/' + 0])">Crea un nuevo curso</button>
 			}
 		}
 	}

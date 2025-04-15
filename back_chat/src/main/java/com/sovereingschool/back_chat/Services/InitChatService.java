@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.ChangeStreamEvent;
 import org.springframework.data.mongodb.core.ChangeStreamOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -105,29 +104,52 @@ public class InitChatService {
 
     @PostConstruct
     public void observeMultipleCollections() {
-
         // Configura las opciones de ChangeStream
         ChangeStreamOptions options = ChangeStreamOptions.builder()
                 .build();
 
         Flux<Document> userChatFlux = reactiveMongoTemplate
                 .changeStream("users_chat", options, Document.class)
-                .map(ChangeStreamEvent::getBody); // Extrae el documento directamente
+                .map(event -> {
+                    Document doc = event.getBody();
+                    if (doc == null) {
+                        System.err.println("Documento nulo detectado en users_chat stream");
+                        return new Document(); // Devolvemos un documento vacío en lugar de null
+                    }
+                    return doc;
+                });
 
         // Configura el ChangeStream y escucha los eventos
-
-        userChatFlux.subscribe(changedDocument -> {
-            // ("Users_chat modificado: " + changedDocument);
-            notifyUsersChat(changedDocument);
-        });
+        userChatFlux.subscribe(
+                changedDocument -> {
+                    try {
+                        notifyUsersChat(changedDocument);
+                    } catch (Exception e) {
+                        System.err.println("Error procesando documento de users_chat: " + e.getMessage());
+                    }
+                },
+                error -> System.err.println("Error en el stream de users_chat: " + error.getMessage()));
 
         Flux<Document> coursesChatFlux = reactiveMongoTemplate
                 .changeStream("courses_chat", options, Document.class)
-                .map(ChangeStreamEvent::getBody); // Extrae el documento directamente
+                .map(event -> {
+                    Document doc = event.getBody();
+                    if (doc == null) {
+                        System.err.println("Documento nulo detectado en courses_chat stream");
+                        return new Document(); // Devolvemos un documento vacío en lugar de null
+                    }
+                    return doc;
+                });
 
-        coursesChatFlux.subscribe(changedDocument -> {
-            notifyCoursesChat(changedDocument);
-        });
+        coursesChatFlux.subscribe(
+                changedDocument -> {
+                    try {
+                        notifyCoursesChat(changedDocument);
+                    } catch (Exception e) {
+                        System.err.println("Error procesando documento de courses_chat: " + e.getMessage());
+                    }
+                },
+                error -> System.err.println("Error en el stream de courses_chat: " + error.getMessage()));
     }
 
     /**

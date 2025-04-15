@@ -276,6 +276,11 @@ public class CursoChatService {
                     new ArrayList<String>());
 
             CursoChat cursoChat = cursoChatRepo.findByIdCurso(clase.getCurso_clase().getId_curso());
+            if (cursoChat == null) {
+                System.err.println("Error: No se encontró el curso con ID " + clase.getCurso_clase().getId_curso());
+                System.err.println("idCurso: " + clase.getCurso_clase().getId_curso());
+                return;
+            }
             List<ClaseChat> clasesChat = cursoChat.getClases();
             // Comprueba si clasesChat ya contiene una clase con el mismo id
             boolean exists = clasesChat.stream().anyMatch(c -> c.getIdClase() == clase.getId_clase());
