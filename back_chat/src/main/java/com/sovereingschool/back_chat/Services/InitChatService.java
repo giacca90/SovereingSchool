@@ -3,6 +3,7 @@ package com.sovereingschool.back_chat.Services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,42 +60,51 @@ public class InitChatService {
     private ReactiveMongoTemplate reactiveMongoTemplate;
 
     public InitChatDTO initChat(Long idUsuario) {
+        // Validar que el ID no sea nulo
+        if (idUsuario == null) {
+            throw new IllegalArgumentException("El ID de usuario no puede ser nulo");
+        }
 
         UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario);
-        // ("USUARIOCHAT: " + usuarioChat);
         if (usuarioChat == null) {
-            usuarioChat = new UsuarioChat(null, 0L, null, null); // Objeto por defecto si no se encuentra
             return new InitChatDTO();
         }
-        List<MensajeChat> mensajes = this.mensajeChatRepo.findAllById(usuarioChat.getMensajes());
-        // ("MENSAJESCHAT: " + mensajes);
-        List<CursoChat> cursos = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
-        // ("CURSOCHAT: " + cursos);
 
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
-        if (mensajes != null && mensajes.size() > 0) {
-            mensajesDTO = getMensajesDTO(mensajes);
+        if (usuarioChat.getMensajes() != null && !usuarioChat.getMensajes().isEmpty()) {
+            List<MensajeChat> mensajes = this.mensajeChatRepo.findAllById(usuarioChat.getMensajes());
+            if (mensajes != null && !mensajes.isEmpty()) {
+                mensajesDTO = getMensajesDTO(mensajes);
+            }
         }
 
         List<CursoChatDTO> cursosDTO = new ArrayList<>();
-        if (cursos != null && cursos.size() > 0) {
-            for (CursoChat curso : cursos) {
-                CursoChatDTO cursoDTO = new CursoChatDTO();
-                cursoDTO.setId_curso(curso.getIdCurso());
-                cursoDTO.setNombre_curso(cursoRepo.findNombreCursoById(curso.getIdCurso()));
-                cursoDTO.setFoto_curso(cursoRepo.findImagenCursoById(curso.getIdCurso()));
-                MensajeChat ultimo = this.mensajeChatRepo.findById(curso.getUltimo()).get();
-                List<MensajeChatDTO> ultimoDTO = this.getMensajesDTO(Arrays.asList(ultimo));
-                cursoDTO.setMensajes(ultimoDTO);
-                cursosDTO.add(cursoDTO);
+        if (usuarioChat.getCursos() != null && !usuarioChat.getCursos().isEmpty()) {
+            List<CursoChat> cursos = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
+            if (cursos != null && !cursos.isEmpty()) {
+                for (CursoChat curso : cursos) {
+                    if (curso.getUltimo() != null) {
+                        CursoChatDTO cursoDTO = new CursoChatDTO();
+                        cursoDTO.setId_curso(curso.getIdCurso());
+                        cursoDTO.setNombre_curso(cursoRepo.findNombreCursoById(curso.getIdCurso()));
+                        cursoDTO.setFoto_curso(cursoRepo.findImagenCursoById(curso.getIdCurso()));
+
+                        Optional<MensajeChat> ultimoMensaje = this.mensajeChatRepo.findById(curso.getUltimo());
+                        if (ultimoMensaje.isPresent()) {
+                            List<MensajeChatDTO> ultimoDTO = this.getMensajesDTO(Arrays.asList(ultimoMensaje.get()));
+                            cursoDTO.setMensajes(ultimoDTO);
+                        }
+                        cursosDTO.add(cursoDTO);
+                    }
+                }
             }
         }
+
         return new InitChatDTO(usuarioChat.getIdUsuario(), mensajesDTO, cursosDTO);
     }
 
     @PostConstruct
     public void observeMultipleCollections() {
-        // ("Observing multiple collections");
 
         // Configura las opciones de ChangeStream
         ChangeStreamOptions options = ChangeStreamOptions.builder()
@@ -116,7 +126,6 @@ public class InitChatService {
                 .map(ChangeStreamEvent::getBody); // Extrae el documento directamente
 
         coursesChatFlux.subscribe(changedDocument -> {
-            // ("Courses_chat modificado: " + changedDocument);
             notifyCoursesChat(changedDocument);
         });
     }
@@ -182,7 +191,6 @@ public class InitChatService {
      *                 El documento tiene que ser de tipo CursoChat
      */
     private void notifyCoursesChat(Document document) {
-        // ("Documento modificado: " + document);
         Long id_curso = document.getLong("idCurso");
         List<ClaseChatDTO> clases = new ArrayList<>();
         List<MensajeChatDTO> mensajes = new ArrayList<>();

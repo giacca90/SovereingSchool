@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sovereingschool.back_chat.DTOs.ClaseChatDTO;
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
@@ -265,20 +266,28 @@ public class CursoChatService {
     public void creaClaseChat(String message) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            Clase clase = objectMapper.readValue(message, Clase.class);
+            // Configurar ObjectMapper para manejar referencias circulares
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+            Clase clase = objectMapper.readValue(message, Clase.class);
             ClaseChat claseChat = new ClaseChat(
-                    clase.getId_clase(), // Long id_clase
-                    clase.getCurso_clase().getId_curso(), // Long id_curso
-                    new ArrayList<String>()); // List<String> mensajes
+                    clase.getId_clase(),
+                    clase.getCurso_clase().getId_curso(),
+                    new ArrayList<String>());
 
             CursoChat cursoChat = cursoChatRepo.findByIdCurso(clase.getCurso_clase().getId_curso());
             List<ClaseChat> clasesChat = cursoChat.getClases();
-            clasesChat.add(claseChat);
-            cursoChat.setClases(clasesChat);
-            cursoChatRepo.save(cursoChat);
+            // Comprueba si clasesChat ya contiene una clase con el mismo id
+            boolean exists = clasesChat.stream().anyMatch(c -> c.getIdClase() == clase.getId_clase());
+            if (!exists) {
+                clasesChat.add(claseChat);
+                cursoChat.setClases(clasesChat);
+                cursoChatRepo.save(cursoChat);
+            }
+
         } catch (Exception e) {
-            System.err.println("Error en crear el usuario del chat: " + e.getMessage());
+            System.err.println("Error en crear el chat de la clase: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -290,6 +299,30 @@ public class CursoChatService {
             mensajes.remove(lMex[1]);
             usuario.setMensajes(mensajes);
             this.usuarioChatRepo.save(usuario);
+        }
+    }
+
+    public void borrarClaseChat(Long idCurso, Long idClase) {
+        CursoChat cursoChat = this.cursoChatRepo.findByIdCurso(idCurso);
+        if (cursoChat != null) {
+            List<ClaseChat> clases = cursoChat.getClases();
+            for (ClaseChat clase : clases) {
+                if (clase.getIdClase() == idClase) {
+                    clases.remove(clase);
+                    break;
+                }
+            }
+            cursoChat.setClases(clases);
+            this.cursoChatRepo.save(cursoChat);
+        } else {
+            System.err.println("No se pudo borrar la clase del chat, el curso no existe");
+        }
+    }
+
+    public void borrarCursoChat(Long idCurso) {
+        CursoChat cursoChat = this.cursoChatRepo.findByIdCurso(idCurso);
+        if (cursoChat != null) {
+            this.cursoChatRepo.delete(cursoChat);
         }
     }
 }

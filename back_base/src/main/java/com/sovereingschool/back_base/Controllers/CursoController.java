@@ -275,6 +275,10 @@ public class CursoController {
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 		String filePath = this.service.subeVideo(file);
+		if (filePath == null) {
+			response = "Error al subir el video";
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		response = filePath.toString();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

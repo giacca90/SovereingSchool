@@ -7,7 +7,9 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -94,6 +96,28 @@ public class ChatController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @DeleteMapping("/delete_clase_chat/{idCurso}/{idClase}")
+    public ResponseEntity<?> borrarClaseChat(@PathVariable Long idCurso, @PathVariable Long idClase) {
+        try {
+            this.cursoChatService.borrarClaseChat(idCurso, idClase);
+            return new ResponseEntity<String>("Clase chat borrado con exito!!!", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en borrar la clase del chat: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/delete_curso_chat/{idCurso}")
+    public ResponseEntity<?> borrarCursoChat(@PathVariable Long idCurso) {
+        try {
+            this.cursoChatService.borrarCursoChat(idCurso);
+            return new ResponseEntity<String>("Curso chat borrado con exito!!!", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en borrar el curso del chat: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/init")

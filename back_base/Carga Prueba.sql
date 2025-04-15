@@ -1,3 +1,57 @@
+-- Creación de tablas si no existen
+CREATE TABLE IF NOT EXISTS curso (
+	id_curso SERIAL PRIMARY KEY,
+	fecha_publicacion_curso TIMESTAMP NOT NULL,
+	nombre_curso VARCHAR(255) NOT NULL,
+	descriccion_corta TEXT,
+	descriccion_larga TEXT,
+	imagen_curso VARCHAR(255),
+	precio_curso DECIMAL(10, 2)
+);
+CREATE TABLE IF NOT EXISTS clase (
+	id_clase SERIAL PRIMARY KEY,
+	direccion_clase VARCHAR(255) NOT NULL,
+	nombre_clase VARCHAR(255) NOT NULL,
+	descriccion_clase TEXT,
+	posicion_clase INTEGER NOT NULL,
+	tipo_clase INTEGER NOT NULL,
+	id_curso INTEGER REFERENCES curso(id_curso)
+);
+CREATE TABLE IF NOT EXISTS plan (
+	id_plan SERIAL PRIMARY KEY,
+	nombre_plan VARCHAR(50) NOT NULL,
+	precio_plan DECIMAL(10, 2) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS usuario (
+	id_usuario SERIAL PRIMARY KEY,
+	fecha_registro_usuario TIMESTAMP NOT NULL,
+	foto_usuario TEXT [],
+	presentacion TEXT,
+	nombre_usuario VARCHAR(255) NOT NULL,
+	roll_usuario INTEGER NOT NULL,
+	plan_usuario INTEGER REFERENCES plan(id_plan)
+);
+CREATE TABLE IF NOT EXISTS login (
+	id_login SERIAL PRIMARY KEY,
+	id_usuario INTEGER REFERENCES usuario(id_usuario),
+	correo_electronico VARCHAR(255) NOT NULL UNIQUE,
+	PASSWORD VARCHAR(255) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS curso_profesor (
+	id_curso INTEGER REFERENCES curso(id_curso),
+	id_usuario INTEGER REFERENCES usuario(id_usuario),
+	PRIMARY KEY (id_curso, id_usuario)
+);
+CREATE TABLE IF NOT EXISTS usuario_curso (
+	id_usuario INTEGER REFERENCES usuario(id_usuario),
+	id_curso INTEGER REFERENCES curso(id_curso),
+	PRIMARY KEY (id_usuario, id_curso)
+);
+CREATE TABLE IF NOT EXISTS cursos_plan (
+	id_curso INTEGER REFERENCES curso(id_curso),
+	id_plan INTEGER REFERENCES plan(id_plan),
+	PRIMARY KEY (id_curso, id_plan)
+);
 INSERT INTO curso (
 		fecha_publicacion_curso,
 		nombre_curso,

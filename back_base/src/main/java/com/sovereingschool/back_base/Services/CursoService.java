@@ -11,7 +11,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,9 +50,6 @@ public class CursoService implements ICursoService {
 
     @Autowired
     private ClaseRepository claseRepo;
-
-    @Autowired
-    private WebClient.Builder webClientBuilder;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -177,25 +176,28 @@ public class CursoService implements ICursoService {
                 }
                 // Crea el chat de la clase si no existe
                 try {
+                    clase.setCurso_clase(curso); // Asegurarnos que la referencia al curso está establecida
+
+                    // Crear una versión simplificada para enviar
+                    Map<String, Object> claseData = new HashMap<>();
+                    claseData.put("id_clase", clase.getId_clase());
+                    claseData.put("curso_clase", Map.of("id_curso", curso.getId_curso()));
+
                     WebClient webClient = createSecureWebClient(backChatURL);
                     webClient.post().uri("/crea_clase_chat")
-                            .body(Mono.just(clase), Clase.class)
+                            .body(Mono.just(claseData), Map.class)
                             .retrieve()
                             .bodyToMono(String.class)
                             .doOnError(e -> {
-                                // Manejo de errores
                                 System.err.println("Error al crear el chat de la clase: " + e.getMessage());
                                 e.printStackTrace();
                             }).subscribe(res -> {
-                                // Maneja el resultado cuando esté disponible
-                                if (res != null && res.equals("Clase chat creado con exito!!!")) {
-                                } else {
-                                    System.err.println("Error en crear la clase en el chat:");
-                                    System.err.println(res);
+                                if (res == null || !res.equals("Clase chat creado con exito!!!")) {
+                                    System.err.println("Error en crear la clase en el chat: " + res);
                                 }
                             });
                 } catch (Exception e) {
-                    System.err.println("Error en crear el curso: " + e.getMessage());
+                    System.err.println("Error al crear el chat de la clase: " + e.getMessage());
                     return null;
                 }
 
@@ -278,19 +280,40 @@ public class CursoService implements ICursoService {
             System.err.println("La carpeta del curso no existe.");
         }
 
-        WebClient webClient = webClientBuilder.baseUrl(backStreamURL)
-                .build();
-        webClient.delete().uri("/deleteCurso/" + id_curso).retrieve().bodyToMono(Boolean.class).doOnError(e -> {
-            // Manejo de errores
+        // Eliminar el curso del microservicio de streaming
+        try {
+            WebClient webClient = createSecureWebClient(backStreamURL);
+            webClient.delete().uri("/deleteCurso/" + id_curso).retrieve().bodyToMono(Boolean.class).doOnError(e -> {
+                // Manejo de errores
+                System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+                e.printStackTrace();
+            }).subscribe(res -> {
+                // Maneja el resultado cuando esté disponible
+                if (res == null || !res) {
+                    System.err.println("Error en borrar el curso en el servicio de reproducción");
+                }
+            });
+        } catch (Exception e) {
             System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
-            e.printStackTrace();
-        }).subscribe(res -> {
-            // Maneja el resultado cuando esté disponible
-            if (res != null && res) {
-            } else {
-                System.err.println("Error en borrar el curso en el servicio de reproducción");
-            }
-        });
+        }
+
+        // Eliminar el curso del microservicio de chat
+        try {
+            WebClient webClientChat = createSecureWebClient(backChatURL);
+            webClientChat.delete().uri("/delete_curso_chat/" + id_curso).retrieve().bodyToMono(String.class)
+                    .doOnError(e -> {
+                        System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+                        e.printStackTrace();
+                    }).subscribe(res -> {
+                        if (res == null || !res.equals("Curso chat borrado con exito!!!")) {
+                            System.err.println("Error al eliminar el curso del microservicio de chat");
+                        }
+                    });
+        }
+
+        catch (Exception e) {
+            System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+        }
 
         return true;
     }
@@ -330,8 +353,9 @@ public class CursoService implements ICursoService {
                 }
             }
 
+            // Eliminar la carpeta de la clase
             try {
-                WebClient webClient = webClientBuilder.baseUrl(backStreamURL).build();
+                WebClient webClient = createSecureWebClient(backStreamURL);
                 webClient.delete()
                         .uri("/deleteClase/" + clase.getCurso_clase().getId_curso().toString() + "/"
                                 + clase.getId_clase().toString())
@@ -344,13 +368,33 @@ public class CursoService implements ICursoService {
                             e.printStackTrace();
                         }).subscribe(res -> {
                             // Maneja el resultado cuando esté disponible
-                            if (res != null && res) {
-                            } else {
+                            if (res == null || !res) {
                                 System.err.println("Error en actualizar el curso en el servicio de reproducción");
                             }
                         });
             } catch (Exception e) {
                 System.err.println("error en borrar la clase en el streaming: " + e.getMessage());
+            }
+
+            // Elimina el chat de la clase
+            try {
+                WebClient webClient = createSecureWebClient(backChatURL);
+                webClient.delete()
+                        .uri("/delete_clase_chat/" + clase.getCurso_clase().getId_curso().toString() + "/"
+                                + clase.getId_clase().toString())
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .doOnError(e -> {
+                            // Manejo de errores
+                            System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
+                        }).subscribe(res -> {
+                            // Maneja el resultado cuando esté disponible
+                            if (res == null || !res.equals("Clase chat borrado con exito!!!")) {
+                                System.err.println("Error en borrar la clase en el chat");
+                            }
+                        });
+            } catch (Exception e) {
+                System.err.println("Error en borrar la clase en el chat: " + e.getMessage());
             }
         } else {
             System.err.println("Clase no encontrada con ID: " + clase.getId_clase());
