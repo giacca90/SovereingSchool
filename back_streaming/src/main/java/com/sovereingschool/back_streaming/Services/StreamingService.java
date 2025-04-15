@@ -62,11 +62,9 @@ public class StreamingService {
 
                     // Extraer el directorio y el nombre del archivo de entrada
                     Path inputPath = Paths.get(clase.getDireccion_clase());
-                    System.out.println("INPUT: " + inputPath.toString());
                     File baseFile = base.toFile();
                     File inputFile = inputPath.toFile();
                     File destino = new File(baseFile, inputPath.getFileName().toString());
-                    System.out.println("DESTINO: " + destino.toString());
 
                     // Mover el archivo de entrada a la carpeta de destino
                     if (!inputFile.renameTo(destino)) {
@@ -81,7 +79,6 @@ public class StreamingService {
                     }
                     if (ffmpegCommand != null) {
                         // Ejecutar el comando FFmpeg
-                        System.out.println("COMANDO FINAL: " + String.join(" ", ffmpegCommand));
                         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
 
                         // Establecer el directorio de trabajo
@@ -94,7 +91,7 @@ public class StreamingService {
                         try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                             String line;
                             while ((line = reader.readLine()) != null) {
-                                System.out.println("FFmpeg: " + line);
+                                System.err.println("FFmpeg: " + line);
                             }
                         }
 
@@ -123,12 +120,10 @@ public class StreamingService {
             throws Exception {
         String userId = streamIdAndSettings[0];
         Path outputDir = baseUploadDir.resolve(userId);
-        System.out.println("Salida: " + outputDir);
 
         // Crear el directorio de salida si no existe
         if (!Files.exists(outputDir)) {
             Files.createDirectories(outputDir);
-            System.out.println("Carpeta creada: " + outputDir);
         }
 
         // Determinar el origen: PipedInputStream o RTMP URL
@@ -178,7 +173,6 @@ public class StreamingService {
             byte[] buffer = new byte[1024 * 1024];
             int bytesRead;
             while ((bytesRead = inStream.read(buffer)) != -1) {
-                System.out.println("Escribiendo en FFmpeg: " + bytesRead);
                 ffmpegInput.write(buffer, 0, bytesRead);
                 ffmpegInput.flush();
             }
@@ -201,9 +195,8 @@ public class StreamingService {
                     // El proceso terminó correctamente
                     int exitCode = process.exitValue();
                     if (exitCode == 0) {
-                        System.out.println("Proceso FFmpeg preview detenido correctamente para el usuario " + userId);
                     } else {
-                        System.out.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
+                        System.err.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
                     }
                 } else {
                     // Si no terminó en 1 segundo, forzar la terminación
@@ -238,9 +231,8 @@ public class StreamingService {
                     // El proceso terminó correctamente
                     int exitCode = preProcess.exitValue();
                     if (exitCode == 0) {
-                        System.out.println("Proceso FFmpeg preview detenido correctamente para el usuario " + userId);
                     } else {
-                        System.out.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
+                        System.err.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
                     }
                 } else {
                     // Si no terminó en 1 segundo, forzar la terminación
@@ -298,13 +290,11 @@ public class StreamingService {
         // Crear el directorio de salida si no existe
         if (!Files.exists(previewDir)) {
             Files.createDirectories(previewDir);
-            System.out.println("Carpeta creada: " + previewDir);
         }
 
         Path outputDir = previewDir.resolve(previewId);
         if (!Files.exists(outputDir)) {
             Files.createDirectories(outputDir);
-            System.out.println("Carpeta creada: " + outputDir);
         }
 
         // preparar comando FFmpeg preview
@@ -336,7 +326,7 @@ public class StreamingService {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println("FFmpeg preview: " + line); // Mostrar logs en la consola
+                    System.err.println("FFmpeg preview: " + line); // Mostrar logs en la consola
                 }
             } catch (IOException e) {
                 System.err.println("Error leyendo salida de FFmpeg preview: " + e.getMessage());
@@ -372,8 +362,6 @@ public class StreamingService {
     private List<String> creaComandoFFmpeg(String inputFilePath, Boolean live, InputStream inputStream,
             String[] streamIdAndSettings)
             throws IOException, InterruptedException {
-        System.out.println("Generando comando FFmpeg para " + inputFilePath);
-        System.out.println("Live: " + live);
         String hls_playlist_type = live ? "event" : "vod";
         String hls_flags = live ? "independent_segments+append_list+program_date_time" : "independent_segments";
         String preset = live ? "veryfast" : "fast";
@@ -405,7 +393,6 @@ public class StreamingService {
                         byte[] buffer = new byte[1024 * 1024];
                         int bytesRead;
                         while ((bytesRead = inputStream.read(buffer)) != -1) {
-                            System.out.println("Escribiendo en FFprobe: " + bytesRead);
                             ffprobeInput.write(buffer, 0, bytesRead);
                             ffprobeInput.flush();
                         }
@@ -426,7 +413,6 @@ public class StreamingService {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                System.out.println("ffprobe: " + line);
                 String[] parts = line.split(",");
                 width = parts[0];
                 height = parts[1];
@@ -445,7 +431,6 @@ public class StreamingService {
                 ffprobeThread.join();
             }
             process.waitFor();
-            System.out.println("Resolución: " + width + "x" + height + ", FPS: " + fps);
             if (width == "0" || height == "0" || fps == "0") {
                 System.err.println("La resolución es 0");
                 return null;
@@ -604,8 +589,6 @@ public class StreamingService {
         if (live) {
             ffmpegCommand.addAll(List.of("-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", "original.mp4"));
         }
-
-        System.out.println("Comando FFmpeg: " + String.join(" ", ffmpegCommand));
 
         return ffmpegCommand;
     }

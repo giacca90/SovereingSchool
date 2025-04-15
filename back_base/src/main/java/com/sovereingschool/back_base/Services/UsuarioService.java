@@ -75,14 +75,14 @@ public class UsuarioService implements IUsuarioService {
                     .bodyToMono(String.class)
                     .doOnError(e -> {
                         // Manejo de errores
-                        System.err.println("ERROR: " + e.getMessage());
+                        System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
                         e.printStackTrace();
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
                         if (res != null && res.equals("Usuario chat creado con exito!!!")) {
-                            System.out.println("Usuario chat creado con éxito!!!");
                         } else {
-                            System.err.println("Error en crear el usuario en el chat");
+                            System.err.println("Error en crear el usuario en el chat:");
+                            System.err.println(res);
                         }
                     });
         } catch (Exception e) {
@@ -90,7 +90,6 @@ public class UsuarioService implements IUsuarioService {
         }
 
         sendDataToStream(usuarioInsertado, 0).subscribe(resp -> {
-            System.out.println("Respuesta del segundo microservicio: " + resp);
         }, error -> {
             System.err.println("Error al comunicarse con el segundo microservicio: " + error.getMessage());
         });
@@ -136,11 +135,6 @@ public class UsuarioService implements IUsuarioService {
     @Override
     public Usuario updateUsuario(Usuario usuario) {
         Usuario usuario_old = this.getUsuario(usuario.getId_usuario());
-        System.out.println("PRUEBA: " + usuario.getFoto_usuario().toString());
-        System.out.println("PRUEBA2: " + usuario.getFoto_usuario().size());
-        for (String foto : usuario.getFoto_usuario()) {
-            System.out.println("PRUEBA3: " + foto);
-        }
 
         for (String foto : usuario_old.getFoto_usuario()) { // TODO: revisar si esto es necesario
             if (!usuario.getFoto_usuario().contains(foto)) {
@@ -148,9 +142,8 @@ public class UsuarioService implements IUsuarioService {
                 try {
                     if (Files.exists(photoPath)) {
                         Files.delete(photoPath);
-                        System.out.println("Foto eliminada: " + photoPath.toString());
                     } else {
-                        System.out.println("Foto no encontrada: " + photoPath.toString());
+                        System.out.println("La foto no existe: " + photoPath.toString());
                     }
                 } catch (IOException e) {
                     System.err.println("Error al eliminar la foto: " + photoPath.toString());
@@ -174,7 +167,6 @@ public class UsuarioService implements IUsuarioService {
         old_usuario.setCursos_usuario(usuario.getCursos_usuario());
 
         sendDataToStream(old_usuario, 1).subscribe(response -> {
-            System.out.println("Respuesta del segundo microservicio: " + response);
         }, error -> {
             System.err.println("Error al comunicarse con el segundo microservicio: " + error.getMessage());
         });

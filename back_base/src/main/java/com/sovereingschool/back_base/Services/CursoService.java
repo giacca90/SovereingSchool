@@ -121,19 +121,18 @@ public class CursoService implements ICursoService {
             curso = this.repo.save(curso);
             // Crea el chat del nuevo curso
             try {
-                WebClient webClient = WebClient.create(backChatURL);
+                WebClient webClient = createSecureWebClient(backChatURL);
                 webClient.post().uri("/crea_curso_chat")
                         .body(Mono.just(curso), Curso.class)
                         .retrieve()
                         .bodyToMono(String.class)
                         .doOnError(e -> {
                             // Manejo de errores
-                            System.err.println("ERROR: " + e.getMessage());
+                            System.err.println("Error al conectar con el microservicio de chat " + e.getMessage());
                             e.printStackTrace();
                         }).subscribe(res -> {
                             // Maneja el resultado cuando esté disponible
                             if (res != null && res.equals("Curso chat creado con exito!!!")) {
-                                System.out.println("Curso chat creado con éxito!!!");
                             } else {
                                 System.err.println("Error en crear el curso en el chat");
                             }
@@ -155,14 +154,11 @@ public class CursoService implements ICursoService {
         // Crear las clases del curso si no existen
         if (clases.size() > 0) {
             for (Clase clase : clases) {
-                System.out.println("Clase: " + clase.getNombre_clase());
                 clase.setCurso_clase(curso);
                 if (clase.getId_clase().equals(0L)) {
                     clase.setId_clase(null);
                 }
                 // Comprueba si la clase es una emisión en directo
-                System.out.println("Tipo clase: " + clase.getTipo_clase());
-                System.out.println("Direccion clase: " + clase.getDireccion_clase());
                 if (clase.getDireccion_clase() != null && !clase.getDireccion_clase().contains("/")) {
                     clase.setDireccion_clase(this.uploadDir + "/" + clase.getDireccion_clase() + "/master.m3u8");
                 } else if (clase.getDireccion_clase() != null && !clase.getDireccion_clase()
@@ -179,6 +175,31 @@ public class CursoService implements ICursoService {
                     System.err.println("Error en guardar la clase: " + e.getMessage());
                     return null;
                 }
+                // Crea el chat de la clase si no existe
+                try {
+                    WebClient webClient = createSecureWebClient(backChatURL);
+                    webClient.post().uri("/crea_clase_chat")
+                            .body(Mono.just(clase), Clase.class)
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .doOnError(e -> {
+                                // Manejo de errores
+                                System.err.println("Error al crear el chat de la clase: " + e.getMessage());
+                                e.printStackTrace();
+                            }).subscribe(res -> {
+                                // Maneja el resultado cuando esté disponible
+                                if (res != null && res.equals("Clase chat creado con exito!!!")) {
+                                } else {
+                                    System.err.println("Error en crear la clase en el chat:");
+                                    System.err.println(res);
+                                }
+                            });
+                } catch (Exception e) {
+                    System.err.println("Error en crear el curso: " + e.getMessage());
+                    return null;
+                }
+
+                // Crea la carpeta de la clase si no existe
                 Path clasePath = cursoPath.resolve(clase.getId_clase().toString());
                 File claseFile = new File(clasePath.toString());
                 if (!claseFile.exists() || !claseFile.isDirectory()) {
@@ -204,12 +225,11 @@ public class CursoService implements ICursoService {
                     .bodyToMono(String.class)
                     .doOnError(e -> {
                         // Manejo de errores
-                        System.err.println("ERROR: " + e.getMessage());
+                        System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
                         e.printStackTrace();
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
                         if (res != null && res.equals("Videos convertidos con éxito!!!")) {
-                            System.out.println("Videos convertidos con éxito!!!");
                         } else {
                             System.err.println("Error en convertir los videos del curso");
                         }
@@ -251,24 +271,22 @@ public class CursoService implements ICursoService {
                         return FileVisitResult.CONTINUE;
                     }
                 });
-                System.out.println("Carpeta eliminada exitosamente.");
             } catch (Exception e) {
                 System.err.println("Error en borrar la carpeta del curso: " + e.getMessage());
             }
         } else {
-            System.out.println("La carpeta no existe.");
+            System.err.println("La carpeta del curso no existe.");
         }
 
         WebClient webClient = webClientBuilder.baseUrl(backStreamURL)
                 .build();
         webClient.delete().uri("/deleteCurso/" + id_curso).retrieve().bodyToMono(Boolean.class).doOnError(e -> {
             // Manejo de errores
-            System.err.println("ERROR: " + e.getMessage());
+            System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
             e.printStackTrace();
         }).subscribe(res -> {
             // Maneja el resultado cuando esté disponible
             if (res != null && res) {
-                System.out.println("Curso borrado con éxito!!!");
             } else {
                 System.err.println("Error en borrar el curso en el servicio de reproducción");
             }
@@ -304,9 +322,8 @@ public class CursoService implements ICursoService {
                                 return FileVisitResult.CONTINUE;
                             }
                         });
-                        System.out.println("Carpeta eliminada exitosamente.");
                     } else {
-                        System.out.println("La carpeta no existe.");
+                        System.err.println("La carpeta de la clase no existe.");
                     }
                 } catch (Exception e) {
                     System.err.println("Error en borrar el video: " + e.getMessage());
@@ -322,12 +339,12 @@ public class CursoService implements ICursoService {
                         .bodyToMono(Boolean.class)
                         .doOnError(e -> {
                             // Manejo de errores
-                            System.err.println("ERROR: " + e.getMessage());
+                            System.err
+                                    .println("Error al conectar con el microservicio de streaming: " + e.getMessage());
                             e.printStackTrace();
                         }).subscribe(res -> {
                             // Maneja el resultado cuando esté disponible
                             if (res != null && res) {
-                                System.out.println("Actualización exitosa");
                             } else {
                                 System.err.println("Error en actualizar el curso en el servicio de reproducción");
                             }
@@ -389,7 +406,6 @@ public class CursoService implements ICursoService {
      * @param destino destino de la carpeta
      */
     private void moverCarpeta(String origen, String destino) {
-        System.out.println("SE MUEVE LA CARPETA " + origen + " A " + destino);
         Path origenPath = Paths.get(origen).getParent();
         Path destinoPath = Paths.get(destino);
         if (!Files.exists(origenPath)) {

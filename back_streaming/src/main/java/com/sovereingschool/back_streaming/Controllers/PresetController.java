@@ -51,9 +51,6 @@ public class PresetController {
     @PutMapping("/save/{id_usuario}")
     public ResponseEntity<?> update(@RequestBody String data, @PathVariable Long id_usuario) {
         try {
-            System.out.println("Actualizando presets para usuario " + id_usuario);
-            System.out.println(data);
-
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, PresetValue> presetsMap = objectMapper.readValue(data,
                     new TypeReference<Map<String, PresetValue>>() {

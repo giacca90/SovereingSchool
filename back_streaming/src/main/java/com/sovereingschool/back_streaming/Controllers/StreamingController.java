@@ -64,8 +64,6 @@ public class StreamingController {
             @PathVariable String lista,
             @RequestHeader HttpHeaders headers) throws IOException {
 
-        System.out.println("!!!GET LISTAS!!!");
-
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
         if (direccion_carpeta == null) {
             System.err.println("No se encuentra la carpeta del curso: " + direccion_carpeta);
@@ -97,7 +95,6 @@ public class StreamingController {
         responseHeaders.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
         long fileLength = Files.size(videoPath);
-        System.out.println("Log5: " + videoPath.toString().substring(videoPath.toString().lastIndexOf(".")));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .contentLength(fileLength)
@@ -115,7 +112,6 @@ public class StreamingController {
 
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
         direccion_carpeta = direccion_carpeta.substring(0, direccion_carpeta.lastIndexOf("/"));
-        System.out.println(" " + direccion_carpeta);
         if (direccion_carpeta == null) {
             System.err.println("El video no tiene ruta");
             return ResponseEntity.notFound().build();
@@ -145,7 +141,6 @@ public class StreamingController {
         Long fileLength = Files.size(videoPath);
         List<HttpRange> ranges = headers.getRange();
         if (ranges.isEmpty()) {
-            System.out.println("Log5: " + videoPath.toString().substring(videoPath.toString().lastIndexOf(".")));
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .contentLength(fileLength)

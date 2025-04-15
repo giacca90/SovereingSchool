@@ -61,15 +61,15 @@ public class InitChatService {
     public InitChatDTO initChat(Long idUsuario) {
 
         UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario);
-        // System.out.println("USUARIOCHAT: " + usuarioChat);
+        // ("USUARIOCHAT: " + usuarioChat);
         if (usuarioChat == null) {
             usuarioChat = new UsuarioChat(null, 0L, null, null); // Objeto por defecto si no se encuentra
             return new InitChatDTO();
         }
         List<MensajeChat> mensajes = this.mensajeChatRepo.findAllById(usuarioChat.getMensajes());
-        // System.out.println("MENSAJESCHAT: " + mensajes);
+        // ("MENSAJESCHAT: " + mensajes);
         List<CursoChat> cursos = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
-        // System.out.println("CURSOCHAT: " + cursos);
+        // ("CURSOCHAT: " + cursos);
 
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         if (mensajes != null && mensajes.size() > 0) {
@@ -94,7 +94,7 @@ public class InitChatService {
 
     @PostConstruct
     public void observeMultipleCollections() {
-        // System.out.println("Observing multiple collections");
+        // ("Observing multiple collections");
 
         // Configura las opciones de ChangeStream
         ChangeStreamOptions options = ChangeStreamOptions.builder()
@@ -107,7 +107,7 @@ public class InitChatService {
         // Configura el ChangeStream y escucha los eventos
 
         userChatFlux.subscribe(changedDocument -> {
-            // System.out.println("Users_chat modificado: " + changedDocument);
+            // ("Users_chat modificado: " + changedDocument);
             notifyUsersChat(changedDocument);
         });
 
@@ -116,7 +116,7 @@ public class InitChatService {
                 .map(ChangeStreamEvent::getBody); // Extrae el documento directamente
 
         coursesChatFlux.subscribe(changedDocument -> {
-            // System.out.println("Courses_chat modificado: " + changedDocument);
+            // ("Courses_chat modificado: " + changedDocument);
             notifyCoursesChat(changedDocument);
         });
     }
@@ -155,9 +155,6 @@ public class InitChatService {
                         respuesta.getFecha()); // Date fecha
             }
 
-            System.out.println("PRUEBA: " + usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()));
-            System.out.println("PRUEBA2: " + usuarioRepo.findFotosUsuarioForId(mensaje.getIdUsuario()).get(0));
-
             MensajeChatDTO mensajeDTO = new MensajeChatDTO(
                     mensaje.getId(), // String id_mensaje
                     mensaje.getIdCurso(), // Long id_curso
@@ -185,7 +182,7 @@ public class InitChatService {
      *                 El documento tiene que ser de tipo CursoChat
      */
     private void notifyCoursesChat(Document document) {
-        // System.out.println("Documento modificado: " + document);
+        // ("Documento modificado: " + document);
         Long id_curso = document.getLong("idCurso");
         List<ClaseChatDTO> clases = new ArrayList<>();
         List<MensajeChatDTO> mensajes = new ArrayList<>();
@@ -226,7 +223,7 @@ public class InitChatService {
      * @param document Documento de chat del usuario
      */
     private void notifyUsersChat(Document document) {
-        // System.out.println("DOCUMENTO MODIFICADO: " + document);
+        // ("DOCUMENTO MODIFICADO: " + document);
         Long idUsuario = document.getLong("idUsuario");
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         List<CursoChatDTO> cursosDTO = new ArrayList<>();

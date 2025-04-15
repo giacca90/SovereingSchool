@@ -54,16 +54,16 @@ public class CursoChatService {
 
     public CursoChatDTO getChat(Long idCurso) {
         CursoChat cursoChat = cursoChatRepo.findByIdCurso(idCurso);
-        // System.out.println("LOG1: " + cursoChat.toString());
+        // ("LOG1: " + cursoChat.toString());
         CursoChatDTO cursoChatDTO = null;
         if (cursoChat != null) {
             List<ClaseChat> clases = cursoChat.getClases();
             List<ClaseChatDTO> clasesDTO = new ArrayList<>();
-            // System.out.println("LOG2: " + clases.toString());
+            // ("LOG2: " + clases.toString());
             if (clases != null && clases.size() > 0) {
                 for (ClaseChat clase : clases) {
                     List<String> mensajes = clase.getMensajes();
-                    // System.out.println("LOG3: " + mensajes.toString());
+                    // ("LOG3: " + mensajes.toString());
                     List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
                     if (mensajes != null && mensajes.size() > 0) {
                         List<MensajeChat> mensajesChat = mensajeChatRepo.findAllById(mensajes);
@@ -81,7 +81,7 @@ public class CursoChatService {
 
             List<String> mensajes = cursoChat.getMensajes();
             List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
-            // System.out.println("LOG4: " + mensajes.toString());
+            // ("LOG4: " + mensajes.toString());
             if (mensajes != null && mensajes.size() > 0) {
                 List<MensajeChat> mensajesChat = mensajeChatRepo.findAllById(mensajes);
                 if (mensajesChat != null && mensajesChat.size() > 0) {
@@ -97,7 +97,7 @@ public class CursoChatService {
                     cursoRepo.findImagenCursoById(idCurso));
         }
 
-        // System.out.println("LOG5: " + cursoChatDTO.toString());
+        // ("LOG5: " + cursoChatDTO.toString());
         return cursoChatDTO;
     }
 
@@ -129,10 +129,6 @@ public class CursoChatService {
             // Convertir el JSON en un objeto MensajeChatDTO
             MensajeChatDTO mensajeChatDTO = objectMapper.readValue(message, MensajeChatDTO.class);
 
-            // Imprimir el objeto parseado (solo para verificación)
-            // System.out.println("Message: " + message);
-            // System.out.println("Mensaje recibido: " + mensajeChatDTO);
-
             // Aquí puedes agregar la lógica para guardar el mensaje en la base de datos
             String resp = null;
             if (mensajeChatDTO.getRespuesta() != null) {
@@ -148,7 +144,7 @@ public class CursoChatService {
                     mensajeChatDTO.getMensaje(), // String mensaje
                     mensajeChatDTO.getFecha()); // Date fecha
             MensajeChat mex = this.mensajeChatRepo.save(mensajeChat);
-            // System.out.println("MEX: " + mex);
+            // ("MEX: " + mex);
 
             String idMex = mex.getId();
 
@@ -260,6 +256,26 @@ public class CursoChatService {
                     clasesChat, // List<ClaseChat> clases
                     new ArrayList<String>(),
                     null); // List<String> mensajes
+            cursoChatRepo.save(cursoChat);
+        } catch (Exception e) {
+            System.err.println("Error en crear el usuario del chat: " + e.getMessage());
+        }
+    }
+
+    public void creaClaseChat(String message) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Clase clase = objectMapper.readValue(message, Clase.class);
+
+            ClaseChat claseChat = new ClaseChat(
+                    clase.getId_clase(), // Long id_clase
+                    clase.getCurso_clase().getId_curso(), // Long id_curso
+                    new ArrayList<String>()); // List<String> mensajes
+
+            CursoChat cursoChat = cursoChatRepo.findByIdCurso(clase.getCurso_clase().getId_curso());
+            List<ClaseChat> clasesChat = cursoChat.getClases();
+            clasesChat.add(claseChat);
+            cursoChat.setClases(clasesChat);
             cursoChatRepo.save(cursoChat);
         } catch (Exception e) {
             System.err.println("Error en crear el usuario del chat: " + e.getMessage());

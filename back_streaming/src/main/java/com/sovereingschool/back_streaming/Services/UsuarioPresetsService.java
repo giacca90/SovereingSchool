@@ -25,7 +25,6 @@ public class UsuarioPresetsService {
         try {
             this.usuarioRepository.findAll().forEach((Usuario user) -> {
                 if (user.getRoll_usuario() < 2) {
-                    System.out.println("Usuario: " + user.getId_usuario());
                     this.presetRepository.save(new Preset(user.getId_usuario()));
                 }
             });

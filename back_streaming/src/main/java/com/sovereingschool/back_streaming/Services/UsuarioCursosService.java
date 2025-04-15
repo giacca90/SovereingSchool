@@ -110,7 +110,6 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
     @Override
     public String getClase(Long id_usuario, Long id_curso, Long id_clase) {
-        System.out.println("IDUsuario: " + id_usuario);
         UsuarioCursos usuario = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
         if (usuario == null) {
             System.err.println("Usuario no encontrado");
@@ -127,7 +126,6 @@ public class UsuarioCursosService implements IUsuarioCursosService {
             try {
 
                 String direccion = this.claseRepository.findById(id_clase).get().getDireccion_clase();
-                System.out.println("Direccion: " + direccion);
                 if (direccion == null) {
                     System.err.println("Clase no encontrada");
                     return null;

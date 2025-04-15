@@ -31,13 +31,11 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        System.out.println("Nueva conexión: " + session.getId());
     }
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         String userId = session.getId();
-        System.out.println("Se cierra la conexión " + userId);
         streamingService.stopFFmpegProcessForUser(userId);
     }
 
@@ -45,7 +43,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
         // Parsear el mensaje recibido
         String payload = message.getPayload();
-        System.out.println("Mensaje recibido en OBS handler: " + payload);
 
         if (payload.contains("request_rtmp_url")) {
             // Extraer userId
@@ -85,7 +82,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
     private void startFFmpegProcessForUser(String userId, String rtmpUrl) {
         if (ffmpegThreads.containsKey(userId)) {
-            System.out.println("El proceso FFmpeg ya está corriendo para el usuario " + userId);
+            System.err.println("El proceso FFmpeg ya está corriendo para el usuario " + userId);
             return;
         }
 

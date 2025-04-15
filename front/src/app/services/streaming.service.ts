@@ -37,7 +37,7 @@ export class StreamingService {
 	 * @param clase Objeto Clase
 	 */
 	async emitirWebcam(stream: MediaStream, clase: Clase | null) {
-		if (!window?.WebSocket) {
+		if (!window.WebSocket) {
 			console.error('WebSocket no es compatible con este navegador.');
 			return;
 		}
@@ -155,7 +155,7 @@ export class StreamingService {
 	async startOBS(userId: number) {
 		let status: HTMLParagraphElement | null = null;
 
-		if (!window?.WebSocket) {
+		if (!window.WebSocket) {
 			console.error('WebSocket no es compatible con este navegador.');
 			status = document.getElementById('statusOBS') as HTMLParagraphElement;
 			if (status) {

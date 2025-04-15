@@ -208,7 +208,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 		document.body.appendChild(curtain);
 
 		// Cierra la cortina al hacer clic fuera de ella
-		window?.addEventListener(
+		window.addEventListener(
 			'click',
 			(event) => {
 				if (!curtain.contains(event.target as Node)) {

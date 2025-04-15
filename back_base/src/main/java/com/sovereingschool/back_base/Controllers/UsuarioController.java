@@ -275,7 +275,6 @@ public class UsuarioController {
 
 	@PostMapping("/subeFotos")
 	public ResponseEntity<?> uploadImages(@RequestBody MultipartFile[] files) {
-		System.out.println("Se suben fotos");
 		List<String> fileNames = new ArrayList<>();
 		Object response = new Object();
 
@@ -291,7 +290,6 @@ public class UsuarioController {
 			String fileName = UUID.randomUUID().toString() + "_"
 					+ StringUtils.cleanPath(originalFilename).replaceAll(" ", "_");
 			Path filePath = Paths.get(uploadDir, fileName);
-			System.out.println("Foto: " + filePath.toString());
 			if (!fileName.substring(fileName.lastIndexOf(".")).toLowerCase().equals(".svg")) {
 				try {
 					// Convertir la imagen a WebP

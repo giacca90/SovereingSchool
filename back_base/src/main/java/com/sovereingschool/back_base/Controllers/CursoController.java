@@ -276,7 +276,6 @@ public class CursoController {
 		}
 		String filePath = this.service.subeVideo(file);
 		response = filePath.toString();
-		System.out.println("RESPONSE: " + response);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

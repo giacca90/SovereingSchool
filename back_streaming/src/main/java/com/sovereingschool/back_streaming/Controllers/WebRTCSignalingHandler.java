@@ -39,8 +39,6 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         sessions.put(session.getId(), session);
-        System.out.println("Nueva conexión: " + session.getId());
-
     }
 
     @Override
@@ -62,18 +60,16 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             System.err.println("Error al cerrar recursos para el usuario: " + e.getMessage());
         }
 
-        System.out.println("Conexión cerrada: " + userId + " Razón: " + status.getReason());
+        System.err.println("Conexión cerrada: " + userId + " Razón: " + status.getReason());
     }
 
     protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) {
         // Parsear el mensaje recibido
         String payload = message.getPayload();
-        System.out.println("Mensaje recibido en WebRTC handler: " + payload);
 
         if (payload.contains("userId")) {
             // Extraer userId
             String userId = extractUserId(payload);
-            System.out.println("userId: " + userId);
             // Extraer videoSettings
             String[] videoSettings = extractVideoSettings(payload);
             String width = null;
@@ -83,7 +79,6 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 width = videoSettings[0];
                 height = videoSettings[1];
                 fps = videoSettings[2];
-                System.out.println("width: " + width + ", height: " + height + ", fps: " + fps);
             }
             // Generar streamId
             String streamId = userId + "_" + session.getId();
@@ -110,7 +105,6 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     @Override
     protected void handleBinaryMessage(@NonNull WebSocketSession session, @NonNull BinaryMessage message) {
         byte[] payload = message.getPayload().array();
-        System.out.println("Mensaje recibido desde WebSocket, tamaño de payload: " + payload.length);
 
         UserStreams userStreams = userSessions.computeIfAbsent(session.getId(), key -> {
             try {
@@ -176,7 +170,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             PipedInputStream ffmpegInputStream) {
         String userId = streamIdAndSettings[0];
         if (ffmpegThreads.containsKey(userId)) {
-            System.out.println("El proceso FFmpeg ya está corriendo para el usuario " + userId);
+            System.err.println("El proceso FFmpeg ya está corriendo para el usuario " + userId);
             return;
         }
 
