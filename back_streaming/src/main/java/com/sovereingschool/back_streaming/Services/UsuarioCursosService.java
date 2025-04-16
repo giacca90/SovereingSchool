@@ -96,6 +96,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
         UsuarioCursos userCourses = new UsuarioCursos();
         userCourses.setId_usuario(usuario.getId_usuario());
+        userCourses.setRol_usuario(usuario.getRoll_usuario()); // Asegurarse de establecer el rol
         userCourses.setCursos(courseStatuses);
 
         usuarioCursosRepository.save(userCourses);
@@ -117,12 +118,12 @@ public class UsuarioCursosService implements IUsuarioCursosService {
         }
 
         if (id_clase == 0) {
-            if (usuario.getRol_usuario() < 2) {
+            if (usuario.getRol_usuario().name().equals("PROFESOR") || usuario.getRol_usuario().name().equals("ADMIN")) {
                 id_clase = this.cursoRepository.findById(id_curso).get().getClases_curso().get(0).getId_clase();
             }
         }
 
-        if (usuario.getRol_usuario() < 2) {
+        if (usuario.getRol_usuario().name().equals("PROFESOR") || usuario.getRol_usuario().name().equals("ADMIN")) {
             try {
 
                 String direccion = this.claseRepository.findById(id_clase).get().getDireccion_clase();
@@ -223,7 +224,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
     public Long getStatus(Long id_usuario, Long id_curso) {
         UsuarioCursos uc = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
         if (uc != null) {
-            if (uc.getRol_usuario() < 2) {
+            if (uc.getRol_usuario().name().equals("PROFESOR") || uc.getRol_usuario().name().equals("ADMIN")) {
                 return this.cursoRepository.findById(id_curso).get().getClases_curso().get(0).getId_clase();
             } else {
                 List<StatusCurso> lst = uc.getCursos();

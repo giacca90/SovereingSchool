@@ -24,7 +24,8 @@ public class UsuarioPresetsService {
     public boolean createPresetsForEligibleUsers() {
         try {
             this.usuarioRepository.findAll().forEach((Usuario user) -> {
-                if (user.getRoll_usuario() < 2) {
+                if (user.getRoll_usuario().name().equals("PROFESOR")
+                        || user.getRoll_usuario().name().equals("ADMIN")) {
                     this.presetRepository.save(new Preset(user.getId_usuario()));
                 }
             });

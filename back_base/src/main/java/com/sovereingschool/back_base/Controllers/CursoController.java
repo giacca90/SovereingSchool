@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ import com.sovereingschool.back_base.Models.Usuario;
 
 @RestController
 @RequestMapping("/cursos")
+@PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
 public class CursoController {
 	@Autowired
 	private ICursoService service;
@@ -167,6 +169,7 @@ public class CursoController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('PROF', 'ADMIN')")
 	@PutMapping("/update")
 	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
 		Object response = new Object();
@@ -185,6 +188,7 @@ public class CursoController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('PROF', 'ADMIN')")
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
 		Object response = new Object();
@@ -203,7 +207,7 @@ public class CursoController {
 	}
 
 	/* Parte de gestión de clases */
-
+	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@GetMapping("/{idCurso}/getClaseForId/{idClase}")
 	public ResponseEntity<?> getClaseForId(@PathVariable Long idCurso, @PathVariable Long idClase) {
 		Object response = new Object();
@@ -228,6 +232,7 @@ public class CursoController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('PROF', 'ADMIN')")
 	@DeleteMapping("/{idCurso}/deleteClase/{idClase}")
 	public ResponseEntity<?> deleteClase(@PathVariable Long idCurso, @PathVariable Long idClase) {
 		Object response = new Object();
@@ -265,6 +270,7 @@ public class CursoController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('PROF', 'ADMIN')")
 	@PostMapping("/subeVideo/{idCurso}/{idClase}")
 	public ResponseEntity<?> subeVideo(@PathVariable Long idCurso, @PathVariable Long idClase,
 			@RequestParam("video") MultipartFile file)

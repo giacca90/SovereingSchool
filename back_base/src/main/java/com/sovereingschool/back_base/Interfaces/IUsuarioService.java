@@ -5,6 +5,7 @@ import java.util.List;
 import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.RoleEnum;
 import com.sovereingschool.back_base.Models.Usuario;
 
 public interface IUsuarioService {
@@ -16,7 +17,7 @@ public interface IUsuarioService {
 
     public List<String> getFotosUsuario(Long id_usuario);
 
-    public Integer getRollUsuario(Long id_usuario);
+    public RoleEnum getRollUsuario(Long id_usuario);
 
     public Plan getPlanUsuario(Long id_usuario);
 

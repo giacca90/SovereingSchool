@@ -6,19 +6,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
 import com.sovereingschool.back_chat.DTOs.InitChatDTO;
 import com.sovereingschool.back_chat.Services.CursoChatService;
 import com.sovereingschool.back_chat.Services.InitChatService;
 
-@Controller
+@RestController
+@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 public class ChatController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -47,7 +49,6 @@ public class ChatController {
 
         CursoChatDTO cursoChat = cursoChatService.getChat(idCurso);
         if (cursoChat != null) {
-            // ("SE DEVUELVE: " + cursoChat.toString());
             // Enviar el mensaje a un destino dinámico usando SimpMessagingTemplate
             messagingTemplate.convertAndSend("/init_chat/" + idCurso, cursoChat);
         }

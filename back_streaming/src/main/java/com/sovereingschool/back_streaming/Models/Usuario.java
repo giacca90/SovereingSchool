@@ -4,11 +4,12 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +22,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,6 +33,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Builder
 @Entity
 @Table(name = "usuario")
 public class Usuario implements Serializable {
@@ -42,15 +45,17 @@ public class Usuario implements Serializable {
     private String nombre_usuario;
 
     @Column(unique = true, columnDefinition = "text[]")
-    // @Type(com.vladmihalcea.hibernate.type.array.ListArrayType.class)
     private List<String> foto_usuario;
 
-    @Column(nullable = false)
-    private Integer roll_usuario;
+    @Column(length = 1500)
+    private String presentacion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RoleEnum roll_usuario;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "plan_usuario", referencedColumnName = "id_plan")
-    @JsonIgnore
     private Plan plan_usuario;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -60,4 +65,16 @@ public class Usuario implements Serializable {
 
     @Temporal(TemporalType.DATE)
     private Date fecha_registro_usuario;
+
+    @Column(name = "is_enabled")
+    private Boolean isEnabled;
+
+    @Column(name = "account_no_expired")
+    private Boolean accountNoExpired;
+
+    @Column(name = "account_no_locked")
+    private Boolean accountNoLocked;
+
+    @Column(name = "credentials_no_expired")
+    private Boolean credentialsNoExpired;
 }

@@ -22,6 +22,6 @@ public class UsuarioCursos implements Serializable {
     @Id
     private String id;
     private Long id_usuario;
-    private int rol_usuario;
+    private RoleEnum rol_usuario;
     private List<StatusCurso> cursos;
 }

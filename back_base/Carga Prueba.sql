@@ -24,12 +24,16 @@ CREATE TABLE IF NOT EXISTS plan (
 );
 CREATE TABLE IF NOT EXISTS usuario (
 	id_usuario SERIAL PRIMARY KEY,
-	fecha_registro_usuario TIMESTAMP NOT NULL,
-	foto_usuario TEXT [],
-	presentacion TEXT,
 	nombre_usuario VARCHAR(255) NOT NULL,
-	roll_usuario INTEGER NOT NULL,
-	plan_usuario INTEGER REFERENCES plan(id_plan)
+	foto_usuario TEXT [],
+	presentacion VARCHAR(1500),
+	roll_usuario VARCHAR(50) NOT NULL,
+	plan_usuario INTEGER REFERENCES plan(id_plan),
+	fecha_registro_usuario DATE NOT NULL,
+	is_enabled BOOLEAN,
+	account_no_expired BOOLEAN,
+	account_no_locked BOOLEAN,
+	credentials_no_expired BOOLEAN
 );
 CREATE TABLE IF NOT EXISTS login (
 	id_login SERIAL PRIMARY KEY,
@@ -197,47 +201,71 @@ INSERT INTO usuario (
 		presentacion,
 		nombre_usuario,
 		roll_usuario,
-		plan_usuario
+		plan_usuario,
+		is_enabled,
+		account_no_expired,
+		account_no_locked,
+		credentials_no_expired
 	)
 VALUES (
-		'2024-01-01 00:00:00',
+		'2024-01-01',
 		ARRAY ['https://localhost:8080/usuario/fotos/roble_texto.svg'],
 		'El creador de la Autarquía de la Gole, y el creador de esta plataforma.',
 		'Matt I de la Gole®',
-		0,
-		NULL
+		'ADMIN',
+		NULL,
+		TRUE,
+		TRUE,
+		TRUE,
+		TRUE
 	),
 	(
-		'2024-01-01 00:00:00',
+		'2024-01-01',
 		ARRAY ['https://localhost:8080/usuario/fotos/sello-ex-libris-1.webp'],
 		'El mayor activista de la REML del Mundo!!! Creador del primer Pasaporte Oficial REML.',
 		'Ra Amon de la REML®',
-		1,
-		NULL
+		'PROF',
+		NULL,
+		TRUE,
+		TRUE,
+		TRUE,
+		TRUE
 	),
 	(
-		'2024-01-01 00:00:00',
+		'2024-01-01',
 		ARRAY ['https://localhost:8080/usuario/fotos/Logo-REML.webp'],
 		'Uno de los más antiguos Soberanos de la REML, con muchos años de enseñanza a sus espaldas.',
 		'Rodri KMTR',
-		1,
-		NULL
+		'PROF',
+		NULL,
+		TRUE,
+		TRUE,
+		TRUE,
+		TRUE
 	),
 	(
-		'2024-01-01 00:00:00',
+		'2024-01-01',
 		ARRAY ['https://localhost:8080/usuario/fotos/Logo_LJS_morado.webp'],
 		'Grupo de Hombre y Mujeres Libres y Soberanos encentrados en crear técnicas Soberanas para cada necesidad.',
 		'El Equipo De L.J.S.',
-		1,
-		NULL
+		'PROF',
+		NULL,
+		TRUE,
+		TRUE,
+		TRUE,
+		TRUE
 	),
 	(
-		'2024-01-01 00:00:00',
+		'2024-01-01',
 		ARRAY ['https://localhost:8080/usuario/fotos/jaime.webp'],
 		'Aprendiz Soberano, con muchas ganar de Libertad.',
 		'Jaime',
-		2,
-		1
+		'USER',
+		1,
+		TRUE,
+		TRUE,
+		TRUE,
+		TRUE
 	);
 INSERT INTO login (id_usuario, correo_electronico, PASSWORD)
 VALUES (1, 'matt@prueba.com', 123456),

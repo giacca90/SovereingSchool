@@ -3,6 +3,7 @@ package com.sovereingschool.back_base.Controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,7 @@ import com.sovereingschool.back_base.Models.Login;
 import com.sovereingschool.back_base.Models.Usuario;
 
 @RestController
+@PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
 @RequestMapping("/login")
 public class LoginController {
 
@@ -28,7 +30,6 @@ public class LoginController {
 	@Autowired
 	private IUsuarioService usuarioService;
 
-	// Utilizado
 	@GetMapping("/{correo}")
 	public ResponseEntity<?> conpruebaCorreo(@PathVariable String correo) {
 		Object response = new Object();
@@ -40,8 +41,6 @@ public class LoginController {
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
-	// Utilizado
 
 	@GetMapping("/{id}/{password}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id, @PathVariable String password) {

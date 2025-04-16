@@ -17,6 +17,7 @@ import com.sovereingschool.back_base.Interfaces.IUsuarioService;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Login;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.RoleEnum;
 import com.sovereingschool.back_base.Models.Usuario;
 import com.sovereingschool.back_base.Repositories.LoginRepository;
 import com.sovereingschool.back_base.Repositories.UsuarioRepository;
@@ -53,10 +54,14 @@ public class UsuarioService implements IUsuarioService {
                 new_usuario.getNombre_usuario(), // String nombre_usuario
                 new_usuario.getFoto_usuario(), // List<String> foto_usuario
                 null, // Strting presentación
-                2, // Integer rol_usuario
+                RoleEnum.USER, // Integer rol_usuario
                 new_usuario.getPlan_usuario(), // Plan plan_usuario
                 new_usuario.getCursos_usuario(), // List<String> cursos_usuario
-                new_usuario.getFecha_registro_usuario()); // Date fecha_registro_usuario
+                new_usuario.getFecha_registro_usuario(), // Date fecha_registro_usuario
+                true,
+                true,
+                true,
+                true);
         Usuario usuarioInsertado = this.repo.save(usuario);
         if (usuarioInsertado.getId_usuario() == null) {
             return "Error en crear el usuario";
@@ -115,7 +120,7 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public Integer getRollUsuario(Long id_usuario) {
+    public RoleEnum getRollUsuario(Long id_usuario) {
         return this.repo.findRollUsuarioForId(id_usuario);
     }
 

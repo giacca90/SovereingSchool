@@ -29,6 +29,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,9 +45,11 @@ import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.RoleEnum;
 import com.sovereingschool.back_base.Models.Usuario;
 
 @RestController
+@PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
 @RequestMapping("/usuario")
 public class UsuarioController {
 
@@ -134,7 +137,7 @@ public class UsuarioController {
 	public ResponseEntity<?> getRollUsuario(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			Integer roll = this.service.getRollUsuario(id);
+			RoleEnum roll = this.service.getRollUsuario(id);
 			if (roll == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -193,6 +196,7 @@ public class UsuarioController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@PutMapping("/edit")
 	public ResponseEntity<?> editUsuario(@RequestBody Usuario usuario) {
 		Object response = new Object();
@@ -210,6 +214,7 @@ public class UsuarioController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@PutMapping("/plan")
 	public ResponseEntity<?> changePlanUsuario(@RequestBody Usuario usuario) {
 		Object response = new Object();
@@ -227,6 +232,7 @@ public class UsuarioController {
 		}
 	}
 
+	@PreAuthorize("hasRole('USER') or hasRole('PROF') or hasRole('ADMIN')")
 	@PutMapping("/cursos")
 	public ResponseEntity<?> changeCursosUsuario(@RequestBody Usuario usuario) {
 		Object response = new Object();
@@ -244,6 +250,7 @@ public class UsuarioController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
 		Object response = new Object();
@@ -273,6 +280,7 @@ public class UsuarioController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@PostMapping("/subeFotos")
 	public ResponseEntity<?> uploadImages(@RequestBody MultipartFile[] files) {
 		List<String> fileNames = new ArrayList<>();

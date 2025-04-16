@@ -1,6 +1,7 @@
 package com.sovereingschool.back_base.Repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_base.Models.RoleEnum;
 import com.sovereingschool.back_base.Models.Usuario;
 
 import jakarta.transaction.Transactional;
@@ -27,7 +29,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     List<String> findFotosUsuarioForId(@Param("id") Long id);
 
     @Query("SELECT u.roll_usuario FROM Usuario u WHERE u.id_usuario = :id")
-    Integer findRollUsuarioForId(@Param("id") Long id);
+    RoleEnum findRollUsuarioForId(@Param("id") Long id);
 
     @Query("SELECT p FROM Plan p WHERE p.id_plan = (SELECT u.plan_usuario.id_plan FROM Usuario u WHERE u.id_usuario = :id)")
     Plan findPlanUsuarioForId(@Param("id") Long id);
@@ -50,10 +52,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @Query("UPDATE Usuario u SET u.plan_usuario = :new_plan WHERE u.id_usuario = :id")
     Integer changePlanUsuarioForId(@Param("id") Long id, @Param("new_plan") Plan new_plan);
 
-    @Query("SELECT u FROM Usuario u WHERE u.roll_usuario < 2")
+    @Query("SELECT u FROM Usuario u WHERE u.roll_usuario = RoleEnum.PROF OR u.roll_usuario = RoleEnum.ADMIN")
     List<Usuario> findProfes();
 
-    @Query("SELECT u FROM Usuario u WHERE u.roll_usuario < 2")
+    @Query("SELECT u FROM Usuario u WHERE u.roll_usuario = RoleEnum.PROF OR u.roll_usuario = RoleEnum.ADMIN")
     List<Usuario> getInit();
 
+    @Query("SELECT u FROM Usuario u WHERE u.nombre_usuario = :nombre_usuario")
+    Optional<Usuario> findByNombreUsuario(String nombre_usuario);
 }
