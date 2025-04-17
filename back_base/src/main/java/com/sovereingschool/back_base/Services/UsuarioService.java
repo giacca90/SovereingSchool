@@ -5,13 +5,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
 import com.sovereingschool.back_base.Models.Curso;
@@ -21,6 +30,7 @@ import com.sovereingschool.back_base.Models.RoleEnum;
 import com.sovereingschool.back_base.Models.Usuario;
 import com.sovereingschool.back_base.Repositories.LoginRepository;
 import com.sovereingschool.back_base.Repositories.UsuarioRepository;
+import com.sovereingschool.back_base.Utils.JwtUtil;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -32,11 +42,16 @@ import reactor.util.retry.Retry;
 @Transactional
 public class UsuarioService implements IUsuarioService {
 
+    private final PasswordEncoder passwordEncoder;
+
     @Autowired
     private UsuarioRepository repo;
 
     @Autowired
     private LoginRepository loginRepo;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private WebClient.Builder webClientBuilder;
@@ -47,8 +62,12 @@ public class UsuarioService implements IUsuarioService {
     private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
     private final String backChatURL = "https://localhost:8070";
 
+    UsuarioService(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
-    public String createUsuario(NewUsuario new_usuario) {
+    public AuthResponse createUsuario(NewUsuario new_usuario) {
         Usuario usuario = new Usuario(
                 null, // Long id_usuario
                 new_usuario.getNombre_usuario(), // String nombre_usuario
@@ -64,12 +83,12 @@ public class UsuarioService implements IUsuarioService {
                 true);
         Usuario usuarioInsertado = this.repo.save(usuario);
         if (usuarioInsertado.getId_usuario() == null) {
-            return "Error en crear el usuario";
+            throw new RuntimeException("Error al crear el usuario");
         }
         Login login = new Login();
         login.setUsuario(usuarioInsertado);
         login.setCorreo_electronico(new_usuario.getCorreo_electronico());
-        login.setPassword(new_usuario.getPassword());
+        login.setPassword(passwordEncoder.encode(new_usuario.getPassword()));
         this.loginRepo.save(login);
 
         try {
@@ -98,7 +117,26 @@ public class UsuarioService implements IUsuarioService {
         }, error -> {
             System.err.println("Error al comunicarse con el segundo microservicio: " + error.getMessage());
         });
-        return "Usuario creado con éxito!!!";
+
+        List<SimpleGrantedAuthority> roles = new ArrayList<>();
+        roles.add(new SimpleGrantedAuthority("ROLE_" + usuarioInsertado.getRoll_usuario().name()));
+        UserDetails userDetails = new User(usuarioInsertado.getNombre_usuario(),
+                login.getPassword(),
+                usuarioInsertado.getIsEnabled(),
+                usuarioInsertado.getAccountNoExpired(),
+                usuarioInsertado.getCredentialsNoExpired(),
+                usuarioInsertado.getAccountNoLocked(),
+                roles);
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(new_usuario.getCorreo_electronico(),
+                userDetails.getPassword(),
+                userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        String accessToken = jwtUtil.generateToken(auth);
+
+        return new AuthResponse(true, "Usuario creado con éxito", usuarioInsertado, accessToken);
+
     };
 
     @Override

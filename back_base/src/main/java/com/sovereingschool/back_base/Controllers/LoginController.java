@@ -13,11 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
 import com.sovereingschool.back_base.Interfaces.ILoginService;
-import com.sovereingschool.back_base.Interfaces.IUsuarioService;
 import com.sovereingschool.back_base.Models.Login;
-import com.sovereingschool.back_base.Models.Usuario;
 
 @RestController
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
@@ -26,9 +25,6 @@ public class LoginController {
 
 	@Autowired
 	private ILoginService service;
-
-	@Autowired
-	private IUsuarioService usuarioService;
 
 	@GetMapping("/{correo}")
 	public ResponseEntity<?> conpruebaCorreo(@PathVariable String correo) {
@@ -46,17 +42,11 @@ public class LoginController {
 	public ResponseEntity<?> getUsuario(@PathVariable Long id, @PathVariable String password) {
 		Object response = new Object();
 		try {
-			Login login = this.service.getLogin(id);
-			if (login.getPassword().equals(password)) {
-				Usuario usuario = this.usuarioService.getUsuario(id);
-				response = usuario;
-				return new ResponseEntity<>(response, HttpStatus.OK);
-			} else {
-				response = "Contraseña incorrecta";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			AuthResponse authResponse = this.service.loginUser(id, password);
+			response = authResponse;
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			response = "Error en obtener la contraseña: " + e.getMessage();
+			response = "Error de login: " + e.getMessage() + "\n" + e.getCause();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

@@ -1,14 +1,30 @@
 package com.sovereingschool.back_base.Services;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
 import com.sovereingschool.back_base.Interfaces.ILoginService;
 import com.sovereingschool.back_base.Models.Login;
+import com.sovereingschool.back_base.Models.Usuario;
 import com.sovereingschool.back_base.Repositories.LoginRepository;
+import com.sovereingschool.back_base.Repositories.UsuarioRepository;
+import com.sovereingschool.back_base.Utils.JwtUtil;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -16,15 +32,23 @@ import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
-public class LoginService implements ILoginService {
+public class LoginService implements UserDetailsService, ILoginService {
 
     @Autowired
     private LoginRepository repo;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Override
     public Long compruebaCorreo(String correo) {
         Long result = this.repo.compruebaCorreo(correo);
         if (result == null)
@@ -32,29 +56,24 @@ public class LoginService implements ILoginService {
         return result;
     }
 
-    @Override
     public String createNuevoLogin(Login login) {
         this.repo.save(login);
         return "Nuevo Usuario creado con éxito!!!";
     }
 
-    @Override
     public String getCorreoLogin(Long id_usuario) {
         return this.repo.findCorreoLoginForId(id_usuario);
     }
 
-    @Override
     public String getPasswordLogin(Long id_usuario) {
         return this.repo.findPasswordLoginForId(id_usuario);
     }
 
-    @Override
     public String changeCorreoLogin(Login login) {
         this.repo.changeCorreoLoginForId(login.getId_usuario(), login.getCorreo_electronico());
         return "Correo cambiado con éxito!!!";
     }
 
-    @Override
     public Integer changePasswordLogin(ChangePassword changepassword) {
         if (changepassword.getNew_password().length() < 1 || changepassword.getOld_password().length() < 1)
             return null;
@@ -65,18 +84,69 @@ public class LoginService implements ILoginService {
         return 0;
     }
 
-    @Override
     public String deleteLogin(Long id_usuario) {
         this.repo.deleteById(id_usuario);
         return "Login eliminado con éxito!!!";
     }
 
     @Override
-    public Login getLogin(Long id) {
-        Optional<Login> log = this.repo.findById(id);
-        if (log.isPresent())
-            return log.get();
-        return null;
+    public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
+        // Si es el usuario visitante, no buscar en BD
+        if (correo.equals("Visitante")) {
+            return User.withUsername("Visitante")
+                    .password("visitante")
+                    .roles("GUEST")
+                    .accountExpired(false)
+                    .credentialsExpired(false)
+                    .accountLocked(false)
+                    .build();
+        }
+
+        Login login = this.repo.getLoginForCorreo(correo);
+        if (login == null) {
+            throw new UsernameNotFoundException("Correo electronico " + correo + " no encontrado");
+        }
+
+        Optional<Usuario> usuario = this.usuarioRepository.findById(login.getId_usuario());
+        if (usuario.isEmpty()) {
+            throw new UsernameNotFoundException("Usuario no encontrado");
+        }
+
+        List<SimpleGrantedAuthority> roles = new ArrayList<>();
+        roles.add(new SimpleGrantedAuthority("ROLE_" + usuario.get().getRoll_usuario().name()));
+
+        return new User(usuario.get().getNombre_usuario(),
+                login.getPassword(),
+                usuario.get().getIsEnabled(),
+                usuario.get().getAccountNoExpired(),
+                usuario.get().getCredentialsNoExpired(),
+                usuario.get().getAccountNoLocked(),
+                roles);
     }
 
+    public AuthResponse loginUser(Long id, String password) {
+        String correo = this.repo.findCorreoLoginForId(id);
+        UserDetails userDetails = this.loadUserByUsername(correo);
+        if (userDetails == null) {
+            throw new BadCredentialsException("Usuario o password incorrecto");
+        }
+
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new BadCredentialsException("Password incorrecta");
+        }
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(correo, userDetails.getPassword(),
+                userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        Optional<Usuario> usuario = this.usuarioRepository
+                .findById(this.repo.getLoginForCorreo(auth.getName()).getId_usuario());
+        if (usuario.isEmpty()) {
+            throw new UsernameNotFoundException("Usuario no encontrado");
+        }
+        String accessToken = jwtUtil.generateToken(auth);
+
+        return new AuthResponse(true, "Login exitoso", usuario.get(), accessToken);
+    }
 }

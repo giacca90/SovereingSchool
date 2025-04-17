@@ -2,6 +2,7 @@ package com.sovereingschool.back_base.Interfaces;
 
 import java.util.List;
 
+import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Models.Curso;
 import com.sovereingschool.back_base.Models.Plan;
@@ -9,7 +10,7 @@ import com.sovereingschool.back_base.Models.RoleEnum;
 import com.sovereingschool.back_base.Models.Usuario;
 
 public interface IUsuarioService {
-    public String createUsuario(NewUsuario new_usuario);
+    public AuthResponse createUsuario(NewUsuario new_usuario);
 
     public Usuario getUsuario(Long id_usuario);
 

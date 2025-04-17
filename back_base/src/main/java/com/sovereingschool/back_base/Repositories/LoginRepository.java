@@ -32,4 +32,6 @@ public interface LoginRepository extends JpaRepository<Login, Long> {
     @Query("UPDATE Login l SET l.password = :new_password WHERE l.id_usuario = :id")
     Integer changePasswordLoginForId(@Param("id") Long id, @Param("new_password") String new_password);
 
+    @Query("SELECT l FROM Login l WHERE l.correo_electronico = :correo")
+    Login getLoginForCorreo(@Param("correo") String correo);
 }
