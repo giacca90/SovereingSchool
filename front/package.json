@@ -21,7 +21,7 @@
 		"@angular/platform-browser-dynamic": "^19.2.6",
 		"@angular/platform-server": "^19.2.6",
 		"@angular/router": "^19.2.6",
-		"@angular/ssr": "^19.2.7",
+		"@angular/ssr": "^19.2.8",
 		"@stomp/stompjs": "^7.1.1",
 		"@tailwindcss/postcss": "^4.1.4",
 		"@types/sockjs-client": "^1.5.4",
