@@ -20,6 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import com.sovereingschool.back_base.Configurations.Filters.JwtTokenValidator;
 import com.sovereingschool.back_base.Services.LoginService;
@@ -43,6 +46,7 @@ public class SecurityConfig {
                 .userDetailsService(inMemoryUserDetailsManager())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtTokenValidator(jwtUtil), BasicAuthenticationFilter.class)
+                .addFilterBefore(corsFilter(), BasicAuthenticationFilter.class)
                 .build();
     }
 
@@ -76,4 +80,17 @@ public class SecurityConfig {
 
     }
 
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("https://localhost:4200"); // Origen permitido
+        config.addAllowedMethod("*"); // Métodos permitidos
+        config.addAllowedHeader("*"); // Headers permitidos
+        config.setAllowCredentials(true); // Permitir credenciales
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsFilter(source);
+    }
 }

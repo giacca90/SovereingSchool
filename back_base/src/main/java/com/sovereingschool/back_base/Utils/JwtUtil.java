@@ -49,6 +49,24 @@ public class JwtUtil {
         return jwtToken;
     }
 
+    public String generateTokenForServer() {
+        Algorithm algorithm = Algorithm.HMAC256(this.privateKay);
+
+        String jwtToken = JWT.create()
+                .withIssuer(this.userGenerator)
+                .withSubject("server")
+                .withIssuedAt(new Date())
+                .withClaim("rol", "ROLE_ADMIN")
+                .withClaim("server", true)
+                .withExpiresAt(new Date(System.currentTimeMillis() + 3600000)) // 1 hour
+                .withJWTId(UUID.randomUUID().toString())
+                .withNotBefore(new Date(System.currentTimeMillis())) //
+                .sign(algorithm);
+
+        return jwtToken;
+
+    }
+
     public DecodedJWT decodeToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(this.privateKay);

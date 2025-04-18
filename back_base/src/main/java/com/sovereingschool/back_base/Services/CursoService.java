@@ -31,6 +31,7 @@ import com.sovereingschool.back_base.Models.Plan;
 import com.sovereingschool.back_base.Models.Usuario;
 import com.sovereingschool.back_base.Repositories.ClaseRepository;
 import com.sovereingschool.back_base.Repositories.CursoRepository;
+import com.sovereingschool.back_base.Utils.JwtUtil;
 
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -50,6 +51,9 @@ public class CursoService implements ICursoService {
 
     @Autowired
     private ClaseRepository claseRepo;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -120,6 +124,7 @@ public class CursoService implements ICursoService {
             curso = this.repo.save(curso);
             // Crea el chat del nuevo curso
             try {
+                // Obtener token
                 WebClient webClient = createSecureWebClient(backChatURL);
                 webClient.post().uri("/crea_curso_chat")
                         .body(Mono.just(curso), Curso.class)
@@ -183,6 +188,7 @@ public class CursoService implements ICursoService {
                     claseData.put("id_clase", clase.getId_clase());
                     claseData.put("curso_clase", Map.of("id_curso", curso.getId_curso()));
 
+                    // Obtener token
                     WebClient webClient = createSecureWebClient(backChatURL);
                     webClient.post().uri("/crea_clase_chat")
                             .body(Mono.just(claseData), Map.class)
@@ -220,6 +226,7 @@ public class CursoService implements ICursoService {
         }
         // Convertir los videos del curso
         try {
+            // Obtener token
             WebClient webClient = createSecureWebClient(backStreamURL);
             webClient.post().uri("/convertir_videos")
                     .body(Mono.just(curso), Curso.class)
@@ -282,25 +289,34 @@ public class CursoService implements ICursoService {
 
         // Eliminar el curso del microservicio de streaming
         try {
+            // Obtener token
             WebClient webClient = createSecureWebClient(backStreamURL);
-            webClient.delete().uri("/deleteCurso/" + id_curso).retrieve().bodyToMono(Boolean.class).doOnError(e -> {
-                // Manejo de errores
-                System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
-                e.printStackTrace();
-            }).subscribe(res -> {
-                // Maneja el resultado cuando esté disponible
-                if (res == null || !res) {
-                    System.err.println("Error en borrar el curso en el servicio de reproducción");
-                }
-            });
+            webClient.delete()
+                    .uri("/deleteCurso/" + id_curso)
+                    .retrieve()
+                    .bodyToMono(Boolean.class)
+                    .doOnError(e -> {
+                        // Manejo de errores
+                        System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+                        e.printStackTrace();
+                    }).subscribe(res -> {
+                        // Maneja el resultado cuando esté disponible
+                        if (res == null || !res) {
+                            System.err.println("Error en borrar el curso en el servicio de reproducción");
+                        }
+                    });
         } catch (Exception e) {
             System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
         }
 
         // Eliminar el curso del microservicio de chat
         try {
+            // Obtener token
             WebClient webClientChat = createSecureWebClient(backChatURL);
-            webClientChat.delete().uri("/delete_curso_chat/" + id_curso).retrieve().bodyToMono(String.class)
+            webClientChat.delete()
+                    .uri("/delete_curso_chat/" + id_curso)
+                    .retrieve()
+                    .bodyToMono(String.class)
                     .doOnError(e -> {
                         System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
                         e.printStackTrace();
@@ -355,6 +371,7 @@ public class CursoService implements ICursoService {
 
             // Eliminar la carpeta de la clase
             try {
+                // Obtener token
                 WebClient webClient = createSecureWebClient(backStreamURL);
                 webClient.delete()
                         .uri("/deleteClase/" + clase.getCurso_clase().getId_curso().toString() + "/"
@@ -378,6 +395,7 @@ public class CursoService implements ICursoService {
 
             // Elimina el chat de la clase
             try {
+                // Obtener token
                 WebClient webClient = createSecureWebClient(backChatURL);
                 webClient.delete()
                         .uri("/delete_clase_chat/" + clase.getCurso_clase().getId_curso().toString() + "/"
@@ -436,10 +454,14 @@ public class CursoService implements ICursoService {
         HttpClient httpClient = HttpClient.create()
                 .secure(spec -> spec.sslContext(sslContext));
 
-        // Conectar HttpClient con WebClient
+        // Obtener token
+        String authToken = this.jwtUtil.generateTokenForServer();
+
+        // Conectar HttpClient con WebClient y añadir header por defecto
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .baseUrl(baseUrl) // Establecer URL base
+                .baseUrl(baseUrl)
+                .defaultHeader("Authorization", "Bearer " + authToken)
                 .build();
     }
 

@@ -26,7 +26,6 @@ public class InitController {
     public ResponseEntity<?> get() {
         Object response = new Object();
         try {
-            logger.info("Intentando acceder al endpoint init con los roles del usuario actual");
             response = this.service.getInit();
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {

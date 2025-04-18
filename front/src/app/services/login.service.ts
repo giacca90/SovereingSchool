@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { afterNextRender, Injectable } from '@angular/core';
+import { Auth } from '../models/Auth';
 import { Usuario } from '../models/Usuario';
 
 @Injectable({
@@ -48,16 +49,18 @@ export class LoginService {
 
 	async compruebaPassword(password: string): Promise<boolean> {
 		return new Promise(async (resolve) => {
-			const sub = this.http.get<Usuario>(this.apiUrl + this.id_usuario + '/' + password, { observe: 'response' }).subscribe({
-				next: (response: HttpResponse<Usuario>) => {
+			const sub = this.http.get<Auth>(this.apiUrl + this.id_usuario + '/' + password, { observe: 'response' }).subscribe({
+				next: (response: HttpResponse<Auth>) => {
 					if (response.ok && response.body) {
-						if (response.body.id_usuario === null) {
+						if (!response.body.status && response.body.usuario === null) {
 							resolve(false);
 							sub.unsubscribe();
 							return;
 						}
-						this.usuario = response.body;
+						this.usuario = response.body.usuario;
+						// Comprueba si está en el navegador
 						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
+						localStorage.setItem('token', response.body.accessToken);
 						resolve(true);
 						sub.unsubscribe();
 						return;
