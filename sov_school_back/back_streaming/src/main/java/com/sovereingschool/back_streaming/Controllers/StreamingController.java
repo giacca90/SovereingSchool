@@ -24,9 +24,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sovereingschool.back_streaming.Models.Clase;
-import com.sovereingschool.back_streaming.Models.Curso;
-import com.sovereingschool.back_streaming.Models.Usuario;
+import com.sovereingschool.back_common.Models.Clase;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 import com.sovereingschool.back_streaming.Services.UsuarioCursosService;
 

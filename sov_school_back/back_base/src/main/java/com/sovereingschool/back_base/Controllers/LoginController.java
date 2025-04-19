@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
 import com.sovereingschool.back_base.Interfaces.ILoginService;
-import com.sovereingschool.back_base.Models.Login;
+import com.sovereingschool.back_common.Models.Login;
 
 @RestController
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")

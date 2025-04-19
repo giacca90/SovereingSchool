@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
-import com.sovereingschool.back_base.Models.Clase;
-import com.sovereingschool.back_base.Models.Curso;
-import com.sovereingschool.back_base.Models.Plan;
-import com.sovereingschool.back_base.Models.Usuario;
+import com.sovereingschool.back_common.Models.Clase;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Plan;
+import com.sovereingschool.back_common.Models.Usuario;
 
 @RestController
 @RequestMapping("/cursos")

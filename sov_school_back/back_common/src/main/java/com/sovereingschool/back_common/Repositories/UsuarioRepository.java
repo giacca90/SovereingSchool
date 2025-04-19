@@ -1,4 +1,4 @@
-package com.sovereingschool.back_chat.Repositories;
+package com.sovereingschool.back_common.Repositories;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,10 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.sovereingschool.back_chat.Models.Curso;
-import com.sovereingschool.back_chat.Models.Plan;
-import com.sovereingschool.back_chat.Models.RoleEnum;
-import com.sovereingschool.back_chat.Models.Usuario;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Plan;
+import com.sovereingschool.back_common.Models.RoleEnum;
+import com.sovereingschool.back_common.Models.Usuario;
 
 import jakarta.transaction.Transactional;
 

@@ -22,6 +22,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>back_common</module>
     <module>back_base</module>
     <module>back_chat</module>
     <module>back_streaming</module>

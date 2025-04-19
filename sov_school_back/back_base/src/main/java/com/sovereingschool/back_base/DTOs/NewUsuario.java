@@ -3,8 +3,8 @@ package com.sovereingschool.back_base.DTOs;
 import java.util.Date;
 import java.util.List;
 
-import com.sovereingschool.back_base.Models.Curso;
-import com.sovereingschool.back_base.Models.Plan;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Plan;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

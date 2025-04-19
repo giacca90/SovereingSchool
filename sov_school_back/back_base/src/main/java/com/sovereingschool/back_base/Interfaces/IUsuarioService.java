@@ -4,10 +4,10 @@ import java.util.List;
 
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.NewUsuario;
-import com.sovereingschool.back_base.Models.Curso;
-import com.sovereingschool.back_base.Models.Plan;
-import com.sovereingschool.back_base.Models.RoleEnum;
-import com.sovereingschool.back_base.Models.Usuario;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Plan;
+import com.sovereingschool.back_common.Models.RoleEnum;
+import com.sovereingschool.back_common.Models.Usuario;
 
 public interface IUsuarioService {
     public AuthResponse createUsuario(NewUsuario new_usuario);

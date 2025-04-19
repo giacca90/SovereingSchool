@@ -1,4 +1,4 @@
-package com.sovereingschool.back_base.Models;
+package com.sovereingschool.back_common.Models;
 
 import java.io.Serializable;
 import java.util.Date;

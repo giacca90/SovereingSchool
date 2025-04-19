@@ -1,7 +1,7 @@
 package com.sovereingschool.back_streaming.Interfaces;
 
-import com.sovereingschool.back_streaming.Models.Clase;
-import com.sovereingschool.back_streaming.Models.Usuario;
+import com.sovereingschool.back_common.Models.Clase;
+import com.sovereingschool.back_common.Models.Usuario;
 
 public interface IUsuarioCursosService {
 

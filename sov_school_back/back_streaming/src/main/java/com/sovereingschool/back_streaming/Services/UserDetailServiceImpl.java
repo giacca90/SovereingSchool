@@ -11,9 +11,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.sovereingschool.back_streaming.Models.Usuario;
-import com.sovereingschool.back_streaming.Repositories.LoginRepository;
-import com.sovereingschool.back_streaming.Repositories.UsuarioRepository;
+import com.sovereingschool.back_common.Models.Usuario;
+import com.sovereingschool.back_common.Repositories.LoginRepository;
+import com.sovereingschool.back_common.Repositories.UsuarioRepository;
 
 @Service
 public class UserDetailServiceImpl implements UserDetailsService {

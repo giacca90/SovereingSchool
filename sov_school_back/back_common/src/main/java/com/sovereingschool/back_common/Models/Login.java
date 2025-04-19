@@ -1,4 +1,4 @@
-package com.sovereingschool.back_streaming.Models;
+package com.sovereingschool.back_common.Models;
 
 import java.io.Serializable;
 

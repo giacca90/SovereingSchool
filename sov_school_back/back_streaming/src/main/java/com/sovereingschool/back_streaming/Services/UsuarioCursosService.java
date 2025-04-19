@@ -10,17 +10,17 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import com.sovereingschool.back_common.Models.Clase;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Usuario;
+import com.sovereingschool.back_common.Repositories.ClaseRepository;
+import com.sovereingschool.back_common.Repositories.CursoRepository;
+import com.sovereingschool.back_common.Repositories.UsuarioRepository;
 import com.sovereingschool.back_streaming.Interfaces.IUsuarioCursosService;
-import com.sovereingschool.back_streaming.Models.Clase;
-import com.sovereingschool.back_streaming.Models.Curso;
 import com.sovereingschool.back_streaming.Models.StatusClase;
 import com.sovereingschool.back_streaming.Models.StatusCurso;
-import com.sovereingschool.back_streaming.Models.Usuario;
 import com.sovereingschool.back_streaming.Models.UsuarioCursos;
-import com.sovereingschool.back_streaming.Repositories.ClaseRepository;
-import com.sovereingschool.back_streaming.Repositories.CursoRepository;
 import com.sovereingschool.back_streaming.Repositories.UsuarioCursosRepository;
-import com.sovereingschool.back_streaming.Repositories.UsuarioRepository;
 
 import jakarta.transaction.Transactional;
 

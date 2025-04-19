@@ -21,11 +21,11 @@ import org.springframework.stereotype.Service;
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
 import com.sovereingschool.back_base.Interfaces.ILoginService;
-import com.sovereingschool.back_base.Models.Login;
-import com.sovereingschool.back_base.Models.Usuario;
-import com.sovereingschool.back_base.Repositories.LoginRepository;
-import com.sovereingschool.back_base.Repositories.UsuarioRepository;
 import com.sovereingschool.back_base.Utils.JwtUtil;
+import com.sovereingschool.back_common.Models.Login;
+import com.sovereingschool.back_common.Models.Usuario;
+import com.sovereingschool.back_common.Repositories.LoginRepository;
+import com.sovereingschool.back_common.Repositories.UsuarioRepository;
 
 import jakarta.transaction.Transactional;
 

@@ -20,12 +20,12 @@ import com.sovereingschool.back_chat.Models.ClaseChat;
 import com.sovereingschool.back_chat.Models.CursoChat;
 import com.sovereingschool.back_chat.Models.MensajeChat;
 import com.sovereingschool.back_chat.Models.UsuarioChat;
-import com.sovereingschool.back_chat.Repositories.ClaseRepository;
 import com.sovereingschool.back_chat.Repositories.CursoChatRepository;
-import com.sovereingschool.back_chat.Repositories.CursoRepository;
 import com.sovereingschool.back_chat.Repositories.MensajeChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
-import com.sovereingschool.back_chat.Repositories.UsuarioRepository;
+import com.sovereingschool.back_common.Repositories.ClaseRepository;
+import com.sovereingschool.back_common.Repositories.CursoRepository;
+import com.sovereingschool.back_common.Repositories.UsuarioRepository;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;

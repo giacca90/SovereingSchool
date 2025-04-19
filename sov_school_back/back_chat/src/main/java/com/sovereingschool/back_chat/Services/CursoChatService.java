@@ -12,19 +12,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sovereingschool.back_chat.DTOs.ClaseChatDTO;
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
 import com.sovereingschool.back_chat.DTOs.MensajeChatDTO;
-import com.sovereingschool.back_chat.Models.Clase;
 import com.sovereingschool.back_chat.Models.ClaseChat;
-import com.sovereingschool.back_chat.Models.Curso;
 import com.sovereingschool.back_chat.Models.CursoChat;
 import com.sovereingschool.back_chat.Models.MensajeChat;
-import com.sovereingschool.back_chat.Models.Usuario;
 import com.sovereingschool.back_chat.Models.UsuarioChat;
-import com.sovereingschool.back_chat.Repositories.ClaseRepository;
 import com.sovereingschool.back_chat.Repositories.CursoChatRepository;
-import com.sovereingschool.back_chat.Repositories.CursoRepository;
 import com.sovereingschool.back_chat.Repositories.MensajeChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
-import com.sovereingschool.back_chat.Repositories.UsuarioRepository;
+import com.sovereingschool.back_common.Models.Clase;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Usuario;
+import com.sovereingschool.back_common.Repositories.ClaseRepository;
+import com.sovereingschool.back_common.Repositories.CursoRepository;
+import com.sovereingschool.back_common.Repositories.UsuarioRepository;
 
 import jakarta.transaction.Transactional;
 

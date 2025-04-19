@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.sovereingschool.back_common.Models.RoleEnum;
+
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

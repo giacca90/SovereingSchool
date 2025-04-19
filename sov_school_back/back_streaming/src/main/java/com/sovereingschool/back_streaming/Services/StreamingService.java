@@ -24,9 +24,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sovereingschool.back_streaming.Models.Clase;
-import com.sovereingschool.back_streaming.Models.Curso;
-import com.sovereingschool.back_streaming.Repositories.ClaseRepository;
+import com.sovereingschool.back_common.Models.Clase;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Repositories.ClaseRepository;
 
 @Service
 @Transactional

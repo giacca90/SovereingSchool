@@ -6,10 +6,10 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sovereingschool.back_base.Models.Clase;
-import com.sovereingschool.back_base.Models.Curso;
-import com.sovereingschool.back_base.Models.Plan;
-import com.sovereingschool.back_base.Models.Usuario;
+import com.sovereingschool.back_common.Models.Clase;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Plan;
+import com.sovereingschool.back_common.Models.Usuario;
 
 public interface ICursoService {
     public List<Curso> getAll();

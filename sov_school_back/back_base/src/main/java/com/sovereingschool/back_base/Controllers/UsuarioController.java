@@ -43,10 +43,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
-import com.sovereingschool.back_base.Models.Curso;
-import com.sovereingschool.back_base.Models.Plan;
-import com.sovereingschool.back_base.Models.RoleEnum;
-import com.sovereingschool.back_base.Models.Usuario;
+import com.sovereingschool.back_common.Models.Curso;
+import com.sovereingschool.back_common.Models.Plan;
+import com.sovereingschool.back_common.Models.RoleEnum;
+import com.sovereingschool.back_common.Models.Usuario;
 
 @RestController
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")

@@ -25,6 +25,12 @@
 	<dependencies>
 
 		<dependency>
+			<groupId>com.sovereingschool</groupId>
+			<artifactId>back_common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.imgscalr</groupId>
 			<artifactId>imgscalr-lib</artifactId>
 			<version>4.2</version>

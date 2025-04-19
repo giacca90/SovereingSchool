@@ -1,4 +1,4 @@
-package com.sovereingschool.back_base.Repositories;
+package com.sovereingschool.back_common.Repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.sovereingschool.back_base.Models.Clase;
+import com.sovereingschool.back_common.Models.Clase;
 
 import jakarta.transaction.Transactional;
 
@@ -19,4 +19,8 @@ public interface ClaseRepository extends JpaRepository<Clase, Long> {
 	void updateClase(@Param("id_clase") Long id_clase, @Param("nombre_clase") String nombre_clase,
 			@Param("tipo_clase") int tipo_clase, @Param("direccion_clase") String direccion_clase,
 			@Param("posicion_clase") Integer posicion_clase);
+
+	@Query("SELECT c.nombre_clase FROM Clase c WHERE c.id_clase = :id")
+	String findNombreClaseById(@Param("id") Long id);
+
 }
