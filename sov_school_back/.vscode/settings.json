@@ -1,3 +1,15 @@
 {
-	"java.compile.nullAnalysis.mode": "automatic"
+	"java.compile.nullAnalysis.mode": "automatic",
+	"sqltools.connections": [
+		{
+			"previewLimit": 50,
+			"server": "localhost",
+			"port": 5432,
+			"driver": "PostgreSQL",
+			"name": "Sov_School",
+			"database": "sov_school",
+			"username": "postgres",
+			"password": "giacca90"
+		}
+	]
 }

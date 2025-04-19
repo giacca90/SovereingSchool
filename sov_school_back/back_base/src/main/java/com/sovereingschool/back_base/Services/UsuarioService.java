@@ -99,13 +99,10 @@ public class UsuarioService implements IUsuarioService {
                     .retrieve()
                     .bodyToMono(String.class)
                     .doOnError(e -> {
-                        // Manejo de errores
                         System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
-                        e.printStackTrace();
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
-                        if (res != null && res.equals("Usuario chat creado con exito!!!")) {
-                        } else {
+                        if (res == null || !res.equals("Usuario chat creado con exito!!!")) {
                             System.err.println("Error en crear el usuario en el chat:");
                             System.err.println(res);
                         }
@@ -122,12 +119,9 @@ public class UsuarioService implements IUsuarioService {
                     .retrieve()
                     .bodyToMono(String.class)
                     .doOnError(e -> {
-                        // Manejo de errores
                         System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
-                        e.printStackTrace();
                     }).subscribe(res -> {
-                        // Maneja el resultado cuando esté disponible
-                        if (res != null && res.equals("Usuario creado con exito!!!")) {
+                        if (res == null || !res.equals("Nuevo Usuario Insertado con Exito!!!")) {
                         } else {
                             System.err.println("Error en crear el usuario en el stream:");
                             System.err.println(res);
@@ -237,12 +231,10 @@ public class UsuarioService implements IUsuarioService {
                     .retrieve()
                     .bodyToMono(String.class)
                     .doOnError(e -> {
-                        // Manejo de errores
                         System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
-                        e.printStackTrace();
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
-                        if (res != null && res.equals("Usuario creado con exito!!!")) {
+                        if (res == null || !res.equals("Usuario creado con exito!!!")) {
                         } else {
                             System.err.println("Error en crear el usuario en el stream:");
                             System.err.println(res);
@@ -254,6 +246,12 @@ public class UsuarioService implements IUsuarioService {
 
         // Añadir el usuario al microservicio de chat
         // TODO: Implementar la lógica para añadir el usuario al microservicio de chat
+        try {
+            WebClient webClientChat = createSecureWebClient(backChatURL);
+        } catch (Exception e) {
+            System.err.println("Error en crear el usuario en el chat: " + e.getMessage());
+        }
+
         return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario);
     }
 
@@ -273,8 +271,7 @@ public class UsuarioService implements IUsuarioService {
     }
 
     public WebClient createSecureWebClient(String baseUrl) throws Exception {
-        // Crear un SslContext que confía en todos los certificados (incluidos
-        // autofirmados)
+
         SslContext sslContext = SslContextBuilder.forClient()
                 .trustManager(InsecureTrustManagerFactory.INSTANCE)
                 .build();

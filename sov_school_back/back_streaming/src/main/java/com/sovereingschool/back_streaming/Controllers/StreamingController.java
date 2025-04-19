@@ -247,7 +247,7 @@ public class StreamingController {
         }
     }
 
-    @PostMapping("/nuevoUsuario")
+    @PutMapping("/nuevoUsuario")
     public ResponseEntity<?> create(@RequestBody Usuario usuario) {
         try {
             return new ResponseEntity<>(this.usuarioCursosService.addNuevoUsuario(usuario), HttpStatus.OK);
