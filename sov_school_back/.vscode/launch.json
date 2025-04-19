@@ -1,0 +1,34 @@
+{
+	"configurations": [
+		{
+			"type": "java",
+			"name": "Spring Boot-BackApplication<back_base>",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"mainClass": "com.sovereingschool.back_base.BackApplication",
+			"projectName": "back_base",
+			"args": "",
+			"envFile": "${workspaceFolder}/.env"
+		},
+		{
+			"type": "java",
+			"name": "Spring Boot-BackChatApplication<back_chat>",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"mainClass": "com.sovereingschool.back_chat.BackChatApplication",
+			"projectName": "back_chat",
+			"args": "",
+			"envFile": "${workspaceFolder}/.env"
+		},
+		{
+			"type": "java",
+			"name": "Spring Boot-BackStreamingApplication<back_streaming>",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"mainClass": "com.sovereingschool.back_streaming.BackStreamingApplication",
+			"projectName": "back_streaming",
+			"args": "",
+			"envFile": "${workspaceFolder}/.env"
+		}
+	]
+}
