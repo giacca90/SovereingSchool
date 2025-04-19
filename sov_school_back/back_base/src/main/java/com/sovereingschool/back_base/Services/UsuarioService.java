@@ -246,11 +246,6 @@ public class UsuarioService implements IUsuarioService {
 
         // Añadir el usuario al microservicio de chat
         // TODO: Implementar la lógica para añadir el usuario al microservicio de chat
-        try {
-            WebClient webClientChat = createSecureWebClient(backChatURL);
-        } catch (Exception e) {
-            System.err.println("Error en crear el usuario en el chat: " + e.getMessage());
-        }
 
         return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario);
     }

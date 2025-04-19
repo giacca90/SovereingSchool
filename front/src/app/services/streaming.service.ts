@@ -49,7 +49,13 @@ export class StreamingService {
 		if (!width || !height || !fps) return;
 
 		// Abrir conexión WebSocket
-		this.ws = new WebSocket(this.webSocketUrlWebcam);
+		const token = localStorage.getItem('Token');
+		if (token) {
+			this.ws = new WebSocket(`${this.webSocketUrlWebcam}?token=${token}`);
+		} else {
+			console.error('Token JWT no encontrado en localStorage');
+			return;
+		}
 		this.mediaRecorder = new MediaRecorder(stream, {
 			mimeType: 'video/webm; codecs=vp9',
 		});
@@ -165,7 +171,13 @@ export class StreamingService {
 		}
 
 		// Abrir conexión WebSocket
-		this.ws = new WebSocket(this.webSocketUrlOBS);
+		const token = localStorage.getItem('Token');
+		if (token) {
+			this.ws = new WebSocket(`${this.webSocketUrlOBS}?token=${token}`);
+		} else {
+			console.error('Token JWT no encontrado en localStorage');
+			return;
+		}
 
 		this.ws.onopen = () => {
 			console.log('Conexión WebSocket establecida.');

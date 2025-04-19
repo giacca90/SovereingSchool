@@ -19,6 +19,7 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 import com.sovereingschool.back_streaming.Controllers.OBSWebSocketHandler;
 import com.sovereingschool.back_streaming.Controllers.WebRTCSignalingHandler;
 import com.sovereingschool.back_streaming.Services.StreamingService;
+import com.sovereingschool.back_streaming.Utils.JwtUtil;
 
 @Configuration
 @EnableWebSocket
@@ -27,19 +28,30 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private StreamingService streamingService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     // Executor para tareas de ping-pong
     private final ScheduledExecutorService pingScheduler = Executors.newScheduledThreadPool(1);
 
     @Override
     public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
-        // Registrar el handler para la webcam
+        WebSocketSecurityInterceptor securityInterceptor = new WebSocketSecurityInterceptor(jwtUtil);
+
+        // Registrar el handler para la webcam con el interceptor
         WebRTCSignalingHandler handler = new WebRTCSignalingHandler(webSocketTaskExecutor(), streamingService);
         registry.addHandler(handler, "/live-webcam")
-                .setAllowedOrigins("*"); // Cambiar "*" por dominios específicos en producción
+                .addInterceptors(securityInterceptor)
+                .setAllowedOrigins("*")
+                .withSockJS() // Agregar soporte SockJS para fallback
+                .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js");
 
-        // Registrar el handler para OBS
+        // Registrar el handler para OBS con el interceptor
         registry.addHandler(new OBSWebSocketHandler(webSocketTaskExecutor(), streamingService), "/live-obs")
-                .setAllowedOrigins("*"); // Cambia "*" a los dominios permitidos en producción
+                .addInterceptors(securityInterceptor)
+                .setAllowedOrigins("*")
+                .withSockJS() // Agregar soporte SockJS para fallback
+                .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js");
 
     }
 
@@ -54,6 +66,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
         // Configurar tiempo de espera y heartbeats
         container.setAsyncSendTimeout(30_000L); // 30 segundos para enviar mensajes asíncronos
         container.setMaxSessionIdleTimeout(3_600_000L); // 1 hora para sesiones inactivas
+
+        // Habilitar soporte SSL/TLS (eliminar configuración no válida)
+        // container.setUseDirectBuffers(true);
 
         return container;
     }

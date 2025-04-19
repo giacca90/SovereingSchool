@@ -4,6 +4,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
@@ -14,9 +15,14 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import com.sovereingschool.back_chat.Utils.JwtUtil;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer {
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     // Executor para tareas de ping-pong
     private final ScheduledExecutorService pingScheduler = Executors.newScheduledThreadPool(1);
@@ -29,7 +35,12 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
-        registry.addEndpoint("/chat-socket").setAllowedOrigins("*");
+        WebSocketSecurityInterceptor securityInterceptor = new WebSocketSecurityInterceptor(jwtUtil);
+
+        registry.addEndpoint("/chat-socket")
+                .addInterceptors(securityInterceptor)
+                .setAllowedOrigins("*")
+                .withSockJS();
     }
 
     @Bean

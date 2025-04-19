@@ -1,13 +1,18 @@
 package com.sovereingschool.back_chat.Utils;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import com.auth0.jwt.JWT;
@@ -36,37 +41,55 @@ public class JwtUtil {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        String jwtToken = JWT.create()
+        return JWT.create()
                 .withIssuer(this.userGenerator)
                 .withSubject(username)
                 .withClaim("rol", roles)
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 3600000)) // 1 hour
                 .withJWTId(UUID.randomUUID().toString())
-                .withNotBefore(new Date(System.currentTimeMillis())) //
+                .withNotBefore(new Date())
                 .sign(algorithm);
-
-        return jwtToken;
     }
 
     public DecodedJWT decodeToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(this.privateKay);
             JWTVerifier verifier = JWT.require(algorithm).withIssuer(this.userGenerator).build();
-            DecodedJWT decodedJWT = verifier.verify(token);
-            return decodedJWT;
+            return verifier.verify(token);
         } catch (JWTVerificationException exception) {
-            throw new JWTVerificationException("Token invalido");
+            throw new JWTVerificationException("Token invalido: " + exception.getMessage());
         }
+    }
 
+    public boolean isTokenValid(String token) {
+        try {
+            decodeToken(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public String getUsername(DecodedJWT decodedJWT) {
-        return decodedJWT.getSubject().toString();
+        return decodedJWT.getSubject();
     }
 
     public String getRoles(DecodedJWT decodedJWT) {
         return decodedJWT.getClaim("rol").asString();
+    }
+
+    public Authentication getAuthenticationFromToken(String token) {
+        DecodedJWT decodedJWT = decodeToken(token);
+        String username = getUsername(decodedJWT);
+        String roles = getRoles(decodedJWT);
+
+        List<GrantedAuthority> authorities = Arrays.stream(roles.split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+
+        User principal = new User(username, "", authorities);
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
     public String getSpecificClaim(DecodedJWT decodedJWT, String claim) {
