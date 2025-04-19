@@ -24,6 +24,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import com.sovereingschool.back_base.Configurations.Filters.CustomOAuth2SuccessHandler;
 import com.sovereingschool.back_base.Configurations.Filters.JwtTokenValidator;
 import com.sovereingschool.back_base.Services.LoginService;
 import com.sovereingschool.back_base.Utils.JwtUtil;
@@ -47,6 +48,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtTokenValidator(jwtUtil), BasicAuthenticationFilter.class)
                 .addFilterBefore(corsFilter(), BasicAuthenticationFilter.class)
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(customOAuth2SuccessHandler()))
                 .build();
     }
 
@@ -93,4 +96,10 @@ public class SecurityConfig {
 
         return new CorsFilter(source);
     }
+
+    @Bean
+    public CustomOAuth2SuccessHandler customOAuth2SuccessHandler() {
+        return new CustomOAuth2SuccessHandler();
+    }
+
 }

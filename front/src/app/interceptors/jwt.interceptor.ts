@@ -7,7 +7,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
 	if (isPlatformBrowser(platformId)) {
 		// 🌐 En el navegador → usar token del localStorage o visitante
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem('Token');
 		const headers = token ? { Authorization: `Bearer ${token}` } : { Authorization: `Basic ${btoa('Visitante:visitante')}` };
 
 		req = req.clone({ setHeaders: headers });

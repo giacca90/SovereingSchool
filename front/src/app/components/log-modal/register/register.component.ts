@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { NuevoUsuario } from '../../../models/NuevoUsuario';
 import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
@@ -12,6 +12,8 @@ import { RegisterService } from '../../../services/register.service';
 	styleUrl: './register.component.css',
 })
 export class RegisterComponent implements OnDestroy {
+	@Output() oauth2: EventEmitter<string> = new EventEmitter<string>();
+
 	private nuevoUsuario: NuevoUsuario = new NuevoUsuario();
 
 	constructor(

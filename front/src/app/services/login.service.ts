@@ -60,7 +60,7 @@ export class LoginService {
 						this.usuario = response.body.usuario;
 						// Comprueba si está en el navegador
 						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
-						localStorage.setItem('token', response.body.accessToken);
+						localStorage.setItem('Token', response.body.accessToken);
 						resolve(true);
 						sub.unsubscribe();
 						return;

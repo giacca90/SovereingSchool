@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,8 +27,6 @@ import com.sovereingschool.back_base.Repositories.LoginRepository;
 import com.sovereingschool.back_base.Repositories.UsuarioRepository;
 import com.sovereingschool.back_base.Utils.JwtUtil;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -35,7 +34,7 @@ import jakarta.transaction.Transactional;
 public class LoginService implements UserDetailsService, ILoginService {
 
     @Autowired
-    private LoginRepository repo;
+    private LoginRepository loginRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -46,46 +45,45 @@ public class LoginService implements UserDetailsService, ILoginService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     public Long compruebaCorreo(String correo) {
-        Long result = this.repo.compruebaCorreo(correo);
+        Long result = this.loginRepository.compruebaCorreo(correo);
         if (result == null)
             return 0L;
         return result;
     }
 
     public String createNuevoLogin(Login login) {
-        this.repo.save(login);
+        this.loginRepository.save(login);
         return "Nuevo Usuario creado con éxito!!!";
     }
 
     public String getCorreoLogin(Long id_usuario) {
-        return this.repo.findCorreoLoginForId(id_usuario);
+        return this.loginRepository.findCorreoLoginForId(id_usuario);
     }
 
     public String getPasswordLogin(Long id_usuario) {
-        return this.repo.findPasswordLoginForId(id_usuario);
+        return this.loginRepository.findPasswordLoginForId(id_usuario);
     }
 
     public String changeCorreoLogin(Login login) {
-        this.repo.changeCorreoLoginForId(login.getId_usuario(), login.getCorreo_electronico());
+        this.loginRepository.changeCorreoLoginForId(login.getId_usuario(), login.getCorreo_electronico());
         return "Correo cambiado con éxito!!!";
     }
 
     public Integer changePasswordLogin(ChangePassword changepassword) {
         if (changepassword.getNew_password().length() < 1 || changepassword.getOld_password().length() < 1)
             return null;
-        if (this.repo.findPasswordLoginForId(changepassword.getId_usuario()).equals(changepassword.getOld_password())) {
-            this.repo.changePasswordLoginForId(changepassword.getId_usuario(), changepassword.getNew_password());
+        if (this.loginRepository.findPasswordLoginForId(changepassword.getId_usuario())
+                .equals(changepassword.getOld_password())) {
+            this.loginRepository.changePasswordLoginForId(changepassword.getId_usuario(),
+                    changepassword.getNew_password());
             return 1;
         }
         return 0;
     }
 
     public String deleteLogin(Long id_usuario) {
-        this.repo.deleteById(id_usuario);
+        this.loginRepository.deleteById(id_usuario);
         return "Login eliminado con éxito!!!";
     }
 
@@ -102,7 +100,7 @@ public class LoginService implements UserDetailsService, ILoginService {
                     .build();
         }
 
-        Login login = this.repo.getLoginForCorreo(correo);
+        Login login = this.loginRepository.getLoginForCorreo(correo);
         if (login == null) {
             throw new UsernameNotFoundException("Correo electronico " + correo + " no encontrado");
         }
@@ -124,8 +122,9 @@ public class LoginService implements UserDetailsService, ILoginService {
                 roles);
     }
 
+    @Transactional
     public AuthResponse loginUser(Long id, String password) {
-        String correo = this.repo.findCorreoLoginForId(id);
+        String correo = this.loginRepository.findCorreoLoginForId(id);
         UserDetails userDetails = this.loadUserByUsername(correo);
         if (userDetails == null) {
             throw new BadCredentialsException("Usuario o password incorrecto");
@@ -140,13 +139,15 @@ public class LoginService implements UserDetailsService, ILoginService {
 
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        Optional<Usuario> usuario = this.usuarioRepository
-                .findById(this.repo.getLoginForCorreo(auth.getName()).getId_usuario());
-        if (usuario.isEmpty()) {
+        Optional<Usuario> usuarioOpt = this.usuarioRepository
+                .findById(this.loginRepository.getLoginForCorreo(auth.getName()).getId_usuario());
+        if (usuarioOpt.isEmpty()) {
             throw new UsernameNotFoundException("Usuario no encontrado");
         }
+        Usuario usuario = usuarioOpt.get();
+        Hibernate.initialize(usuario.getCursos_usuario());
         String accessToken = jwtUtil.generateToken(auth);
 
-        return new AuthResponse(true, "Login exitoso", usuario.get(), accessToken);
+        return new AuthResponse(true, "Login exitoso", usuario, accessToken);
     }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
 
@@ -10,6 +10,7 @@ import { LoginService } from '../../../services/login.service';
 	styleUrl: './login.component.css',
 })
 export class LoginComponent {
+	@Output() oauth2: EventEmitter<string> = new EventEmitter<string>();
 	constructor(
 		private modalService: LoginModalService,
 		private loginService: LoginService,

@@ -6,7 +6,7 @@
 		</div>
 	</div>
 	<div id="content_component" class="mt-8 rounded-lg border border-black dark:border-gray-400 dark:bg-black dark:text-gray-400">
-		<app-login [hidden]="isLoginHidden"></app-login>
-		<app-register [hidden]="!isLoginHidden"></app-register>
+		<app-login [hidden]="isLoginHidden" (oauth2)="oauth2LoginWith($event)"></app-login>
+		<app-register [hidden]="!isLoginHidden" (oauth2)="oauth2LoginWith($event)"></app-register>
 	</div>
 </div>

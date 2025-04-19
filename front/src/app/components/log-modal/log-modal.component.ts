@@ -1,5 +1,8 @@
 import { AfterViewInit, Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { Auth } from '../../models/Auth';
 import { LoginModalService } from '../../services/login-modal.service';
+import { LoginService } from '../../services/login.service';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 
@@ -15,7 +18,11 @@ export class LogModalComponent implements AfterViewInit {
 	register: HTMLButtonElement | null = null;
 	isLoginHidden: boolean = false;
 
-	constructor(private modalService: LoginModalService) {}
+	constructor(
+		private modalService: LoginModalService,
+		private loginService: LoginService,
+		private router: Router,
+	) {}
 
 	ngAfterViewInit(): void {
 		this.login = document.getElementById('login') as HTMLButtonElement;
@@ -48,4 +55,90 @@ export class LogModalComponent implements AfterViewInit {
 	close() {
 		this.modalService.hide();
 	}
+
+	oauth2LoginWith(provider: string) {
+		const width = 600;
+		const height = 700;
+		const left = (window.innerWidth - width) / 2 + window.screenX;
+		const top = (window.innerHeight - height) / 2 + window.screenY;
+		if (provider === 'google') {
+			window.open('https://localhost:8080/oauth2/authorization/google', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+		} else if (provider === 'github') {
+			window.open('https://localhost:8080/oauth2/authorization/github', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+		}
+
+		const messageListener = (event: MessageEvent) => {
+			if (event.origin !== 'https://localhost:8080') return;
+
+			const authResponse: Auth = event.data;
+			// Guarda el token en localStorage
+			localStorage.setItem('Token', authResponse.accessToken);
+			localStorage.setItem('Usuario', JSON.stringify(authResponse.usuario));
+			this.loginService.usuario = authResponse.usuario;
+
+			// Puedes emitir un evento o redirigir
+			this.router.navigate(['']);
+			this.modalService.hide();
+			// Limpia el listener
+			window.removeEventListener('message', messageListener);
+		};
+
+		window.addEventListener('message', messageListener);
+	}
+	/* 
+	loginWithGoogle() {
+		const width = 600;
+		const height = 700;
+		const left = (window.innerWidth - width) / 2 + window.screenX;
+		const top = (window.innerHeight - height) / 2 + window.screenY;
+		window.open('https://localhost:8080/oauth2/authorization/google', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+
+		const messageListener = (event: MessageEvent) => {
+			if (event.origin !== 'https://localhost:8080') return;
+
+			const authResponse: Auth = event.data;
+			console.log('Respuesta del backend:', authResponse);
+
+			// Guarda el token en localStorage
+			localStorage.setItem('Token', authResponse.accessToken);
+			localStorage.setItem('Usuario', JSON.stringify(authResponse.usuario));
+			this.loginService.usuario = authResponse.usuario;
+
+			// Puedes emitir un evento o redirigir
+			this.router.navigate(['']);
+			this.modalService.hide();
+			// Limpia el listener
+			window.removeEventListener('message', messageListener);
+		};
+
+		window.addEventListener('message', messageListener);
+	}
+
+	loginWithGitHub(): void {
+		const width = 600;
+		const height = 700;
+		const left = (window.innerWidth - width) / 2 + window.screenX;
+		const top = (window.innerHeight - height) / 2 + window.screenY;
+		window.open('https://localhost:8080/oauth2/authorization/github', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+
+		const messageListener = (event: MessageEvent) => {
+			if (event.origin !== 'https://localhost:8080') return;
+
+			const authResponse: Auth = event.data;
+			console.log('Respuesta del backend:', authResponse);
+
+			// Guarda el token en localStorage
+			localStorage.setItem('Token', authResponse.accessToken);
+			localStorage.setItem('Usuario', JSON.stringify(authResponse.usuario));
+			this.loginService.usuario = authResponse.usuario;
+
+			// Puedes emitir un evento o redirigir
+			this.router.navigate(['']);
+			this.modalService.hide();
+			// Limpia el listener
+			window.removeEventListener('message', messageListener);
+		};
+
+		window.addEventListener('message', messageListener);
+	} */
 }

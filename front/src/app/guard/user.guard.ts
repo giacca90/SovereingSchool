@@ -25,7 +25,7 @@ export class UserGuard implements CanActivate {
 		const usuario: Usuario = JSON.parse(localStorage.getItem('Usuario') as string);
 
 		// Permitir acceso inmediato a usuarios con roll 0 o 1
-		if (usuario.roll_usuario === 0 || usuario.roll_usuario === 1) {
+		if (usuario.roll_usuario === 'ADMIN' || usuario.roll_usuario === 'PROF') {
 			return true;
 		}
 

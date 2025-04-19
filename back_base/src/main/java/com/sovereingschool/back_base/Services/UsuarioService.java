@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,7 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.NewUsuario;
@@ -32,11 +31,14 @@ import com.sovereingschool.back_base.Repositories.LoginRepository;
 import com.sovereingschool.back_base.Repositories.UsuarioRepository;
 import com.sovereingschool.back_base.Utils.JwtUtil;
 
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
+import reactor.netty.http.client.HttpClient;
 
 @Service
 @Transactional
@@ -53,14 +55,12 @@ public class UsuarioService implements IUsuarioService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private WebClient.Builder webClientBuilder;
-
     @PersistenceContext
     private EntityManager entityManager;
 
     private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
     private final String backChatURL = "https://localhost:8070";
+    private final String backStreamURL = "https://localhost:8090";
 
     UsuarioService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
@@ -91,8 +91,9 @@ public class UsuarioService implements IUsuarioService {
         login.setPassword(passwordEncoder.encode(new_usuario.getPassword()));
         this.loginRepo.save(login);
 
+        // Crear el usuario en el microservicio de chat
         try {
-            WebClient webClient = WebClient.create(backChatURL);
+            WebClient webClient = createSecureWebClient(backChatURL);
             webClient.post().uri("/crea_usuario_chat")
                     .body(Mono.just(usuarioInsertado), Usuario.class)
                     .retrieve()
@@ -113,11 +114,30 @@ public class UsuarioService implements IUsuarioService {
             System.err.println("Error en crear el usuario en el chat: " + e.getMessage());
         }
 
-        sendDataToStream(usuarioInsertado, 0).subscribe(resp -> {
-        }, error -> {
-            System.err.println("Error al comunicarse con el segundo microservicio: " + error.getMessage());
-        });
+        // Crear el usuario en el microservicio de stream
+        try {
+            WebClient webClientStream = createSecureWebClient(backStreamURL);
+            webClientStream.put().uri("/nuevoUsuario")
+                    .body(Mono.just(usuarioInsertado), Usuario.class)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .doOnError(e -> {
+                        // Manejo de errores
+                        System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
+                        e.printStackTrace();
+                    }).subscribe(res -> {
+                        // Maneja el resultado cuando esté disponible
+                        if (res != null && res.equals("Usuario creado con exito!!!")) {
+                        } else {
+                            System.err.println("Error en crear el usuario en el stream:");
+                            System.err.println(res);
+                        }
+                    });
+        } catch (Exception e) {
+            System.err.println("Error en crear el usuario en el stream: " + e.getMessage());
+        }
 
+        // Creamos la respuesta con JWT
         List<SimpleGrantedAuthority> roles = new ArrayList<>();
         roles.add(new SimpleGrantedAuthority("ROLE_" + usuarioInsertado.getRoll_usuario().name()));
         UserDetails userDetails = new User(usuarioInsertado.getNombre_usuario(),
@@ -179,7 +199,7 @@ public class UsuarioService implements IUsuarioService {
     public Usuario updateUsuario(Usuario usuario) {
         Usuario usuario_old = this.getUsuario(usuario.getId_usuario());
 
-        for (String foto : usuario_old.getFoto_usuario()) { // TODO: revisar si esto es necesario
+        for (String foto : usuario_old.getFoto_usuario()) {
             if (!usuario.getFoto_usuario().contains(foto)) {
                 Path photoPath = Paths.get(uploadDir, foto.substring(foto.lastIndexOf("/")));
                 try {
@@ -209,11 +229,31 @@ public class UsuarioService implements IUsuarioService {
             return 0;
         old_usuario.setCursos_usuario(usuario.getCursos_usuario());
 
-        sendDataToStream(old_usuario, 1).subscribe(response -> {
-        }, error -> {
-            System.err.println("Error al comunicarse con el segundo microservicio: " + error.getMessage());
-        });
+        try {
+            // Añadir el usuario al microservicio de stream
+            WebClient webClientStream = createSecureWebClient(backStreamURL);
+            webClientStream.put().uri("/nuevoCursoUsuario")
+                    .body(Mono.just(old_usuario), Usuario.class)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .doOnError(e -> {
+                        // Manejo de errores
+                        System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
+                        e.printStackTrace();
+                    }).subscribe(res -> {
+                        // Maneja el resultado cuando esté disponible
+                        if (res != null && res.equals("Usuario creado con exito!!!")) {
+                        } else {
+                            System.err.println("Error en crear el usuario en el stream:");
+                            System.err.println(res);
+                        }
+                    });
+        } catch (Exception e) {
+            System.err.println("Error en crear el usuario en el stream: " + e.getMessage());
+        }
 
+        // Añadir el usuario al microservicio de chat
+        // TODO: Implementar la lógica para añadir el usuario al microservicio de chat
         return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario);
     }
 
@@ -232,39 +272,25 @@ public class UsuarioService implements IUsuarioService {
         return this.repo.findProfes();
     }
 
-    private <D> Mono<String> sendDataToStream(D data, Integer tipo) {
+    public WebClient createSecureWebClient(String baseUrl) throws Exception {
+        // Crear un SslContext que confía en todos los certificados (incluidos
+        // autofirmados)
+        SslContext sslContext = SslContextBuilder.forClient()
+                .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                .build();
 
-        if (tipo == 0) {
+        // Configurar HttpClient con el contexto SSL
+        HttpClient httpClient = HttpClient.create()
+                .secure(spec -> spec.sslContext(sslContext));
 
-            WebClient webClient = webClientBuilder.baseUrl("https://localhost:8090").build();
-            return webClient.post().uri("/nuevoUsuario").body(Mono.just(data), Usuario.class).retrieve()
-                    .bodyToMono(String.class).retryWhen(Retry.backoff(3, Duration.ofSeconds(5)).filter(throwable -> {
-                        if (throwable instanceof WebClientResponseException) {
-                            WebClientResponseException e = (WebClientResponseException) throwable;
-                            return e.getStatusCode().value() == 404;
-                        }
-                        return false;
-                    })).doOnError(throwable -> {
-                        // Manejo del error final después de reintentos
-                        System.err.println("Error en la petición después de reintentar: " + throwable.getMessage());
-                    });
-        } else if (tipo == 1) {
+        // Obtener token
+        String authToken = this.jwtUtil.generateTokenForServer();
 
-            WebClient webClient = webClientBuilder.baseUrl("https://localhost:8090").build();
-            return webClient.put().uri("/nuevoCursoUsuario").body(Mono.just(data), Usuario.class).retrieve()
-                    .bodyToMono(String.class).retryWhen(Retry.backoff(3, Duration.ofSeconds(5)).filter(throwable -> {
-                        if (throwable instanceof WebClientResponseException) {
-                            WebClientResponseException e = (WebClientResponseException) throwable;
-                            return e.getStatusCode().value() == 404;
-                        }
-                        return false;
-                    })).doOnError(throwable -> {
-                        // Manejo del error final después de reintentos
-                        System.err.println("Error en la petición después de reintentar: " + throwable.getMessage());
-                    });
-
-        } else
-            // Manejo del caso de error para tipos no soportados
-            return Mono.error(new IllegalArgumentException("Tipo no soportado: " + tipo));
+        // Conectar HttpClient con WebClient y añadir header por defecto
+        return WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .baseUrl(baseUrl)
+                .defaultHeader("Authorization", "Bearer " + authToken)
+                .build();
     }
 }
