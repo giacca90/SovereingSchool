@@ -35,9 +35,14 @@ public class JwtTokenCookieFilter extends OncePerRequestFilter {
                 if (cookie.getName().equals("initToken") || cookie.getName().equals("refreshToken")) {
                     String token = cookie.getValue();
                     // Aquí deberías validar el token y setear la autenticación
-                    Authentication auth = jwtUtil.createAuthenticationFromToken(token);
-                    if (auth != null) {
-                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    try {
+                        Authentication auth = jwtUtil.createAuthenticationFromToken(token);
+                        if (auth != null) {
+                            SecurityContextHolder.getContext().setAuthentication(auth);
+                        }
+                    } catch (Exception e) {
+                        // Manejar la excepción de token inválido
+                        System.out.println("Token inválido: " + e.getMessage());
                     }
                     break;
                 }

@@ -34,7 +34,6 @@ public class InitController {
                     .httpOnly(true) // No accesible desde JavaScript
                     .secure(true) // Solo por HTTPS
                     .path("/") // Ruta donde será accesible
-                    .maxAge(15) // 15 segundos
                     .sameSite("None") // Cambia a "None" si trabajas con frontend separado
                     .build();
 

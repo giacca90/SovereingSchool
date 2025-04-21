@@ -52,8 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	salir() {
 		this.vistaMenu = false;
-		this.loginService.usuario = null;
-		localStorage.clear();
+		this.loginService.logout();
 		this.router.navigate(['']);
 	}
 	ngOnDestroy(): void {

@@ -8,6 +8,7 @@ export const jwtRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			if (error.status === 401) {
+				console.log('JWT Refresh Interceptor');
 				loginService
 					.refreshToken()
 					.then((token) => {
@@ -19,9 +20,7 @@ export const jwtRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 							});
 							return next(clonedRequest);
 						} else {
-							loginService.usuario = null;
-							loginService.id_usuario = null;
-							localStorage.clear();
+							loginService.logout();
 							console.error('No se pudo obtener un nuevo token');
 							return Promise.reject('No se pudo obtener un nuevo token');
 						}

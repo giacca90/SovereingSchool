@@ -40,15 +40,11 @@ public class JwtUtil {
         Algorithm algorithm = Algorithm.HMAC256(this.privateKay);
 
         String username = tokenType.equals("server") ? "server" : authentication.getName();
-        System.out.println("generando token: usuario: " + username);
-
         String roles = tokenType.equals("server") ? "ROLE_ADMIN"
                 : authentication.getAuthorities()
                         .stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining(","));
-
-        System.out.println("generando token: roles: " + roles);
 
         String jwtToken = JWT.create()
                 .withIssuer(this.userGenerator)

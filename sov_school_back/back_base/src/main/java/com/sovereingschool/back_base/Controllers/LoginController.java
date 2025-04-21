@@ -203,4 +203,23 @@ public class LoginController {
 		}
 	}
 
+	@GetMapping("/logout")
+	public ResponseEntity<?> logout() {
+		try {
+			// Construir la cookie segura
+			ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
+					.httpOnly(true) // No accesible desde JavaScript
+					.secure(true) // Solo por HTTPS
+					.path("/") // Ruta donde será accesible
+					.maxAge(0) // 0 días
+					.sameSite("None") // Cambia a "None" si trabajas con frontend separado
+					.build();
+
+			return ResponseEntity.ok()
+					.header("Set-Cookie", refreshTokenCookie.toString())
+					.body("Logout exitoso");
+		} catch (Exception e) {
+			return new ResponseEntity<>("Error en logout: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 }

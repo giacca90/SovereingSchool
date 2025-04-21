@@ -4,8 +4,9 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideClientHydration } from '@angular/platform-browser';
 import { routes } from './app.routes';
+import { jwtRefreshInterceptor } from './interceptors/jwt-refresh.interceptor';
 import { jwtInterceptor } from './interceptors/jwt.interceptor';
 
 export const appConfig: ApplicationConfig = {
-	providers: [provideRouter(routes), provideClientHydration(), provideHttpClient(withFetch(), withInterceptors([jwtInterceptor]))],
+	providers: [provideRouter(routes), provideClientHydration(), provideHttpClient(withFetch(), withInterceptors([jwtInterceptor, jwtRefreshInterceptor]))],
 };

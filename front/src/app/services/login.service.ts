@@ -8,7 +8,7 @@ import { Usuario } from '../models/Usuario';
 })
 export class LoginService {
 	private apiUrl = 'https://localhost:8080/login/';
-	public id_usuario: number | null = null;
+	private id_usuario: number | null = null;
 	public usuario: Usuario | null = null;
 
 	constructor(private http: HttpClient) {
@@ -97,6 +97,23 @@ export class LoginService {
 					sub.unsubscribe();
 				},
 			});
+		});
+	}
+
+	logout(): void {
+		this.usuario = null;
+		this.id_usuario = null;
+		localStorage.clear();
+		this.http.get<string>(this.apiUrl + 'logout', { observe: 'response', withCredentials: true }).subscribe({
+			next: (response: HttpResponse<string>) => {
+				if (response.status !== 200) {
+					console.error('Error en logout: ' + response.status);
+					console.error(response.body);
+				}
+			},
+			error: (error: HttpErrorResponse) => {
+				console.error('Logout failed:', error);
+			},
 		});
 	}
 }
