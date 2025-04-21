@@ -11,6 +11,7 @@ import com.sovereingschool.back_base.DTOs.Estadistica;
 import com.sovereingschool.back_base.DTOs.InitApp;
 import com.sovereingschool.back_base.DTOs.ProfesInit;
 import com.sovereingschool.back_base.Interfaces.IInitAppService;
+import com.sovereingschool.back_base.Utils.JwtUtil;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_common.Repositories.ClaseRepository;
@@ -31,6 +32,9 @@ public class InitAppService implements IInitAppService {
 
     @Autowired
     private UsuarioRepository usuarioRepo;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public List<Usuario> getProfesores() {
@@ -81,6 +85,12 @@ public class InitAppService implements IInitAppService {
 
         return init;
 
+    }
+
+    @Override
+    public String getInitToken() {
+        String initToken = this.jwtUtil.generateInitToken();
+        return initToken;
     }
 
 }

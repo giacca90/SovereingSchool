@@ -21,4 +21,6 @@ public interface ILoginService {
     public String deleteLogin(Long id_usuario);
 
     public AuthResponse loginUser(Long id, String password);
+
+    public AuthResponse refreshAccessToken(Long id);
 }

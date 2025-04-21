@@ -146,8 +146,26 @@ public class LoginService implements UserDetailsService, ILoginService {
         }
         Usuario usuario = usuarioOpt.get();
         Hibernate.initialize(usuario.getCursos_usuario());
-        String accessToken = jwtUtil.generateToken(auth);
+        String accessToken = jwtUtil.generateToken(auth, "access");
+        String refreshToken = jwtUtil.generateToken(auth, "refresh");
 
-        return new AuthResponse(true, "Login exitoso", usuario, accessToken);
+        return new AuthResponse(true, "Login exitoso", usuario, accessToken, refreshToken);
+    }
+
+    @Transactional
+    public AuthResponse refreshAccessToken(Long id) {
+        String correo = this.loginRepository.findCorreoLoginForId(id);
+        UserDetails userDetails = this.loadUserByUsername(correo);
+        if (userDetails == null) {
+            throw new BadCredentialsException("Usuario no encontrado");
+        }
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(correo, userDetails.getPassword(),
+                userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        String accessToken = jwtUtil.generateToken(auth, "access");
+        String refreshToken = jwtUtil.generateToken(auth, "refresh");
+        return new AuthResponse(true, "Login exitoso", null, accessToken, refreshToken);
     }
 }

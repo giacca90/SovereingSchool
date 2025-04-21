@@ -25,7 +25,7 @@ export class InitService {
 	async carga() {
 		this.usuarioService.profes = [];
 		this.cursoService.cursos = [];
-		const sub = this.http.get<Init>(this.apiUrl, { observe: 'response' }).subscribe({
+		const sub = this.http.get<Init>(this.apiUrl, { observe: 'response', withCredentials: true }).subscribe({
 			next: (response: HttpResponse<Init>) => {
 				if (response.ok && response.body) {
 					response.body.profesInit.forEach((profe) => {

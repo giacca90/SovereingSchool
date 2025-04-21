@@ -28,6 +28,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
 import com.sovereingschool.back_common.Models.Curso;
@@ -188,8 +190,29 @@ public class UsuarioController {
 	public ResponseEntity<?> createUsuario(@RequestBody NewUsuario newUsuario) {
 		Object response = new Object();
 		try {
-			response = this.service.createUsuario(newUsuario);
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			AuthResponse authResponse = this.service.createUsuario(newUsuario);
+			if (!authResponse.status()) {
+				response = "Error en crear el nuevo usuario: " + authResponse.message();
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			String refreshToken = authResponse.refreshToken();
+			authResponse = new AuthResponse(authResponse.status(), authResponse.message(), authResponse.usuario(),
+					authResponse.accessToken(), null);
+			response = authResponse;
+
+			// Construir la cookie segura
+			ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+					.httpOnly(true) // No accesible desde JavaScript
+					.secure(true) // Solo por HTTPS
+					.path("/") // Ruta donde será accesible
+					.maxAge(15 * 24 * 60 * 60) // 15 días
+					.sameSite("None") // Cambia a "None" si trabajas con frontend separado
+					.build();
+
+			return ResponseEntity.ok()
+					.header("Set-Cookie", refreshTokenCookie.toString())
+					.body(response);
+
 		} catch (Exception e) {
 			response = "Error en crear el nuevo usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

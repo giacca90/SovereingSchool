@@ -444,7 +444,7 @@ public class CursoService implements ICursoService {
                 .secure(spec -> spec.sslContext(sslContext));
 
         // Obtener token
-        String authToken = this.jwtUtil.generateTokenForServer();
+        String authToken = this.jwtUtil.generateToken(null, "server");
 
         // Conectar HttpClient con WebClient y añadir header por defecto
         return WebClient.builder()

@@ -25,9 +25,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import com.sovereingschool.back_base.Configurations.Filters.CustomOAuth2SuccessHandler;
+import com.sovereingschool.back_base.Configurations.Filters.JwtTokenCookieFilter;
 import com.sovereingschool.back_base.Configurations.Filters.JwtTokenValidator;
 import com.sovereingschool.back_base.Services.LoginService;
 import com.sovereingschool.back_base.Utils.JwtUtil;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -37,19 +40,29 @@ public class SecurityConfig {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private JwtTokenCookieFilter jwtTokenCookieFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated())
+                .requiresChannel(channel -> channel
+                        .anyRequest().requiresSecure())
                 .httpBasic(Customizer.withDefaults())
                 .userDetailsService(inMemoryUserDetailsManager())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtTokenValidator(jwtUtil), BasicAuthenticationFilter.class)
                 .addFilterBefore(corsFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(jwtTokenCookieFilter,
+                        BasicAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(customOAuth2SuccessHandler()))
+                .formLogin(form -> form.disable()) // Desactivar form login
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        }))
                 .build();
     }
 

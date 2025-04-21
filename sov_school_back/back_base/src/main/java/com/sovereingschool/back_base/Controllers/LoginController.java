@@ -2,6 +2,7 @@ package com.sovereingschool.back_base.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,8 +44,27 @@ public class LoginController {
 		Object response = new Object();
 		try {
 			AuthResponse authResponse = this.service.loginUser(id, password);
+			if (authResponse == null || !authResponse.status()) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			String refreshToken = authResponse.refreshToken();
+			authResponse = new AuthResponse(authResponse.status(), authResponse.message(), authResponse.usuario(),
+					authResponse.accessToken(), null);
 			response = authResponse;
-			return new ResponseEntity<>(response, HttpStatus.OK);
+
+			// Construir la cookie segura
+			ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+					.httpOnly(true) // No accesible desde JavaScript
+					.secure(true) // Solo por HTTPS
+					.path("/") // Ruta donde será accesible
+					.maxAge(15 * 24 * 60 * 60) // 15 días
+					.sameSite("None") // Cambia a "None" si trabajas con frontend separado
+					.build();
+
+			return ResponseEntity.ok()
+					.header("Set-Cookie", refreshTokenCookie.toString())
+					.body(response);
 		} catch (Exception e) {
 			response = "Error de login: " + e.getMessage() + "\n" + e.getCause();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -149,4 +169,38 @@ public class LoginController {
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	@GetMapping("/refresh/{idUsuario}")
+	public ResponseEntity<?> refreshAccessToken(@PathVariable Long idUsuario) {
+		Object response = new Object();
+		try {
+			AuthResponse authResponse = this.service.refreshAccessToken(idUsuario);
+			if (authResponse == null || !authResponse.status()) {
+				response = "Usuario no encontrado";
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			String refreshToken = authResponse.refreshToken();
+
+			response = new AuthResponse(authResponse.status(), authResponse.message(), authResponse.usuario(),
+					authResponse.accessToken(), null);
+
+			// Construir la cookie segura
+			ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+					.httpOnly(true) // No accesible desde JavaScript
+					.secure(true) // Solo por HTTPS
+					.path("/") // Ruta donde será accesible
+					.maxAge(15 * 24 * 60 * 60) // 15 días
+					.sameSite("None") // Cambia a "None" si trabajas con frontend separado
+					.build();
+
+			return ResponseEntity.ok()
+					.header("Set-Cookie", refreshTokenCookie.toString())
+					.body(response);
+
+		} catch (Exception e) {
+			response = "Error en cambiar la contraseña: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 }

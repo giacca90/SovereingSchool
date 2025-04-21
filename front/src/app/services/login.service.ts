@@ -8,7 +8,7 @@ import { Usuario } from '../models/Usuario';
 })
 export class LoginService {
 	private apiUrl = 'https://localhost:8080/login/';
-	private id_usuario: number | null = null;
+	public id_usuario: number | null = null;
 	public usuario: Usuario | null = null;
 
 	constructor(private http: HttpClient) {
@@ -49,7 +49,7 @@ export class LoginService {
 
 	async compruebaPassword(password: string): Promise<boolean> {
 		return new Promise(async (resolve) => {
-			const sub = this.http.get<Auth>(this.apiUrl + this.id_usuario + '/' + password, { observe: 'response' }).subscribe({
+			const sub = this.http.get<Auth>(this.apiUrl + this.id_usuario + '/' + password, { observe: 'response', withCredentials: true }).subscribe({
 				next: (response: HttpResponse<Auth>) => {
 					if (response.ok && response.body) {
 						if (!response.body.status && response.body.usuario === null) {
@@ -72,6 +72,28 @@ export class LoginService {
 				error: (error: HttpErrorResponse) => {
 					console.error('HTTP request failed:', error);
 					resolve(false);
+					sub.unsubscribe();
+				},
+			});
+		});
+	}
+
+	async refreshToken(): Promise<string | null> {
+		return new Promise(async (resolve, reject) => {
+			const sub = this.http.get<Auth>(this.apiUrl + 'refresh/' + this.id_usuario, { observe: 'response', withCredentials: true }).subscribe({
+				next: (response: HttpResponse<Auth>) => {
+					if (response.ok && response.body) {
+						localStorage.setItem('Token', response.body.accessToken);
+						resolve(response.body.accessToken);
+						sub.unsubscribe();
+					} else {
+						console.error('Error en refrescar el token: ' + response.status);
+						reject(null);
+					}
+				},
+				error: (error: HttpErrorResponse) => {
+					console.error('HTTP request failed:', error);
+					reject(null);
 					sub.unsubscribe();
 				},
 			});

@@ -10,4 +10,6 @@ public interface IInitAppService {
     List<Usuario> getProfesores();
 
     InitApp getInit();
+
+    String getInitToken();
 }
