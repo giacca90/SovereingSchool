@@ -147,8 +147,8 @@ public class UsuarioService implements IUsuarioService {
                 userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(auth);
-        String accessToken = jwtUtil.generateToken(auth, "access");
-        String refreshToken = jwtUtil.generateToken(auth, "refresh");
+        String accessToken = jwtUtil.generateToken(auth, "access", usuarioInsertado.getId_usuario());
+        String refreshToken = jwtUtil.generateToken(auth, "refresh", usuarioInsertado.getId_usuario());
 
         return new AuthResponse(true, "Usuario creado con éxito", usuarioInsertado, accessToken, refreshToken);
 
@@ -277,7 +277,7 @@ public class UsuarioService implements IUsuarioService {
                 .secure(spec -> spec.sslContext(sslContext));
 
         // Obtener token
-        String authToken = this.jwtUtil.generateToken(null, "server");
+        String authToken = this.jwtUtil.generateToken(null, "server", null);
 
         // Conectar HttpClient con WebClient y añadir header por defecto
         return WebClient.builder()

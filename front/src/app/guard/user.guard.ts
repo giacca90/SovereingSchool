@@ -3,6 +3,7 @@ import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { Usuario } from '../models/Usuario';
 import { CursosService } from '../services/cursos.service';
+import { LoginService } from '../services/login.service';
 
 @Injectable({
 	providedIn: 'root',
@@ -11,19 +12,19 @@ export class UserGuard implements CanActivate {
 	constructor(
 		private cursoService: CursosService,
 		private router: Router,
+		private loginService: LoginService,
 		@Inject(PLATFORM_ID) private platformId: object,
 	) {}
 
 	async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
 		if (isPlatformServer(this.platformId)) return false;
 
-		if (!localStorage.getItem('Usuario')) {
+		if (!this.loginService.usuario) {
 			this.router.navigate(['']);
 			return false;
 		}
 
-		const usuario: Usuario = JSON.parse(localStorage.getItem('Usuario') as string);
-
+		const usuario: Usuario = this.loginService.usuario;
 		// Permitir acceso inmediato a usuarios con roll 0 o 1
 		if (usuario.roll_usuario === 'ADMIN' || usuario.roll_usuario === 'PROF') {
 			return true;

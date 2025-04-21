@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
 import com.sovereingschool.back_base.Interfaces.ILoginService;
@@ -146,8 +147,9 @@ public class LoginService implements UserDetailsService, ILoginService {
         }
         Usuario usuario = usuarioOpt.get();
         Hibernate.initialize(usuario.getCursos_usuario());
-        String accessToken = jwtUtil.generateToken(auth, "access");
-        String refreshToken = jwtUtil.generateToken(auth, "refresh");
+
+        String accessToken = jwtUtil.generateToken(auth, "access", usuario.getId_usuario());
+        String refreshToken = jwtUtil.generateToken(auth, "refresh", usuario.getId_usuario());
 
         return new AuthResponse(true, "Login exitoso", usuario, accessToken, refreshToken);
     }
@@ -164,8 +166,23 @@ public class LoginService implements UserDetailsService, ILoginService {
                 userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(auth);
-        String accessToken = jwtUtil.generateToken(auth, "access");
-        String refreshToken = jwtUtil.generateToken(auth, "refresh");
+        String accessToken = jwtUtil.generateToken(auth, "access", id);
+        String refreshToken = jwtUtil.generateToken(auth, "refresh", id);
         return new AuthResponse(true, "Login exitoso", null, accessToken, refreshToken);
+    }
+
+    @Transactional
+    public Usuario loginWithToken(String token) {
+        try {
+            Long id_usuario = jwtUtil.getIdUsuario(token);
+            Optional<Usuario> opUsuario = this.usuarioRepository.findById(id_usuario);
+            if (opUsuario.isEmpty()) {
+                throw new BadCredentialsException("Usuario no encontrado");
+            }
+            Usuario usuario = opUsuario.get();
+            return usuario;
+        } catch (JWTVerificationException e) {
+            throw new JWTVerificationException("Error en hacer login con token: " + e.getMessage());
+        }
     }
 }

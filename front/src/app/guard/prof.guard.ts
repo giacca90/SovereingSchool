@@ -1,8 +1,8 @@
 import { isPlatformServer } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
-import { Usuario } from '../models/Usuario';
 import { CursosService } from '../services/cursos.service';
+import { LoginService } from '../services/login.service';
 
 @Injectable({
 	providedIn: 'root',
@@ -11,17 +11,17 @@ export class ProfGuard implements CanActivate {
 	constructor(
 		private cursoService: CursosService,
 		private router: Router,
+		private loginService: LoginService,
 		@Inject(PLATFORM_ID) private platformId: object,
 	) {}
 
 	async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
 		if (isPlatformServer(this.platformId)) return false;
-		if (!localStorage.getItem('Usuario')) {
+		if (!this.loginService.usuario) {
 			this.router.navigate(['']);
 			return false;
 		}
 
-		const usuario: Usuario = JSON.parse(localStorage.getItem('Usuario') as string);
 		const id_curso = route.params['id_curso'];
 
 		try {
@@ -31,7 +31,7 @@ export class ProfGuard implements CanActivate {
 				return false;
 			}
 
-			const isProfesor = curso.profesores_curso.some((profesor) => profesor.id_usuario === usuario.id_usuario);
+			const isProfesor = curso.profesores_curso.some((profesor) => profesor.id_usuario === this.loginService.usuario?.id_usuario);
 			if (!isProfesor) {
 				this.router.navigate(['']);
 			}

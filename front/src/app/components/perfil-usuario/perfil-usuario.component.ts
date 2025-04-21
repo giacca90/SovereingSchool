@@ -7,11 +7,11 @@ import { LoginService } from '../../services/login.service';
 import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
-    selector: 'app-perfil-usuario',
+	selector: 'app-perfil-usuario',
 	standalone: true,
-    imports: [FormsModule],
-    templateUrl: './perfil-usuario.component.html',
-    styleUrl: './perfil-usuario.component.css'
+	imports: [FormsModule],
+	templateUrl: './perfil-usuario.component.html',
+	styleUrl: './perfil-usuario.component.css',
 })
 export class PerfilUsuarioComponent implements OnDestroy {
 	editable: boolean = false;
@@ -125,8 +125,6 @@ export class PerfilUsuarioComponent implements OnDestroy {
 			this.subscription.add(
 				this.usuarioService.actualizaUsuario(temp).subscribe({
 					next: () => {
-						localStorage.clear;
-						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
 						this.initService.carga();
 					},
 					error: (e: Error) => {

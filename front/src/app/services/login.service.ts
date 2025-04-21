@@ -13,10 +13,19 @@ export class LoginService {
 
 	constructor(private http: HttpClient) {
 		afterNextRender(() => {
-			const usuario_guardado: string | null = localStorage.getItem('Usuario');
-			if (usuario_guardado) {
-				this.usuario = JSON.parse(usuario_guardado);
-			}
+			const token = localStorage.getItem('Token');
+
+			this.http.post<Usuario>(this.apiUrl + 'loginWithToken', token, { observe: 'response' }).subscribe({
+				next: (response: HttpResponse<Usuario>) => {
+					if (response.ok && response.body) {
+						this.usuario = response.body;
+					}
+				},
+				error: (error: HttpErrorResponse) => {
+					console.error('Error en loginWithToken:', error);
+					this;
+				},
+			});
 		});
 	}
 
@@ -59,7 +68,6 @@ export class LoginService {
 						}
 						this.usuario = response.body.usuario;
 						// Comprueba si está en el navegador
-						localStorage.setItem('Usuario', JSON.stringify(this.usuario));
 						localStorage.setItem('Token', response.body.accessToken);
 						resolve(true);
 						sub.unsubscribe();

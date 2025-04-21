@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.sovereingschool.back_base.Utils.JwtUtil;
 
 import jakarta.servlet.FilterChain;
@@ -39,11 +38,8 @@ public class JwtTokenValidator extends OncePerRequestFilter {
             jwtToken = jwtToken.substring(7);
 
             try {
-
-                DecodedJWT decodedJWT = jwtUtil.decodeToken(jwtToken);
-
-                String username = jwtUtil.getUsername(decodedJWT);
-                String roles = jwtUtil.getRoles(decodedJWT);
+                String username = jwtUtil.getUsername(jwtToken);
+                String roles = jwtUtil.getRoles(jwtToken);
 
                 Collection<? extends GrantedAuthority> authorities = AuthorityUtils
                         .commaSeparatedStringToAuthorityList(roles);
