@@ -61,7 +61,13 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable()) // Desactivar form login
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
+                            String customMessage = (String) request.getAttribute("customErrorMessage");
+                            if (customMessage == null) {
+                                customMessage = "Error de autenticación: " + authException.getMessage();
+                            }
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("text/plain;charset=UTF-8");
+                            response.getWriter().write(customMessage);
                         }))
                 .build();
     }

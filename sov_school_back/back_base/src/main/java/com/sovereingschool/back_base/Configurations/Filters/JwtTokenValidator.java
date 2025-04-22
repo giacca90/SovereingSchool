@@ -49,7 +49,10 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                 context.setAuthentication(authentication);
                 SecurityContextHolder.setContext(context);
             } catch (Exception e) {
-                System.err.println("Error de autenticación: " + e.getMessage());
+                request.setAttribute("customErrorMessage", "Token inválido: " + e.getMessage());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("Token inválido: " + e.getMessage());
             }
         }
         filterChain.doFilter(request, response);

@@ -187,8 +187,6 @@ public class LoginController {
 				return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 			}
 
-			System.out.println("refreshToken: " + refreshToken);
-
 			Long idUsuario = this.jwtUtil.getIdUsuario(refreshToken);
 
 			AuthResponse authResponse = this.service.refreshAccessToken(idUsuario);

@@ -2,8 +2,6 @@ package com.sovereingschool.back_base.Configurations.Filters;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
@@ -24,8 +22,6 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtTokenCookieFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenCookieFilter.class);
-
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -37,14 +33,20 @@ public class JwtTokenCookieFilter extends OncePerRequestFilter {
         try {
             processCookies(request);
         } catch (TokenExpiredException e) {
-            logger.warn("Token expirado: {}", e.getMessage());
-            clearSecurityContext();
+            request.setAttribute("customErrorMessage", "Token expirado: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("text/plain;charset=UTF-8");
+            response.getWriter().write("Token expirado: " + e.getMessage());
         } catch (JWTVerificationException e) {
-            logger.error("Error al verificar token: {}", e.getMessage());
-            clearSecurityContext();
+            request.setAttribute("customErrorMessage", "Error al verificar token: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("text/plain;charset=UTF-8");
+            response.getWriter().write("Error al verificar token: " + e.getMessage());
         } catch (Exception e) {
-            logger.error("Error inesperado en el filtro JWT: {}", e.getMessage());
-            clearSecurityContext();
+            request.setAttribute("customErrorMessage", "Error inesperado en el filtro JWT: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("text/plain;charset=UTF-8");
+            response.getWriter().write("Error inesperado en el filtro JWT: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
@@ -52,10 +54,8 @@ public class JwtTokenCookieFilter extends OncePerRequestFilter {
 
     private void processCookies(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            logger.debug("No se encontraron cookies en la petición");
+        if (cookies == null)
             return;
-        }
 
         for (Cookie cookie : cookies) {
             if (isValidCookieName(cookie.getName())) {
@@ -70,25 +70,13 @@ public class JwtTokenCookieFilter extends OncePerRequestFilter {
     }
 
     private void processCookie(Cookie cookie) {
-        if (cookie.getValue() == null || cookie.getValue().isEmpty()) {
-            logger.warn("Cookie {} encontrada pero sin valor", cookie.getName());
+        if (cookie.getValue() == null || cookie.getValue().isEmpty())
             return;
-        }
 
-        try {
-            String token = cookie.getValue();
-            Authentication auth = jwtUtil.createAuthenticationFromToken(token);
-            if (auth != null) {
-                SecurityContextHolder.getContext().setAuthentication(auth);
-                logger.debug("Autenticación establecida exitosamente para el usuario");
-            }
-        } catch (Exception e) {
-            logger.error("Error procesando cookie {}: {}", cookie.getName(), e.getMessage());
-            throw e;
+        String token = cookie.getValue();
+        Authentication auth = jwtUtil.createAuthenticationFromToken(token);
+        if (auth != null) {
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
-    }
-
-    private void clearSecurityContext() {
-        SecurityContextHolder.clearContext();
     }
 }

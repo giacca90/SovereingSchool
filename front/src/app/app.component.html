@@ -6,7 +6,7 @@
 		@if (this.loginService.usuario === null) {
 			<button type="button" class="absolute top-2 right-2 mr-2 size-8 justify-end" href=""><img src="../assets/OiAccountLogin.webp" alt="login" (click)="openModal()" tabindex="0" (keydown.enter)="openModal()" /></button>
 		} @else {
-			<button class="absolute top-2 right-1 mr-1 block justify-end rounded-lg border border-black pr-1 pl-1 lg:hidden dark:border-gray-400" (click)="this.vistaMenu = !this.vistaMenu"><img [src]="this.loginService.usuario.foto_usuario" alt="avatar" class="h-8 w-8 rounded-full" /></button>
+			<button class="absolute top-2 right-1 mr-1 block justify-end rounded-lg border border-black pr-1 pl-1 lg:hidden dark:border-gray-400" (click)="this.vistaMenu = !this.vistaMenu"><img [src]="this.loginService.usuario.foto_usuario[0]" alt="avatar" class="h-8 w-8 rounded-full" /></button>
 
 			<button class="absolute top-2 right-1 mr-1 hidden justify-end rounded-lg border border-black pr-1 pl-1 lg:block dark:border-gray-400" (click)="this.vistaMenu = !this.vistaMenu">Bienvenido {{ this.loginService.usuario.nombre_usuario }}</button>
 			@if (this.vistaMenu === true) {
