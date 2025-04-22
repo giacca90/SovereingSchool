@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { afterNextRender, Injectable } from '@angular/core';
+import { catchError, map, Observable, of } from 'rxjs';
 import { Auth } from '../models/Auth';
 import { Usuario } from '../models/Usuario';
 
@@ -14,18 +15,9 @@ export class LoginService {
 	constructor(private http: HttpClient) {
 		afterNextRender(() => {
 			const token = localStorage.getItem('Token');
-
-			this.http.post<Usuario>(this.apiUrl + 'loginWithToken', token, { observe: 'response' }).subscribe({
-				next: (response: HttpResponse<Usuario>) => {
-					if (response.ok && response.body) {
-						this.usuario = response.body;
-					}
-				},
-				error: (error: HttpErrorResponse) => {
-					console.error('Error en loginWithToken:', error);
-					this;
-				},
-			});
+			if (token) {
+				this.loginWithToken(token);
+			}
 		});
 	}
 
@@ -86,25 +78,32 @@ export class LoginService {
 		});
 	}
 
-	async refreshToken(): Promise<string | null> {
-		return new Promise(async (resolve, reject) => {
-			const sub = this.http.get<Auth>(this.apiUrl + 'refresh/' + this.id_usuario, { observe: 'response', withCredentials: true }).subscribe({
-				next: (response: HttpResponse<Auth>) => {
-					if (response.ok && response.body) {
-						localStorage.setItem('Token', response.body.accessToken);
-						resolve(response.body.accessToken);
-						sub.unsubscribe();
-					} else {
-						console.error('Error en refrescar el token: ' + response.status);
-						reject(null);
-					}
-				},
-				error: (error: HttpErrorResponse) => {
-					console.error('HTTP request failed:', error);
-					reject(null);
-					sub.unsubscribe();
-				},
-			});
+	refreshToken(): Observable<string | null> {
+		return this.http.post<Auth>(this.apiUrl + 'refresh', null, { observe: 'response', withCredentials: true }).pipe(
+			map((response: HttpResponse<Auth>) => {
+				if (response.ok && response.body) {
+					return response.body.accessToken;
+				}
+				return null;
+			}),
+			catchError((e: Error) => {
+				console.error('Error en refrescar el token: ' + e.message);
+				return of(null);
+			}),
+		);
+	}
+
+	loginWithToken(token: string): void {
+		this.http.post<Usuario>(this.apiUrl + 'loginWithToken', token, { observe: 'response' }).subscribe({
+			next: (response: HttpResponse<Usuario>) => {
+				if (response.ok && response.body) {
+					this.usuario = response.body;
+				}
+			},
+			error: (error: HttpErrorResponse) => {
+				console.error('Error en loginWithToken:', error.message);
+				this;
+			},
 		});
 	}
 

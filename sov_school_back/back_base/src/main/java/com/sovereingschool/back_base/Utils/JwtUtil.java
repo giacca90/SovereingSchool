@@ -30,10 +30,11 @@ public class JwtUtil {
     @Value("${security.jwt.user.generator}")
     private String userGenerator;
 
-    private final Date expiredForServer = new Date(System.currentTimeMillis() + 3600000); // 1 hour
-    private final Date expiredForAccessToken = new Date(System.currentTimeMillis() + 900000); // 15 minutes
-    private final Date expiredForRefreshToken = new Date(System.currentTimeMillis() + 1296000000); // 15 days
-    private final Date expiredForInitToken = new Date(System.currentTimeMillis() + 15000); // 15 seconds
+    private final Date expiredForServer = new Date(System.currentTimeMillis() + 60 * 60 * 1000); // 1 hour
+    private final Date expiredForAccessToken = new Date(System.currentTimeMillis() + 15 * 60 * 1000); // 15 minutes
+    private final Date expiredForRefreshToken = new Date(System.currentTimeMillis() + 15 * 24 * 60 * 60 * 1000); // 15
+                                                                                                                 // days
+    private final Date expiredForInitToken = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 1 dia
 
     public String generateToken(Authentication authentication, String tokenType, Long id_usuario) {
 
@@ -54,6 +55,21 @@ public class JwtUtil {
                 .withIssuedAt(new Date())
                 .withExpiresAt(tokenType == "access" ? this.expiredForAccessToken
                         : tokenType == "server" ? this.expiredForServer : this.expiredForRefreshToken) // 1 hour
+                .withJWTId(UUID.randomUUID().toString())
+                .withNotBefore(new Date(System.currentTimeMillis())) //
+                .sign(algorithm);
+
+        return jwtToken;
+    }
+
+    public String generateInitToken() {
+        Algorithm algorithm = Algorithm.HMAC256(this.privateKay);
+        String jwtToken = JWT.create()
+                .withIssuer(this.userGenerator)
+                .withSubject("Visitante")
+                .withClaim("rol", "ROLE_GUEST")
+                .withIssuedAt(new Date())
+                .withExpiresAt(this.expiredForInitToken)
                 .withJWTId(UUID.randomUUID().toString())
                 .withNotBefore(new Date(System.currentTimeMillis())) //
                 .sign(algorithm);
@@ -155,21 +171,6 @@ public class JwtUtil {
 
     public Map<String, Claim> getAllClaims(DecodedJWT decodedJWT) {
         return decodedJWT.getClaims();
-    }
-
-    public String generateInitToken() {
-        Algorithm algorithm = Algorithm.HMAC256(this.privateKay);
-        String jwtToken = JWT.create()
-                .withIssuer(this.userGenerator)
-                .withSubject("Visitante")
-                .withClaim("rol", "ROLE_GUEST")
-                .withIssuedAt(new Date())
-                .withExpiresAt(this.expiredForInitToken) // 1 hour
-                .withJWTId(UUID.randomUUID().toString())
-                .withNotBefore(new Date(System.currentTimeMillis())) //
-                .sign(algorithm);
-
-        return jwtToken;
     }
 
     public Authentication createAuthenticationFromToken(String token) {

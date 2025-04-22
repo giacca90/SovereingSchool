@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -176,22 +177,32 @@ public class LoginController {
 		}
 	}
 
-	@GetMapping("/refresh/{idUsuario}")
-	public ResponseEntity<?> refreshAccessToken(@PathVariable Long idUsuario) {
+	@PostMapping("/refresh")
+	public ResponseEntity<?> refreshAccessToken(
+			@CookieValue(required = false) String refreshToken) {
 		Object response = new Object();
 		try {
+			if (refreshToken == null || refreshToken.isEmpty()) {
+				response = "El refresh-token no puede ser vacio";
+				return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			}
+
+			System.out.println("refreshToken: " + refreshToken);
+
+			Long idUsuario = this.jwtUtil.getIdUsuario(refreshToken);
+
 			AuthResponse authResponse = this.service.refreshAccessToken(idUsuario);
 			if (authResponse == null || !authResponse.status()) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-			String refreshToken = authResponse.refreshToken();
+			String newRefreshToken = authResponse.refreshToken();
 
 			response = new AuthResponse(authResponse.status(), authResponse.message(), authResponse.usuario(),
 					authResponse.accessToken(), null);
 
 			// Construir la cookie segura
-			ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+			ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", newRefreshToken)
 					.httpOnly(true) // No accesible desde JavaScript
 					.secure(true) // Solo por HTTPS
 					.path("/") // Ruta donde será accesible
@@ -202,9 +213,8 @@ public class LoginController {
 			return ResponseEntity.ok()
 					.header("Set-Cookie", refreshTokenCookie.toString())
 					.body(response);
-
 		} catch (Exception e) {
-			response = "Error en cambiar la contraseña: " + e.getMessage();
+			response = "Error en refrescar el AccessToken: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

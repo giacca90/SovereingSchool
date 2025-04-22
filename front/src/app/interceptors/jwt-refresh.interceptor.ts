@@ -1,33 +1,40 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { LoginService } from '../services/login.service';
 
 export const jwtRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	const loginService = inject(LoginService);
+
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			if (error.status === 401) {
 				console.log('JWT Refresh Interceptor');
-				loginService
-					.refreshToken()
-					.then((token) => {
+				localStorage.removeItem('Token');
+				return loginService.refreshToken().pipe(
+					switchMap((token) => {
 						if (token) {
+							console.log('Token actualizado: ' + token);
+							localStorage.setItem('Token', token);
 							const clonedRequest = req.clone({
 								setHeaders: {
 									Authorization: `Bearer ${token}`,
 								},
+								body: token,
 							});
-							return next(clonedRequest);
+							return next(clonedRequest); // Reenviar la petición original
 						} else {
 							loginService.logout();
-							console.error('No se pudo obtener un nuevo token');
-							return Promise.reject('No se pudo obtener un nuevo token');
+							return throwError(() => new Error('No se pudo refrescar el token'));
 						}
-					})
-					.catch((e) => {
-						console.error('Error refreshing token:', e);
-					});
+					}),
+					catchError((refreshError) => {
+						console.error('Error refrescando token:', refreshError);
+						loginService.logout();
+						return throwError(() => refreshError);
+					}),
+				);
 			}
 			return throwError(() => error);
 		}),

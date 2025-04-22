@@ -99,8 +99,6 @@ public class UsuarioController {
 		final String photosDirectory = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
 		Object response = new Object();
 
-		// Construir la ruta del archivo y resolver posibles vulnerabilidades de
-		// directorio transversal
 		Path photoPath = Paths.get(photosDirectory).resolve(nombreFoto).normalize();
 		File photoFile = photoPath.toFile();
 

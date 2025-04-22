@@ -168,7 +168,7 @@ public class LoginService implements UserDetailsService, ILoginService {
         SecurityContextHolder.getContext().setAuthentication(auth);
         String accessToken = jwtUtil.generateToken(auth, "access", id);
         String refreshToken = jwtUtil.generateToken(auth, "refresh", id);
-        return new AuthResponse(true, "Login exitoso", null, accessToken, refreshToken);
+        return new AuthResponse(true, "Refresh exitoso", null, accessToken, refreshToken);
     }
 
     @Transactional
