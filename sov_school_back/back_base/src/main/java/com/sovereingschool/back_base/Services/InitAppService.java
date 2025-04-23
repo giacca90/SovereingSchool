@@ -11,12 +11,12 @@ import com.sovereingschool.back_base.DTOs.Estadistica;
 import com.sovereingschool.back_base.DTOs.InitApp;
 import com.sovereingschool.back_base.DTOs.ProfesInit;
 import com.sovereingschool.back_base.Interfaces.IInitAppService;
-import com.sovereingschool.back_base.Utils.JwtUtil;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_common.Repositories.ClaseRepository;
 import com.sovereingschool.back_common.Repositories.CursoRepository;
 import com.sovereingschool.back_common.Repositories.UsuarioRepository;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 import jakarta.transaction.Transactional;
 

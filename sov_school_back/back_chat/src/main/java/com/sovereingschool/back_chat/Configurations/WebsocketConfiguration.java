@@ -15,7 +15,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.sovereingschool.back_chat.Utils.JwtUtil;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 @Configuration
 @EnableWebSocketMessageBroker

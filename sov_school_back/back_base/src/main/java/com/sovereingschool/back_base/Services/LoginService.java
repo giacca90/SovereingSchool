@@ -22,11 +22,11 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
 import com.sovereingschool.back_base.Interfaces.ILoginService;
-import com.sovereingschool.back_base.Utils.JwtUtil;
 import com.sovereingschool.back_common.Models.Login;
 import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_common.Repositories.LoginRepository;
 import com.sovereingschool.back_common.Repositories.UsuarioRepository;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 import jakarta.transaction.Transactional;
 

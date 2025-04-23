@@ -19,14 +19,17 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import com.sovereingschool.back_chat.Configurations.Filters.JwtTokenCookieFilter;
 import com.sovereingschool.back_chat.Configurations.Filters.JwtTokenValidator;
 import com.sovereingschool.back_chat.Services.UserDetailServiceImpl;
-import com.sovereingschool.back_chat.Utils.JwtUtil;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -34,20 +37,30 @@ import com.sovereingschool.back_chat.Utils.JwtUtil;
 public class SecurityConfig {
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtTokenCookieFilter jwtTokenCookieFilter;
+
+    @Autowired
+    private JwtTokenValidator JwtTokenValidator;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/chat-socket/**").authenticated()
-                        .anyRequest().authenticated())
+                .requiresChannel(channel -> channel
+                        .anyRequest().requiresSecure())
                 .httpBasic(Customizer.withDefaults())
                 .userDetailsService(inMemoryUserDetailsManager())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new JwtTokenValidator(jwtUtil), BasicAuthenticationFilter.class)
                 .addFilterBefore(corsFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(jwtTokenCookieFilter, ExceptionTranslationFilter.class)
+                .addFilterAfter(JwtTokenValidator, ExceptionTranslationFilter.class)
+                .formLogin(form -> form.disable()) // Desactivar form login
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("text/plain;charset=UTF-8");
+                            response.getWriter().write(authException.getMessage());
+                        }))
                 .build();
     }
 

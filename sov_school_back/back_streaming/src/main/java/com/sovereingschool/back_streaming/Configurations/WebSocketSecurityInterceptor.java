@@ -2,6 +2,7 @@ package com.sovereingschool.back_streaming.Configurations;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.lang.NonNull;
@@ -12,15 +13,12 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.sovereingschool.back_streaming.Utils.JwtUtil;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 public class WebSocketSecurityInterceptor implements HandshakeInterceptor {
 
-    private final JwtUtil jwtUtil;
-
-    public WebSocketSecurityInterceptor(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public boolean beforeHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response,
@@ -29,7 +27,7 @@ public class WebSocketSecurityInterceptor implements HandshakeInterceptor {
         String token = extractTokenFromUrl(request);
 
         if (token != null && jwtUtil.isTokenValid(token)) {
-            Authentication auth = jwtUtil.getAuthenticationFromToken(token);
+            Authentication auth = jwtUtil.createAuthenticationFromToken(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
             attributes.put("user", auth.getPrincipal());
             return true;

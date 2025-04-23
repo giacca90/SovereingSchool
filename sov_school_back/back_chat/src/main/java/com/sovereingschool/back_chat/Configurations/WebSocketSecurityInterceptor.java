@@ -12,7 +12,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.sovereingschool.back_chat.Utils.JwtUtil;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 public class WebSocketSecurityInterceptor implements HandshakeInterceptor {
 
@@ -29,7 +29,7 @@ public class WebSocketSecurityInterceptor implements HandshakeInterceptor {
         String token = extractTokenFromUrl(request);
 
         if (token != null && jwtUtil.isTokenValid(token)) {
-            Authentication auth = jwtUtil.getAuthenticationFromToken(token);
+            Authentication auth = jwtUtil.createAuthenticationFromToken(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
             attributes.put("user", auth.getPrincipal());
             return true;

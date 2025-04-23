@@ -15,13 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
 import com.sovereingschool.back_base.Interfaces.ILoginService;
-import com.sovereingschool.back_base.Utils.JwtUtil;
 import com.sovereingschool.back_common.Models.Login;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 @RestController
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
@@ -222,17 +220,6 @@ public class LoginController {
 		Object response = new Object();
 		if (token == null || token.isEmpty()) {
 			response = "Token no puede ser vacio";
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-		}
-		try {
-			DecodedJWT decodedJWT = this.jwtUtil.decodeToken(token);
-			if (decodedJWT == null) {
-				response = "Token no valido";
-				return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-			}
-		} catch (JWTVerificationException e) {
-			System.err.println("Token invalido: " + e.getMessage());
-			response = "Token invalido: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 

@@ -60,7 +60,7 @@ export class HomeComponent {
 	}
 
 	private initSwiper() {
-		if (this.swiper?.nativeElement) {
+		if (this.swiper?.nativeElement && this.cursoService.cursos.length > 0) {
 			const swiperEl = this.swiper.nativeElement;
 			const swiperParams = {
 				...this.responsiveOptions,
@@ -76,6 +76,10 @@ export class HomeComponent {
 
 			Object.assign(swiperEl, swiperParams);
 			swiperEl.initialize();
+		} else {
+			setTimeout(() => {
+				this.initSwiper();
+			}, 50);
 		}
 	}
 

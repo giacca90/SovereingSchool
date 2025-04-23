@@ -1,20 +1,24 @@
-<swiper-container #swiper [breakpoints]="responsiveOptions" [autoplay]="autoplayOptions" loop="true" class="h-80 w-full sm:h-64">
-	@for (curso of this.cursoService.cursos; track curso.id_curso) {
-		<swiper-slide>
-			<div class="relative m-2 h-11/12 cursor-pointer border border-black dark:border-gray-400" (click)="router.navigate(['/curso/' + curso.id_curso])" tabindex="0" (keydown.enter)="router.navigate(['/curso/' + curso.id_curso])">
-				<div style="background-image: url('{{ curso.imagen_curso }}')" class="absolute inset-0 bg-cover bg-center opacity-20 transition-opacity duration-300 hover:opacity-30 dark:opacity-30 dark:hover:opacity-50"></div>
-				<h4 class="text-center font-bold text-blue-700">{{ curso.nombre_curso }}</h4>
-				<div class="m-3 flex items-center justify-between">
-					@for (profe of curso.profesores_curso; track profe) {
-						<span class="font-bold">Por: {{ profe.nombre_usuario }}</span>
-						<img src="{{ profe.foto_usuario[0] }}" alt="logo" class="h-12 w-12 object-contain" />
-					}
-				</div>
-				<p class="mr-3 ml-3">{{ curso.descriccion_corta }}</p>
-			</div>
-		</swiper-slide>
+<div class="h-80 w-full sm:h-64">
+	@if (this.cursoService.cursos.length > 0) {
+		<swiper-container #swiper [breakpoints]="responsiveOptions" [autoplay]="autoplayOptions" loop="true" class="h-80 w-full sm:h-64">
+			@for (curso of this.cursoService.cursos; track curso.id_curso) {
+				<swiper-slide>
+					<div class="relative m-2 h-11/12 cursor-pointer border border-black dark:border-gray-400" (click)="router.navigate(['/curso/' + curso.id_curso])" tabindex="0" (keydown.enter)="router.navigate(['/curso/' + curso.id_curso])">
+						<div style="background-image: url('{{ curso.imagen_curso }}')" class="absolute inset-0 bg-cover bg-center opacity-20 transition-opacity duration-300 hover:opacity-30 dark:opacity-30 dark:hover:opacity-50"></div>
+						<h4 class="text-center font-bold text-blue-700">{{ curso.nombre_curso }}</h4>
+						<div class="m-3 flex items-center justify-between">
+							@for (profe of curso.profesores_curso; track profe) {
+								<span class="font-bold">Por: {{ profe.nombre_usuario }}</span>
+								<img src="{{ profe.foto_usuario[0] }}" alt="logo" class="h-12 w-12 object-contain" />
+							}
+						</div>
+						<p class="mr-3 ml-3">{{ curso.descriccion_corta }}</p>
+					</div>
+				</swiper-slide>
+			}
+		</swiper-container>
 	}
-</swiper-container>
+</div>
 
 <div id="descripcion" class="relative m-2 border border-black p-4 dark:border-gray-400">
 	<div class="absolute inset-0 bg-white bg-cover bg-center opacity-20 dark:hidden" tabindex="0" style="background-image: url('../../../assets/montserrat.webp')"></div>
@@ -33,17 +37,19 @@
 	<h2 class="font-bold text-blue-700">LOS PROFESORES:</h2>
 	<div id="profes" class="h-5/6 flex-1 p-2"></div>
 </div>
-@if (this.initService.estadistica) {
-	<div id="estadisticas" class="m-2 border border-black p-2 dark:border-gray-400" tabindex="0">
-		<div class="flex">
-			<div class="flex w-1/2 flex-col items-center justify-center">
-				<p>Profesores: {{ this.initService.estadistica.profesores }}</p>
-				<p>Alumnos: {{ this.initService.estadistica.alumnos }}</p>
-			</div>
-			<div class="flex w-1/2 flex-col items-center justify-center">
-				<p>Cursos: {{ this.initService.estadistica.cursos }}</p>
-				<p>Clases: {{ this.initService.estadistica.clases }}</p>
+<div class="h-20">
+	@if (this.initService.estadistica) {
+		<div id="estadisticas" class="m-2 border border-black p-2 dark:border-gray-400" tabindex="0">
+			<div class="flex">
+				<div class="flex w-1/2 flex-col items-center justify-center">
+					<p>Profesores: {{ this.initService.estadistica.profesores }}</p>
+					<p>Alumnos: {{ this.initService.estadistica.alumnos }}</p>
+				</div>
+				<div class="flex w-1/2 flex-col items-center justify-center">
+					<p>Cursos: {{ this.initService.estadistica.cursos }}</p>
+					<p>Clases: {{ this.initService.estadistica.clases }}</p>
+				</div>
 			</div>
 		</div>
-	</div>
-}
+	}
+</div>

@@ -25,13 +25,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sovereingschool.back_base.Interfaces.ICursoService;
-import com.sovereingschool.back_base.Utils.JwtUtil;
 import com.sovereingschool.back_common.Models.Clase;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Plan;
 import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_common.Repositories.ClaseRepository;
 import com.sovereingschool.back_common.Repositories.CursoRepository;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;

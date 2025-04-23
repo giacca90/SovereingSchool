@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -28,7 +29,6 @@ import com.sovereingschool.back_base.Configurations.Filters.CustomOAuth2SuccessH
 import com.sovereingschool.back_base.Configurations.Filters.JwtTokenCookieFilter;
 import com.sovereingschool.back_base.Configurations.Filters.JwtTokenValidator;
 import com.sovereingschool.back_base.Services.LoginService;
-import com.sovereingschool.back_base.Utils.JwtUtil;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -38,8 +38,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
     @Autowired
-    private JwtUtil jwtUtil;
-
+    private JwtTokenValidator JwtTokenValidator;
     @Autowired
     private JwtTokenCookieFilter jwtTokenCookieFilter;
 
@@ -52,22 +51,17 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
                 .userDetailsService(inMemoryUserDetailsManager())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new JwtTokenValidator(jwtUtil), BasicAuthenticationFilter.class)
                 .addFilterBefore(corsFilter(), BasicAuthenticationFilter.class)
-                .addFilterBefore(jwtTokenCookieFilter,
-                        BasicAuthenticationFilter.class)
+                .addFilterAfter(jwtTokenCookieFilter, ExceptionTranslationFilter.class)
+                .addFilterAfter(JwtTokenValidator, ExceptionTranslationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(customOAuth2SuccessHandler()))
                 .formLogin(form -> form.disable()) // Desactivar form login
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
-                            String customMessage = (String) request.getAttribute("customErrorMessage");
-                            if (customMessage == null) {
-                                customMessage = "Error de autenticación: " + authException.getMessage();
-                            }
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("text/plain;charset=UTF-8");
-                            response.getWriter().write(customMessage);
+                            response.getWriter().write(authException.getMessage());
                         }))
                 .build();
     }

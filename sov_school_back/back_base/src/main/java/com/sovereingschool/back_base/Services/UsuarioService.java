@@ -22,7 +22,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
-import com.sovereingschool.back_base.Utils.JwtUtil;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Login;
 import com.sovereingschool.back_common.Models.Plan;
@@ -30,6 +29,7 @@ import com.sovereingschool.back_common.Models.RoleEnum;
 import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_common.Repositories.LoginRepository;
 import com.sovereingschool.back_common.Repositories.UsuarioRepository;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;

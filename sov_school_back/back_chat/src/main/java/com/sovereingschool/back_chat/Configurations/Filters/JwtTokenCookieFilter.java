@@ -1,7 +1,8 @@
-package com.sovereingschool.back_base.Configurations.Filters;
+package com.sovereingschool.back_chat.Configurations.Filters;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -21,11 +22,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtTokenCookieFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-
-    public JwtTokenCookieFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest req,

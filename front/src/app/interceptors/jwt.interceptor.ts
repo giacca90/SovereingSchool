@@ -5,6 +5,16 @@ import { inject, PLATFORM_ID } from '@angular/core';
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 	const platformId = inject(PLATFORM_ID);
 
+	if (req.url.includes('init')) {
+		const credentials = btoa('Visitante:visitante');
+		req = req.clone({
+			setHeaders: {
+				Authorization: `Basic ${credentials}`,
+			},
+		});
+		return next(req);
+	}
+
 	if (isPlatformBrowser(platformId) && !req.url.includes('refresh')) {
 		// 🌐 En el navegador → usar token del localStorage o visitante
 		const token = localStorage.getItem('Token');

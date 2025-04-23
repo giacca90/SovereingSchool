@@ -25,12 +25,13 @@ export class InitService {
 	async carga() {
 		this.usuarioService.profes = [];
 		this.cursoService.cursos = [];
-		const sub = this.http.get<Init>(this.apiUrl, { observe: 'response', withCredentials: true }).subscribe({
+		this.http.get<Init>(this.apiUrl, { observe: 'response', withCredentials: true }).subscribe({
 			next: (response: HttpResponse<Init>) => {
 				if (response.ok && response.body) {
 					response.body.profesInit.forEach((profe) => {
 						this.usuarioService.profes.push(new Usuario(profe.id_usuario, profe.nombre_usuario, profe.foto_usuario, profe.presentacion));
 					});
+					const cursos: Curso[] = [];
 					response.body.cursosInit.forEach((curso) => {
 						const profes: Usuario[] = [];
 						curso.profesores_curso.forEach((id) => {
@@ -39,15 +40,16 @@ export class InitService {
 								profes.push(prof);
 							}
 						});
-						this.cursoService.cursos.push(new Curso(curso.id_curso, curso.nombre_curso, profes, curso.descriccion_corta, curso.imagen_curso));
+						cursos.push(new Curso(curso.id_curso, curso.nombre_curso, profes, curso.descriccion_corta, curso.imagen_curso));
 					});
+					console.log('cursos');
+					this.cursoService.cursos = cursos;
 					this.estadistica = response.body.estadistica;
 				}
 				return true;
 			},
 			error(e: Error) {
 				console.error('Error en init: ' + e.message);
-				sub.unsubscribe();
 				return of(false);
 			},
 		});

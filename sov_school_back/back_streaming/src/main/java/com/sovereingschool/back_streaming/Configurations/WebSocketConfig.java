@@ -19,7 +19,6 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 import com.sovereingschool.back_streaming.Controllers.OBSWebSocketHandler;
 import com.sovereingschool.back_streaming.Controllers.WebRTCSignalingHandler;
 import com.sovereingschool.back_streaming.Services.StreamingService;
-import com.sovereingschool.back_streaming.Utils.JwtUtil;
 
 @Configuration
 @EnableWebSocket
@@ -28,15 +27,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private StreamingService streamingService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
     // Executor para tareas de ping-pong
     private final ScheduledExecutorService pingScheduler = Executors.newScheduledThreadPool(1);
 
     @Override
     public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
-        WebSocketSecurityInterceptor securityInterceptor = new WebSocketSecurityInterceptor(jwtUtil);
+        WebSocketSecurityInterceptor securityInterceptor = new WebSocketSecurityInterceptor();
 
         // Registrar el handler para la webcam con el interceptor
         WebRTCSignalingHandler handler = new WebRTCSignalingHandler(webSocketTaskExecutor(), streamingService);
