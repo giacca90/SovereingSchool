@@ -35,11 +35,21 @@ public class JwtUtil {
     @Value("${security.jwt.user.generator}")
     private String userGenerator;
 
-    private final Date expiredForServer = new Date(System.currentTimeMillis() + 60 * 60 * 1000); // 1 hour
-    private final Date expiredForAccessToken = new Date(System.currentTimeMillis() + 15 * 60 * 1000); // 15 minutes
-    private final Date expiredForRefreshToken = new Date(System.currentTimeMillis() + 15 * 24 * 60 * 60 * 1000); // 15
-                                                                                                                 // days
-    private final Date expiredForInitToken = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 1 dia
+    public Date getExpiredForServer() {
+        return new Date(System.currentTimeMillis() + 60 * 60 * 1000); // 1 hour
+    }
+
+    public Date getExpiredForAccessToken() {
+        return new Date(System.currentTimeMillis() + 15 * 60 * 1000); // 15 minutes
+    }
+
+    public Date getExpiredForRefreshToken() {
+        return new Date(System.currentTimeMillis() + 15 * 24 * 60 * 60 * 1000); // 15 days
+    }
+
+    public Date getExpiredForInitToken() {
+        return new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 1 day
+    }
 
     /**
      * Función para crear un token JWT
@@ -67,8 +77,8 @@ public class JwtUtil {
                 .withClaim("rol", roles)
                 .withClaim("id_usuario", id_usuario)
                 .withIssuedAt(new Date())
-                .withExpiresAt(tokenType == "access" ? this.expiredForAccessToken
-                        : tokenType == "server" ? this.expiredForServer : this.expiredForRefreshToken) // 1 hour
+                .withExpiresAt(tokenType == "access" ? getExpiredForAccessToken()
+                        : tokenType == "server" ? getExpiredForServer() : getExpiredForRefreshToken()) // 1 hour
                 .withJWTId(UUID.randomUUID().toString())
                 .withNotBefore(new Date(System.currentTimeMillis())) //
                 .sign(algorithm);
@@ -89,7 +99,7 @@ public class JwtUtil {
                 .withSubject("Visitante")
                 .withClaim("rol", "ROLE_GUEST")
                 .withIssuedAt(new Date())
-                .withExpiresAt(this.expiredForInitToken)
+                .withExpiresAt(getExpiredForInitToken())
                 .withJWTId(UUID.randomUUID().toString())
                 .withNotBefore(new Date(System.currentTimeMillis())) //
                 .sign(algorithm);

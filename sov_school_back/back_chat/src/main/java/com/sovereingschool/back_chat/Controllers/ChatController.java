@@ -34,7 +34,7 @@ public class ChatController {
     @MessageMapping("/init")
     @SendTo("/init_chat/result")
     public InitChatDTO handleInitChat(String message) {
-        // ("LLEGADA LA LLAMADA A INIT_CHAT: " + message);
+        System.out.println("LLEGADA LA LLAMADA A INIT_CHAT: " + message);
         Long idUsuario = Long.parseLong(message);
 
         InitChatDTO initChat = this.initChatService.initChat(idUsuario);

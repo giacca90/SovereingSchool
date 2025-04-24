@@ -38,14 +38,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
         WebRTCSignalingHandler handler = new WebRTCSignalingHandler(webSocketTaskExecutor(), streamingService);
         registry.addHandler(handler, "/live-webcam")
                 .addInterceptors(securityInterceptor)
-                .setAllowedOrigins("*")
                 .withSockJS() // Agregar soporte SockJS para fallback
                 .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js");
 
         // Registrar el handler para OBS con el interceptor
         registry.addHandler(new OBSWebSocketHandler(webSocketTaskExecutor(), streamingService), "/live-obs")
                 .addInterceptors(securityInterceptor)
-                .setAllowedOrigins("*")
                 .withSockJS() // Agregar soporte SockJS para fallback
                 .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js");
 

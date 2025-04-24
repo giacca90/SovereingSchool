@@ -42,7 +42,6 @@ export class InitService {
 						});
 						cursos.push(new Curso(curso.id_curso, curso.nombre_curso, profes, curso.descriccion_corta, curso.imagen_curso));
 					});
-					console.log('cursos');
 					this.cursoService.cursos = cursos;
 					this.estadistica = response.body.estadistica;
 				}

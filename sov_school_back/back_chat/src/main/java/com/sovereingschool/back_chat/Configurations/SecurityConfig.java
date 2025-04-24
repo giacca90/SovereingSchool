@@ -57,6 +57,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable()) // Desactivar form login
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
+                            System.err.println("Error de autenticación: " + authException.getMessage());
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("text/plain;charset=UTF-8");
                             response.getWriter().write(authException.getMessage());
@@ -101,9 +102,11 @@ public class SecurityConfig {
         config.addAllowedMethod("*"); // Métodos permitidos
         config.addAllowedHeader("*"); // Headers permitidos
         config.setAllowCredentials(true); // Permitir credenciales
+        config.addExposedHeader("Authorization");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/chat-socket/**", config);
 
         return new CorsFilter(source);
     }

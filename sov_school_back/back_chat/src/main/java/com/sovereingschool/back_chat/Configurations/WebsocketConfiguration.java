@@ -1,75 +1,111 @@
 package com.sovereingschool.back_chat.Configurations;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
+import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-
-import com.sovereingschool.back_common.Utils.JwtUtil;
+import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer {
+public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer, DisposableBean {
+
+    private static class CustomWebSocketHandler extends AbstractWebSocketHandler {
+
+        @Override
+        public void afterConnectionEstablished(@NonNull WebSocketSession session) {
+            startPingPong(session);
+        }
+
+        @Override
+        public void handlePongMessage(@NonNull WebSocketSession session, @NonNull PongMessage message) {
+            missedPongs.set(0);
+        }
+
+        private void startPingPong(WebSocketSession session) {
+            scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    if (session.isOpen()) {
+                        if (missedPongs.get() >= 3) {
+                            session.close(CloseStatus.SESSION_NOT_RELIABLE);
+                            System.out.println("Sesión cerrada después de 3 pings sin respuesta");
+                            return;
+                        }
+                        session.sendMessage(new PingMessage());
+                        missedPongs.incrementAndGet();
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error enviando ping: " + e);
+                    try {
+                        session.close(CloseStatus.SERVER_ERROR);
+                    } catch (IOException ex) {
+                        System.err.println("Error al cerrar la conexión websocket: " + ex);
+                    }
+                }
+            }, 0, 10, TimeUnit.SECONDS);
+        }
+    }
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private static AtomicInteger missedPongs;
 
-    // Executor para tareas de ping-pong
+    @Autowired
+    private static ScheduledExecutorService scheduler;
+
+    @Autowired
+    private WebSocketAuthInterceptor authInterceptor; // ChannelInterceptor, no HandshakeInterceptor
+
     private final ScheduledExecutorService pingScheduler = Executors.newScheduledThreadPool(1);
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/init_chat");
+        config.enableSimpleBroker("/init_chat", "/queue/errors");
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
-        WebSocketSecurityInterceptor securityInterceptor = new WebSocketSecurityInterceptor(jwtUtil);
-
         registry.addEndpoint("/chat-socket")
-                .addInterceptors(securityInterceptor)
-                .setAllowedOrigins("*")
-                .withSockJS();
+                .setAllowedOriginPatterns("https://localhost:4200", "wss://localhost:4200")
+                .withSockJS(); // No interceptor aquí, ya que es ChannelInterceptor, no HandshakeInterceptor
+    }
+
+    @Override
+    public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
+        registration.interceptors(authInterceptor); // Aquí es donde va tu authInterceptor real
     }
 
     @Bean
-    public ScheduledExecutorService pingScheduler() {
-        return pingScheduler;
+    public CustomWebSocketHandler webSocketHandler() {
+        return new CustomWebSocketHandler();
     }
 
-    /**
-     * Método para iniciar el ping-pong.
-     * Envía un `PING` cada 10 segundos y verifica que se reciba un `PONG`.
-     * Si no se recibe el `PONG`, la conexión se cerrará.
-     */
-    public void startPingPong(WebSocketSession session) {
-        pingScheduler.scheduleAtFixedRate(() -> {
-            try {
-                if (session.isOpen()) {
-                    // Enviar mensaje de Ping
-                    session.sendMessage(new PingMessage());
-                } else {
-                    pingScheduler.shutdown();
-                }
-            } catch (Exception e) {
-                System.err.println("Error enviando PING: " + e.getMessage());
-                try {
-                    session.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error cerrando sesión: " + closeEx.getMessage());
-                }
+    @Override
+    public void destroy() {
+        pingScheduler.shutdown();
+        try {
+            if (!pingScheduler.awaitTermination(10, TimeUnit.SECONDS)) {
+                pingScheduler.shutdownNow();
             }
-        }, 0, 10, TimeUnit.SECONDS); // Intervalo de 10 segundos
+        } catch (InterruptedException e) {
+            pingScheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

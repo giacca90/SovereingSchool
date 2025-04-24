@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject, switchMap, takeUntil, timer } from 'rxjs';
+import SockJS from 'sockjs-client';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
 import { MensajeChat } from '../models/MensajeChat';
@@ -12,14 +13,18 @@ import { LoginService } from './login.service';
 })
 export class ChatService {
 	private url: string = 'wss://localhost:8070/chat-socket';
-	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null); // Utiliza BehaviorSubject para emitir el último valor a nuevos suscriptores
+	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null);
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();
+	private jwtToken: string | null = localStorage.getItem('Token');
 	private client: Client = new Client({
-		brokerURL: this.url,
-		reconnectDelay: 1000, // Intento de reconexión automática
-		onWebSocketError: (error) => console.error('Error con WebSocket', error),
-		onStompError: (frame) => {
+		webSocketFactory: () => new SockJS('https://localhost:8070/chat-socket'),
+		reconnectDelay: 1000,
+		connectHeaders: {
+			Authorization: 'Bearer ' + this.jwtToken,
+		},
+		onWebSocketError: (error: Error) => console.error('Error con WebSocket', error.message),
+		onStompError: (frame: { headers: { [key: string]: string }; body: string }) => {
 			console.error('Broker reported error: ' + frame.headers['message']);
 			console.error('Additional details: ' + frame.body);
 		},
@@ -32,7 +37,7 @@ export class ChatService {
 	) {
 		if (isPlatformBrowser(this.platformId)) {
 			this.client.onWebSocketError = (error) => {
-				console.error('Error con WebSocket', error);
+				console.error('Error con Websocket', error.message);
 			};
 
 			this.client.onStompError = (frame) => {
