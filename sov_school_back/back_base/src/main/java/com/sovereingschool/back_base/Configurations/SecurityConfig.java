@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .requiresChannel(channel -> channel
                         .anyRequest().requiresSecure())
+                .authorizeHttpRequests(http -> http.anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .userDetailsService(inMemoryUserDetailsManager())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

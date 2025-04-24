@@ -27,7 +27,7 @@ export class StreamingService {
 	) {}
 
 	getVideo(id_usuario: number, id_curso: number, id_clase: number): Observable<Blob> {
-		return this.http.get(`${this.URL}/${id_usuario}/${id_curso}/${id_clase}`, { responseType: 'blob' });
+		return this.http.get(`${this.URL}/${id_usuario}/${id_curso}/${id_clase}`, { responseType: 'blob', withCredentials: true });
 	}
 
 	// TODO: Revisar

@@ -97,6 +97,12 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 					controls: true,
 					autoplay: true,
 					preload: 'auto',
+					techOrder: ['html5'],
+					html5: {
+						vhs: {
+							withCredentials: true,
+						},
+					},
 				});
 				player.src({
 					src: `https://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
