@@ -6,7 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,13 +36,14 @@ public class ChatController {
 
     @MessageMapping("/init")
     @SendTo("/init_chat/result")
-    public InitChatDTO handleInitChat(String message) {
-        System.out.println("LLEGADA LA LLAMADA A INIT_CHAT: " + message);
-        Long idUsuario = Long.parseLong(message);
+    public InitChatDTO handleInitChat() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        InitChatDTO initChat = this.initChatService.initChat(idUsuario);
-        // ("SE DEVUELVE: " + initChat.toString());
-        return initChat; // Objeto que representa el estado inicial
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("No autenticado");
+        }
+        Long idUsuario = (Long) authentication.getDetails(); // 👈 aquí recuperas el ID
+        return initChatService.initChat(idUsuario);
     }
 
     @MessageMapping("/curso")

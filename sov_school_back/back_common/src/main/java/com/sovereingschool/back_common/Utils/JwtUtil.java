@@ -234,15 +234,18 @@ public class JwtUtil {
         try {
             String username = getUsername(token);
             String rolesString = getRoles(token);
+            Long idUsuario = getIdUsuario(token);
 
             List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesString.split(","))
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 
-            return new UsernamePasswordAuthenticationToken(
-                    username,
-                    null,
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null,
                     authorities);
+
+            auth.setDetails(idUsuario);
+
+            return auth;
         } catch (AuthenticationException e) {
             throw e;
         }

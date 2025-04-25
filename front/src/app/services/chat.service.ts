@@ -2,7 +2,6 @@ import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject, switchMap, takeUntil, timer } from 'rxjs';
-import SockJS from 'sockjs-client';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
 import { MensajeChat } from '../models/MensajeChat';
@@ -12,32 +11,41 @@ import { LoginService } from './login.service';
 	providedIn: 'root',
 })
 export class ChatService {
-	private url: string = 'wss://localhost:8070/chat-socket';
+	private jwtToken: string | null = localStorage.getItem('Token');
+	private url: string = 'wss://localhost:8070/chat-socket?token=' + this.jwtToken;
+
 	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null);
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();
-	private jwtToken: string | null = localStorage.getItem('Token');
+
 	private client: Client = new Client({
-		webSocketFactory: () => new SockJS('https://localhost:8070/chat-socket'),
+		brokerURL: this.url,
 		reconnectDelay: 1000,
 		connectHeaders: {
-			Authorization: 'Bearer ' + this.jwtToken,
+			Authorization: `Bearer ${this.jwtToken}`,
 		},
 		onWebSocketError: (error: Error) => console.error('Error con WebSocket', error.message),
-		onStompError: (frame: { headers: { [key: string]: string }; body: string }) => {
+		onStompError: (frame) => {
 			console.error('Broker reported error: ' + frame.headers['message']);
 			console.error('Additional details: ' + frame.body);
 		},
+		onConnect: (frame) => {
+			console.log('Conectado: ' + frame);
+			if (this.loginService.usuario) {
+				this.initUsuario(this.loginService.usuario.id_usuario);
+			}
+		},
 	});
-	private currentSubscription: StompSubscription | null = null; // Guardar referencia a la suscripción actual
+
+	private currentSubscription: StompSubscription | null = null; // Asegúrate de tener esta referencia
 
 	constructor(
 		private loginService: LoginService,
-		@Inject(PLATFORM_ID) private platformId: object, // Inject PLATFORM_ID to detect server or browser
+		@Inject(PLATFORM_ID) private platformId: object,
 	) {
 		if (isPlatformBrowser(this.platformId)) {
 			this.client.onWebSocketError = (error) => {
-				console.error('Error con Websocket', error.message);
+				console.error('Error con WebSocket', error.message);
 			};
 
 			this.client.onStompError = (frame) => {
@@ -46,21 +54,27 @@ export class ChatService {
 			};
 
 			this.client.onConnect = (frame) => {
-				console.log('Connected: ' + frame);
+				console.log('Conectado: ' + frame);
 				if (this.loginService.usuario) {
 					this.initUsuario(this.loginService.usuario.id_usuario);
 				}
 			};
 
-			// Activa el WebSocke
+			// Activa el WebSocket
+			console.log('JWT Token:', this.jwtToken); // Verifica que el token no sea null
 			this.client.activate();
 		}
 	}
 
 	private initUsuario(idUsuario: number): Observable<InitChatUsuario | null> {
 		console.log('INITUSUARIO');
+		// Si ya hay una suscripción activa, desuscríbete primero
+		if (this.currentSubscription) {
+			this.currentSubscription.unsubscribe();
+		}
+
 		// Suscríbete a las respuestas del backend
-		this.client.subscribe('/init_chat/result', (response) => {
+		this.currentSubscription = this.client.subscribe('/init_chat/result', (response) => {
 			console.log('RESPONSE: ', response.body);
 			const init: InitChatUsuario = JSON.parse(response.body) as InitChatUsuario;
 			console.log('SE RECIBE RESPUESTA DEL BACK!!!', init);
@@ -73,7 +87,7 @@ export class ChatService {
 		// Publicar el mensaje al backend
 		this.client.publish({
 			destination: '/app/init',
-			body: idUsuario.toString(),
+			body: '',
 		});
 
 		// Devolver el observable que los componentes pueden suscribirse
@@ -88,10 +102,11 @@ export class ChatService {
 				switchMap(() => this.getChat(idCurso)), // Llama a getChat nuevamente después del retraso
 			);
 		}
-		// Si hay una suscripción anterior, desuscríbete antes de suscribirte a la nueva
+
+		// Si ya hay una suscripción activa, desuscríbete primero
 		if (this.currentSubscription) {
 			this.currentSubscription.unsubscribe();
-			this.cursoSubject.next(null);
+			this.cursoSubject.next(null); // Limpiar el estado actual del curso
 		}
 
 		// Suscríbete a las respuestas del backend

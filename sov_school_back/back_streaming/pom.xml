@@ -33,7 +33,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
-			<version>3.4.4</version>
+			<version>3.4.5</version>
 		</dependency>
 
 	</dependencies>
@@ -43,7 +43,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>3.4.4</version>
 
 			</plugin>
 		</plugins>
