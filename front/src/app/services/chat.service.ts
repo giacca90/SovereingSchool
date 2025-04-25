@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject, switchMap, takeUntil, timer } from 'rxjs';
@@ -24,17 +25,6 @@ export class ChatService {
 		connectHeaders: {
 			Authorization: `Bearer ${this.jwtToken}`,
 		},
-		onWebSocketError: (error: Error) => console.error('Error con WebSocket', error.message),
-		onStompError: (frame) => {
-			console.error('Broker reported error: ' + frame.headers['message']);
-			console.error('Additional details: ' + frame.body);
-		},
-		onConnect: (frame) => {
-			console.log('Conectado: ' + frame);
-			if (this.loginService.usuario) {
-				this.initUsuario(this.loginService.usuario.id_usuario);
-			}
-		},
 	});
 
 	private currentSubscription: StompSubscription | null = null; // Asegúrate de tener esta referencia
@@ -55,18 +45,15 @@ export class ChatService {
 
 			this.client.onConnect = (frame) => {
 				console.log('Conectado: ' + frame);
-				if (this.loginService.usuario) {
-					this.initUsuario(this.loginService.usuario.id_usuario);
-				}
+				this.initUsuario();
 			};
 
 			// Activa el WebSocket
-			console.log('JWT Token:', this.jwtToken); // Verifica que el token no sea null
 			this.client.activate();
 		}
 	}
 
-	private initUsuario(idUsuario: number): Observable<InitChatUsuario | null> {
+	private initUsuario(): Observable<InitChatUsuario | null> {
 		console.log('INITUSUARIO');
 		// Si ya hay una suscripción activa, desuscríbete primero
 		if (this.currentSubscription) {
@@ -76,6 +63,36 @@ export class ChatService {
 		// Suscríbete a las respuestas del backend
 		this.currentSubscription = this.client.subscribe('/init_chat/result', (response) => {
 			console.log('RESPONSE: ', response.body);
+			if (response.body.startsWith('Error en el token')) {
+				console.log('Error en el token: ' + response.body);
+				this.loginService.refreshToken().subscribe({
+					next: (token: string | null) => {
+						if (token) {
+							localStorage.setItem('Token', token);
+							this.jwtToken = token;
+							// Enviar el nuevo token al backend
+							this.client.publish({
+								destination: '/app/refresh-token',
+								body: token,
+							});
+							// Publicar el mensaje al backend
+							this.client.publish({
+								destination: '/app/init',
+								body: '',
+							});
+						} else {
+							console.log('No se pudo refrescar el token');
+							this.client.deactivate();
+							this.loginService.logout();
+						}
+					},
+					error: (error: HttpErrorResponse) => {
+						console.error('Error al refrescar el token: ' + error.message);
+						this.client.deactivate();
+						this.loginService.logout();
+					},
+				});
+			}
 			const init: InitChatUsuario = JSON.parse(response.body) as InitChatUsuario;
 			console.log('SE RECIBE RESPUESTA DEL BACK!!!', init);
 			console.log('INIT.MENSAJES', init.mensajes);

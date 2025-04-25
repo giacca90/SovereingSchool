@@ -240,7 +240,7 @@ public class JwtUtil {
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null,
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, token,
                     authorities);
 
             auth.setDetails(idUsuario);

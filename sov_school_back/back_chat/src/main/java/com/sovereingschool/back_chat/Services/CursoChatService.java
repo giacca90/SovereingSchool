@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,6 +30,7 @@ import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_common.Repositories.ClaseRepository;
 import com.sovereingschool.back_common.Repositories.CursoRepository;
 import com.sovereingschool.back_common.Repositories.UsuarioRepository;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 import jakarta.transaction.Transactional;
 
@@ -52,6 +58,9 @@ public class CursoChatService {
 
     @Autowired
     private UsuarioChatRepository usuarioChatRepo;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public CursoChatDTO getChat(Long idCurso) {
         CursoChat cursoChat = cursoChatRepo.findByIdCurso(idCurso);
@@ -145,8 +154,6 @@ public class CursoChatService {
                     mensajeChatDTO.getMensaje(), // String mensaje
                     mensajeChatDTO.getFecha()); // Date fecha
             MensajeChat mex = this.mensajeChatRepo.save(mensajeChat);
-            // ("MEX: " + mex);
-
             String idMex = mex.getId();
 
             // Actualizar el estado del curso
@@ -328,6 +335,27 @@ public class CursoChatService {
         CursoChat cursoChat = this.cursoChatRepo.findByIdCurso(idCurso);
         if (cursoChat != null) {
             this.cursoChatRepo.delete(cursoChat);
+        }
+    }
+
+    public void refreshTokenInOpenWebsocket(String sessionId, String newToken) {
+        try {
+            Authentication newAuth = jwtUtil.createAuthenticationFromToken(newToken);
+
+            // Obtener el contexto actual y actualizar la autenticación
+            SecurityContext context = SecurityContextHolder.getContext();
+            context.setAuthentication(newAuth);
+
+            // También actualizar en el accessor para que se conserve
+            SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+            accessor.setSessionId(sessionId);
+            accessor.setUser(newAuth);
+
+            System.out.println("🔄 Token refrescado con éxito para sesión: " + sessionId);
+
+        } catch (AuthenticationException e) {
+            System.err.println("❌ Error al refrescar el token: " + e.getMessage());
+            // Si querés, podés mandar un mensaje de error aquí
         }
     }
 }

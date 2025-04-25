@@ -3,6 +3,7 @@ package com.sovereingschool.back_chat.Controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -34,6 +35,7 @@ public class ChatController {
     @Autowired
     private CursoChatService cursoChatService;
 
+    /* Sección para el websocket */
     @MessageMapping("/init")
     @SendTo("/init_chat/result")
     public InitChatDTO handleInitChat() {
@@ -68,6 +70,12 @@ public class ChatController {
         this.cursoChatService.mensajeLeido(message);
     }
 
+    @MessageMapping("/refresh-token")
+    public void refreshToken(@Header("simpSessionId") String sessionId, String newToken) {
+        this.cursoChatService.refreshTokenInOpenWebsocket(sessionId, newToken);
+    }
+
+    /* Sección para REST */
     @PostMapping("/crea_usuario_chat")
     public ResponseEntity<?> creaUsuarioChat(@RequestBody String message) {
         try {
@@ -125,6 +133,12 @@ public class ChatController {
         }
     }
 
+    /**
+     * Función temporal para desarrollo
+     * TODO: Eliminar en producción
+     * 
+     * @return
+     */
     @GetMapping("/init")
     public ResponseEntity<?> init() {
         try {

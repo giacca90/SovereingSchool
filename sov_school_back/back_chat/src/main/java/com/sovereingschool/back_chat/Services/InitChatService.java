@@ -66,8 +66,10 @@ public class InitChatService {
 
         UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario);
         if (usuarioChat == null) {
+            System.out.println("Usuario chat nulo");
             return new InitChatDTO();
         }
+        System.out.println("Usuario chat: " + usuarioChat);
 
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         if (usuarioChat.getMensajes() != null && !usuarioChat.getMensajes().isEmpty()) {
@@ -75,11 +77,14 @@ public class InitChatService {
             if (mensajes != null && !mensajes.isEmpty()) {
                 mensajesDTO = getMensajesDTO(mensajes);
             }
+        } else {
+            System.out.println("Mensajes chat nulos");
         }
 
         List<CursoChatDTO> cursosDTO = new ArrayList<>();
         if (usuarioChat.getCursos() != null && !usuarioChat.getCursos().isEmpty()) {
             List<CursoChat> cursos = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
+            System.out.println("Cursos: " + cursos);
             if (cursos != null && !cursos.isEmpty()) {
                 for (CursoChat curso : cursos) {
                     if (curso.getUltimo() != null) {
@@ -97,8 +102,11 @@ public class InitChatService {
                     }
                 }
             }
+        } else {
+            System.out.println("Cursos chat nulos");
         }
-
+        InitChatDTO initChatDTO = new InitChatDTO(usuarioChat.getIdUsuario(), mensajesDTO, cursosDTO);
+        System.out.println("INIT: " + initChatDTO);
         return new InitChatDTO(usuarioChat.getIdUsuario(), mensajesDTO, cursosDTO);
     }
 
