@@ -7,11 +7,11 @@ import { ChatService } from '../../../services/chat.service';
 import { LoginService } from '../../../services/login.service';
 
 @Component({
-    selector: 'app-chat',
+	selector: 'app-chat',
 	standalone: true,
-    imports: [],
-    templateUrl: './chat.component.html',
-    styleUrl: './chat.component.css'
+	imports: [],
+	templateUrl: './chat.component.html',
+	styleUrl: './chat.component.css',
 })
 export class ChatComponent implements OnInit, OnDestroy {
 	@Input() idCurso: number | null = null;
@@ -138,18 +138,31 @@ export class ChatComponent implements OnInit, OnDestroy {
 	}
 
 	abreChatClase(idClase: number) {
-		if (!document.getElementById('clase-' + idClase)?.classList.contains('hidden')) {
-			document.getElementById('clase-' + idClase)?.classList.add('hidden');
+		const claseElement = document.getElementById('clase-' + idClase);
+		const flechaElement = document.getElementById('arrow-' + idClase);
+
+		// Si ya está visible, se oculta
+		if (!claseElement?.classList.contains('hidden')) {
+			claseElement?.classList.add('hidden');
+			flechaElement?.classList.remove('rotate-180');
 		} else {
 			console.log('Se abre la clase ' + idClase);
+
+			// Oculta todas las cortinas y resetea las flechas
 			const clases: NodeListOf<Element> = document.querySelectorAll('.clases');
-			for (let i = 0; i < clases.length; i++) {
-				const clase: HTMLDivElement = clases.item(i) as HTMLDivElement;
-				if (!clase.classList.contains('hidden')) {
-					clase.classList.add('hidden');
-				}
-			}
-			document.getElementById('clase-' + idClase)?.classList.remove('hidden');
+			const flechas: NodeListOf<Element> = document.querySelectorAll('.arrow');
+
+			clases.forEach((clase) => {
+				clase.classList.add('hidden');
+			});
+
+			flechas.forEach((flecha) => {
+				flecha.classList.remove('rotate-180');
+			});
+
+			// Muestra la cortina actual y rota su flecha
+			claseElement?.classList.remove('hidden');
+			flechaElement?.classList.add('rotate-180');
 		}
 	}
 

@@ -6,9 +6,9 @@
 		<h3 class="text-center font-bold text-green-700">{{ this.chat.nombre_curso }} (CHAT)</h3>
 		<div class="m-2 flex flex-col rounded-lg border border-black p-2 dark:border-gray-400">
 			@for (clase of this.chat.clases; track $index) {
-				<button class="m-2 flex rounded-lg border border-black p-2 dark:border-gray-400" (click)="abreChatClase(clase.id_clase)">
+				<button class="m-2 flex cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="abreChatClase(clase.id_clase)">
 					<p class="grow">{{ clase.nombre_clase }}</p>
-					<svg class="h-6 w-6 cursor-pointer dark:text-white" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+					<svg id="arrow-{{ clase.id_clase }}" class="h-6 w-6 transition-transform duration-300 ease-in-out dark:text-white" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
 						<path d="M8 8.1716L3.4142 3.5858L0.5858 6.4142L8 13.8284L15.4142 6.4142L12.5858 3.5858L8 8.1716Z" fill="currentColor" />
 					</svg>
 				</button>

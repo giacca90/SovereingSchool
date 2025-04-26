@@ -21,9 +21,12 @@ export function app(): express.Express {
 	// server.get('/api/**', (req, res) => { });
 	// Serve static files from /browser
 	server.get(
-		'*.*',
+		'*/assets/*',
 		express.static(browserDistFolder, {
 			maxAge: '1y',
+			setHeaders: (res) => {
+				res.setHeader('Cache-Control', 'public, max-age=15768000');
+			},
 		}),
 	);
 
