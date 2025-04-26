@@ -15,7 +15,6 @@ export const jwtRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return loginService.refreshToken().pipe(
 					switchMap((token) => {
 						if (token) {
-							console.log('Token actualizado: ' + token);
 							localStorage.setItem('Token', token);
 							const clonedRequest = req.clone({
 								setHeaders: {

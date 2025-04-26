@@ -78,6 +78,9 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     @Override
     public void afterSendCompletion(@NonNull Message<?> message, @NonNull MessageChannel channel, boolean sent,
             @Nullable Exception ex) {
+        if (ex != null) {
+            System.err.println("WebSocketAuthInterceptor: " + ex.getMessage());
+        }
         // Limpia el contexto para evitar fugas de seguridad entre hilos
         SecurityContextHolder.clearContext();
     }

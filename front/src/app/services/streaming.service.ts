@@ -120,8 +120,9 @@ export class StreamingService {
 			this.ws?.send(JSON.stringify(message));
 		};
 
-		this.ws.onerror = (error) => {
-			console.error('Error en WebSocket:', error);
+		this.ws.onerror = (event: Event) => {
+			const error = event as ErrorEvent;
+			console.error('Error en WebSocket:', error.message);
 			this.enGrabacion = false;
 		};
 
@@ -402,7 +403,7 @@ export class StreamingService {
 	}
 
 	getPresets() {
-		return this.http.get(`${this.URL}/presets/get/${this.loginService.usuario?.id_usuario}`, { responseType: 'json' });
+		return this.http.get(`${this.URL}/presets/get/${this.loginService.usuario?.id_usuario}`, { responseType: 'json', withCredentials: true });
 	}
 
 	savePresets(presets: Map<string, { elements: VideoElement[]; shortcut: string }>) {

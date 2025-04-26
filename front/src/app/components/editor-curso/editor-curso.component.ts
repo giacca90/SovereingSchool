@@ -189,7 +189,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		// Recuperar imagenes del curso y del usuario para el componente WebOBS
 		if (this.curso && this.curso.imagen_curso) {
 			console.log('Imagen del curso:', this.curso.imagen_curso);
-			fetch(this.curso.imagen_curso).then((response) => {
+			fetch(this.curso.imagen_curso, { credentials: 'include' }).then((response) => {
 				response.blob().then((blob) => {
 					if (!this.curso) return;
 					const fileName = this.curso.imagen_curso.split('/').pop();
@@ -208,7 +208,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 
 		this.loginService.usuario?.foto_usuario.forEach((foto) => {
 			console.log('Foto del usuario:', foto);
-			fetch(foto).then((response) => {
+			fetch(foto, { credentials: 'include' }).then((response) => {
 				response.blob().then((blob) => {
 					const fileName = foto.split('/').pop();
 					const mimeType = blob.type || 'application/octet-stream';
