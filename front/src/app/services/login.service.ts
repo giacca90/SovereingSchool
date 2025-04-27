@@ -79,6 +79,7 @@ export class LoginService {
 	}
 
 	refreshToken(): Observable<string | null> {
+		console.log('Refreshing token...');
 		return this.http.post<Auth>(this.apiUrl + 'refresh', null, { observe: 'response', withCredentials: true }).pipe(
 			map((response: HttpResponse<Auth>) => {
 				if (response.ok && response.body) {

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { VideoElement } from '../components/editor-curso/editor-webcam/editor-webcam.component';
@@ -42,7 +42,7 @@ export class StreamingService {
 			return;
 		}
 
-		// Obterer lod datos del mediaStream
+		// Obterer los datos del mediaStream
 		const width = stream.getVideoTracks()[0].getSettings().width;
 		const height = stream.getVideoTracks()[0].getSettings().height;
 		const fps = stream.getVideoTracks()[0].getSettings().frameRate;
@@ -62,6 +62,23 @@ export class StreamingService {
 
 		this.ws.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+			if (data.type === 'error') {
+				console.error('Error recibido del servidor:', data.message);
+				this.loginService.refreshToken().subscribe({
+					next: (token: string | null) => {
+						if (token) {
+							localStorage.setItem('Token', token);
+							this.emitirWebcam(stream, clase);
+							return;
+						}
+					},
+					error: (error: HttpErrorResponse) => {
+						console.error('Error al refrescar el token: ' + error.message);
+						this.loginService.logout();
+						return;
+					},
+				});
+			}
 			if (data.type === 'streamId') {
 				console.log('ID del stream recibido:', data.streamId);
 				this.streanId = data.streamId;
@@ -196,6 +213,24 @@ export class StreamingService {
 
 		this.ws.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+
+			if (data.type === 'error') {
+				console.error('Error recibido del servidor:', data.message);
+				this.loginService.refreshToken().subscribe({
+					next: (token: string | null) => {
+						if (token) {
+							localStorage.setItem('Token', token);
+							this.startOBS(userId);
+							return;
+						}
+					},
+					error: (error: HttpErrorResponse) => {
+						console.error('Error al refrescar el token: ' + error.message);
+						this.loginService.logout();
+						return;
+					},
+				});
+			}
 
 			if (data.type === 'rtmp_url') {
 				console.log('URL RTMP recibida:', data.rtmpUrl);

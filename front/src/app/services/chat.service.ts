@@ -13,18 +13,15 @@ import { LoginService } from './login.service';
 })
 export class ChatService {
 	private jwtToken: string | null = localStorage.getItem('Token');
-	private url: string = 'wss://localhost:8070/chat-socket?token=' + this.jwtToken;
+	private url: string = 'wss://localhost:8070/chat-socket';
 
 	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null);
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
 	private unsubscribe$ = new Subject<void>();
 
 	private client: Client = new Client({
-		brokerURL: this.url,
+		brokerURL: this.url + '?token=' + this.jwtToken,
 		reconnectDelay: 1000,
-		connectHeaders: {
-			Authorization: `Bearer ${this.jwtToken}`,
-		},
 	});
 
 	private currentSubscription: StompSubscription | null = null; // Asegúrate de tener esta referencia
@@ -39,8 +36,53 @@ export class ChatService {
 			};
 
 			this.client.onStompError = (frame) => {
-				console.error('Broker reported error: ' + frame.headers['message']);
-				console.error('Additional details: ' + frame.body);
+				const message = frame.headers['message'];
+				if (message && message.includes('Invalid token')) {
+					console.log('Token inválido. Intentando refrescarlo...');
+
+					this.loginService.refreshToken().subscribe({
+						next: (token: string | null) => {
+							if (token) {
+								console.log('Nuevo token recibido: ' + token);
+
+								// Actualiza el localStorage y jwtToken
+								localStorage.setItem('Token', token);
+								this.jwtToken = token;
+
+								// Desactiva el cliente STOMP anterior antes de crear uno nuevo
+								if (this.client) {
+									console.log('Desactivando el cliente STOMP anterior...');
+									this.client.deactivate(); // Desactiva el cliente STOMP actual
+								}
+
+								// Crea un nuevo cliente STOMP con el nuevo token
+								this.client = new Client({
+									brokerURL: this.url + '?token=' + this.jwtToken,
+									reconnectDelay: 1000, // Esperar entre intentos de reconexión
+									onConnect: (frame) => {
+										console.log('Nuevo cliente STOMP conectado:', frame);
+										this.initUsuario();
+									},
+									onDisconnect: () => {
+										console.log('Cliente STOMP desconectado');
+									},
+								});
+
+								// Activar el nuevo cliente STOMP
+								this.client.activate();
+								return;
+							} else {
+								console.error('No se pudo refrescar el token');
+								return;
+							}
+						},
+						error: (error: HttpErrorResponse) => {
+							console.error('Error al refrescar el token: ' + error.message);
+							this.loginService.logout();
+							return;
+						},
+					});
+				}
 			};
 
 			this.client.onConnect = (frame) => {

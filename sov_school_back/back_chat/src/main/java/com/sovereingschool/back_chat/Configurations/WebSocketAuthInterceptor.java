@@ -35,13 +35,25 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         Authentication authentication = null;
 
         if (accessor.getCommand() == StompCommand.CONNECT) {
-            Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
-            if (sessionAttributes != null) {
-                Object rawAuth = sessionAttributes.get("user");
-                if (rawAuth instanceof Authentication auth) {
-                    authentication = auth;
-                    accessor.setUser(auth);
-                }
+            Map<String, Object> sessionAttrs = accessor.getSessionAttributes();
+            String token = (sessionAttrs != null)
+                    ? (String) sessionAttrs.get("token")
+                    : null;
+
+            if (token == null || token.isEmpty()) {
+                SecurityContextHolder.clearContext();
+                throw new MessagingException("Falta token en sessionAttributes");
+            }
+            try {
+                System.out.println("Token: " + token);
+                Authentication auth = jwtUtil.createAuthenticationFromToken(token);
+                System.out.println("Autorities: " + auth);
+                accessor.setUser(auth);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                return message;
+            } catch (AuthenticationException ex) {
+                SecurityContextHolder.clearContext();
+                throw new MessagingException("Invalid token: " + ex.getMessage());
             }
         } else {
             // Para todos los mensajes posteriores, sacamos el user ya seteado en el

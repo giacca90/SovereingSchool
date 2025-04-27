@@ -19,6 +19,7 @@ import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class OBSWebSocketHandler extends TextWebSocketHandler {
     private final String RTMP_URL = "rtmp://localhost:8060/live/";
+    private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
     private final Map<String, Thread> previews = new ConcurrentHashMap<>();
     private final StreamingService streamingService;
@@ -31,12 +32,33 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
+        Boolean isAuthenticate = (boolean) session.getAttributes().get("Authenticate");
+        if (isAuthenticate == null || !isAuthenticate) {
+            String error = (String) session.getAttributes().get("Error");
+            System.out.println("Falló la autenticación en WebRTC: " + error);
+            try {
+                session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"" + error + "\"}"));
+                session.close(CloseStatus.POLICY_VIOLATION);
+                return;
+            } catch (IOException e) {
+                System.err.println("Error al enviar mensaje de error en OBS: " + e.getMessage());
+                try {
+                    session.close(CloseStatus.SERVER_ERROR);
+                } catch (IOException ex) {
+                    System.err.println("Error al cerrar sesión WebSocket: " + ex.getMessage());
+                }
+            }
+        }
+        sessions.put(session.getId(), session);
+        String username = (String) session.getAttributes().get("username");
+        System.out.println("Conexión establecida en OBS para el usuario: " + username);
     }
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         String userId = session.getId();
         streamingService.stopFFmpegProcessForUser(userId);
+        sessions.remove(userId);
     }
 
     @Override
