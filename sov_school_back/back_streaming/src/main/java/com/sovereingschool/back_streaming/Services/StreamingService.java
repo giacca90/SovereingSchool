@@ -144,6 +144,7 @@ public class StreamingService {
         }
 
         // Comando FFmpeg para procesar el streaming
+        System.out.println("Comando FFmpeg: " + String.join(" ", ffmpegCommand));
         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
         processBuilder.redirectErrorStream(true);
         processBuilder.directory(outputDir.toFile());
@@ -589,7 +590,6 @@ public class StreamingService {
         if (live) {
             ffmpegCommand.addAll(List.of("-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", "original.mp4"));
         }
-
         return ffmpegCommand;
     }
 }

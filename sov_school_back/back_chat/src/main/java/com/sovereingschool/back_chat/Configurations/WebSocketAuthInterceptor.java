@@ -45,9 +45,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 throw new MessagingException("Falta token en sessionAttributes");
             }
             try {
-                System.out.println("Token: " + token);
                 Authentication auth = jwtUtil.createAuthenticationFromToken(token);
-                System.out.println("Autorities: " + auth);
                 accessor.setUser(auth);
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 return message;

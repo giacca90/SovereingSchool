@@ -54,7 +54,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         String username = jwtUtil.getUsername(token);
         attributes.put("username", username);
         attributes.put("Authenticate", true);
-
+        attributes.put("user", jwtUtil.createAuthenticationFromToken(token));
         return true; // Aceptar conexión
     }
 

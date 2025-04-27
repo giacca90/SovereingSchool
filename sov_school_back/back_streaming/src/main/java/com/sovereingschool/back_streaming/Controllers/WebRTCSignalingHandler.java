@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import org.springframework.lang.NonNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -48,8 +50,34 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
                 return;
             } catch (IOException e) {
                 System.err.println("Error al enviar mensaje de error en WebRTC: " + e.getMessage());
+                try {
+                    session.close(CloseStatus.SERVER_ERROR);
+                } catch (IOException ex) {
+                    System.err.println("Error al cerrar sesión WebSocket: " + ex.getMessage());
+                }
             }
+            return;
         }
+
+        Authentication auth = (Authentication) session.getAttributes().get("user");
+        System.out.println("auth: " + auth);
+        if (!isAuthorized(auth)) {
+            System.err.println("Acceso denegado: usuario no autorizado");
+            try {
+                session.sendMessage(new TextMessage(
+                        "{\"type\":\"error\",\"message\":\"" + "Acceso denegado: usuario no autorizado" + "\"}"));
+                session.close(CloseStatus.POLICY_VIOLATION);
+            } catch (IOException e) {
+                System.err.println("Error al enviar mensaje de error en WebRTC: " + e.getMessage());
+                try {
+                    session.close(CloseStatus.SERVER_ERROR);
+                } catch (IOException ex) {
+                    System.err.println("Error al cerrar sesión WebSocket: " + ex.getMessage());
+                }
+            }
+            return;
+        }
+
         sessions.put(session.getId(), session);
         String username = (String) session.getAttributes().get("username");
         System.out.println("Conexión establecida en WebRTC para el usuario: " + username);
@@ -120,6 +148,7 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
     @Override
     protected void handleBinaryMessage(@NonNull WebSocketSession session, @NonNull BinaryMessage message) {
         byte[] payload = message.getPayload().array();
+        System.out.println("payload: " + payload.length);
 
         UserStreams userStreams = userSessions.computeIfAbsent(session.getId(), key -> {
             try {
@@ -253,5 +282,17 @@ public class WebRTCSignalingHandler extends BinaryWebSocketHandler {
             }
         }
         return null;
+    }
+
+    private boolean isAuthorized(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            System.err.println("No autenticado");
+            return false;
+        }
+        System.out.println("Autorités: " + auth.getAuthorities());
+
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_PROF") || role.equals("ROLE_ADMIN"));
     }
 }

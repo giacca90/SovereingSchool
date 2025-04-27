@@ -64,20 +64,22 @@ export class StreamingService {
 			const data = JSON.parse(event.data);
 			if (data.type === 'error') {
 				console.error('Error recibido del servidor:', data.message);
-				this.loginService.refreshToken().subscribe({
-					next: (token: string | null) => {
-						if (token) {
-							localStorage.setItem('Token', token);
-							this.emitirWebcam(stream, clase);
+				if (data.message.startsWith('Token')) {
+					this.loginService.refreshToken().subscribe({
+						next: (token: string | null) => {
+							if (token) {
+								localStorage.setItem('Token', token);
+								this.emitirWebcam(stream, clase);
+								return;
+							}
+						},
+						error: (error: HttpErrorResponse) => {
+							console.error('Error al refrescar el token: ' + error.message);
+							this.loginService.logout();
 							return;
-						}
-					},
-					error: (error: HttpErrorResponse) => {
-						console.error('Error al refrescar el token: ' + error.message);
-						this.loginService.logout();
-						return;
-					},
-				});
+						},
+					});
+				}
 			}
 			if (data.type === 'streamId') {
 				console.log('ID del stream recibido:', data.streamId);

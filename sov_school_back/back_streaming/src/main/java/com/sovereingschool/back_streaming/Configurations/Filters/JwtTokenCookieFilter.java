@@ -34,7 +34,7 @@ public class JwtTokenCookieFilter extends OncePerRequestFilter {
             Cookie[] cookies = req.getCookies();
             if (cookies != null) {
                 for (Cookie c : cookies) {
-                    if (isValidCookieName(c.getName()) && hasText(c.getValue())) {
+                    if (isValidCookieName(c.getName()) && hasText(c.getValue()) && c.getName().equals("refreshToken")) {
                         Authentication auth = jwtUtil.createAuthenticationFromToken(c.getValue());
                         SecurityContextHolder.getContext().setAuthentication(auth);
                         break;
