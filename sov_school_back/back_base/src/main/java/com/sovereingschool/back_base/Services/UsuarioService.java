@@ -98,8 +98,9 @@ public class UsuarioService implements IUsuarioService {
                     .body(Mono.just(usuarioInsertado), Usuario.class)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .doOnError(e -> {
+                    .onErrorResume(e -> {
                         System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
+                        return Mono.empty(); // Continuar sin interrumpir la aplicación
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
                         if (res == null || !res.equals("Usuario chat creado con exito!!!")) {
@@ -118,8 +119,9 @@ public class UsuarioService implements IUsuarioService {
                     .body(Mono.just(usuarioInsertado), Usuario.class)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .doOnError(e -> {
+                    .onErrorResume(e -> {
                         System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
+                        return Mono.empty(); // Continuar sin interrumpir la aplicación
                     }).subscribe(res -> {
                         if (res == null || !res.equals("Nuevo Usuario Insertado con Exito!!!")) {
                         } else {
@@ -231,8 +233,9 @@ public class UsuarioService implements IUsuarioService {
                     .body(Mono.just(old_usuario), Usuario.class)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .doOnError(e -> {
+                    .onErrorResume(e -> {
                         System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
+                        return Mono.empty(); // Continuar sin interrumpir la aplicación
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
                         if (res == null || !res.equals("Usuario creado con exito!!!")) {

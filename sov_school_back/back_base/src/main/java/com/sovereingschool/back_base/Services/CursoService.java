@@ -129,8 +129,10 @@ public class CursoService implements ICursoService {
                         .body(Mono.just(curso), Curso.class)
                         .retrieve()
                         .bodyToMono(String.class)
-                        .doOnError(e -> {
+                        .onErrorResume(e -> {
                             System.err.println("Error al conectar con el microservicio de chat " + e.getMessage());
+                            return Mono.empty(); // Continuar sin interrumpir la aplicación
+
                         }).subscribe(res -> {
                             if (res == null || !res.equals("Curso chat creado con exito!!!")) {
                             } else {
@@ -190,8 +192,9 @@ public class CursoService implements ICursoService {
                             .body(Mono.just(claseData), Map.class)
                             .retrieve()
                             .bodyToMono(String.class)
-                            .doOnError(e -> {
+                            .onErrorResume(e -> {
                                 System.err.println("Error al crear el chat de la clase: " + e.getMessage());
+                                return Mono.empty(); // Continuar sin interrumpir la aplicación
                             }).subscribe(res -> {
                                 if (res == null || !res.equals("Clase chat creado con exito!!!")) {
                                     System.err.println("Error en crear la clase en el chat: ");
@@ -228,9 +231,10 @@ public class CursoService implements ICursoService {
                     .body(Mono.just(curso), Curso.class)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .doOnError(e -> {
+                    .onErrorResume(e -> {
                         // Manejo de errores
                         System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+                        return Mono.empty(); // Continuar sin interrumpir la aplicación
                     }).subscribe(res -> {
                         // Maneja el resultado cuando esté disponible
                         if (res == null || !res.equals("Videos convertidos con éxito!!!")) {
@@ -261,7 +265,6 @@ public class CursoService implements ICursoService {
         File cursoFile = new File(cursoPath.toString());
         if (cursoFile.exists()) {
             try {
-
                 Files.walkFileTree(cursoPath, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -276,7 +279,7 @@ public class CursoService implements ICursoService {
                     }
                 });
             } catch (Exception e) {
-                System.err.println("Error en borrar la carpeta del curso: " + e.getMessage());
+                System.err.println("Error al borrar la carpeta del curso: " + e.getMessage());
             }
         } else {
             System.err.println("La carpeta del curso no existe.");
@@ -284,15 +287,16 @@ public class CursoService implements ICursoService {
 
         // Eliminar el curso del microservicio de streaming
         try {
-            // Obtener token
             WebClient webClient = createSecureWebClient(backStreamURL);
             webClient.delete()
                     .uri("/deleteCurso/" + id_curso)
                     .retrieve()
                     .bodyToMono(Boolean.class)
-                    .doOnError(e -> {
+                    .onErrorResume(e -> {
                         System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
-                    }).subscribe(res -> {
+                        return Mono.empty(); // Continuar sin interrumpir la aplicación
+                    })
+                    .subscribe(res -> {
                         if (res == null || !res) {
                             System.err.println("Error en borrar el curso en el servicio de reproducción");
                         }
@@ -303,24 +307,23 @@ public class CursoService implements ICursoService {
 
         // Eliminar el curso del microservicio de chat
         try {
-            // Obtener token
             WebClient webClientChat = createSecureWebClient(backChatURL);
             webClientChat.delete()
                     .uri("/delete_curso_chat/" + id_curso)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .doOnError(e -> {
-                        System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
-                    }).subscribe(res -> {
+                    .onErrorResume(e -> {
+                        System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
+                        return Mono.empty(); // Continuar sin interrumpir la aplicación
+                    })
+                    .subscribe(res -> {
                         if (res == null || !res.equals("Curso chat borrado con exito!!!")) {
                             System.err.println("Error al eliminar el curso del microservicio de chat");
                             System.err.println(res);
                         }
                     });
-        }
-
-        catch (Exception e) {
-            System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
         }
 
         return true;
@@ -370,10 +373,12 @@ public class CursoService implements ICursoService {
                                 + clase.getId_clase().toString())
                         .retrieve()
                         .bodyToMono(Boolean.class)
-                        .doOnError(e -> {
+                        .onErrorResume(e -> {
                             // Manejo de errores
                             System.err
                                     .println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+                            return Mono.empty(); // Continuar sin interrumpir la aplicación
+
                         }).subscribe(res -> {
                             // Maneja el resultado cuando esté disponible
                             if (res == null || !res) {
@@ -394,8 +399,9 @@ public class CursoService implements ICursoService {
                                 + clase.getId_clase().toString())
                         .retrieve()
                         .bodyToMono(String.class)
-                        .doOnError(e -> {
+                        .onErrorResume(e -> {
                             System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
+                            return Mono.empty(); // Continuar sin interrumpir la aplicación
                         }).subscribe(res -> {
                             if (res == null || !res.equals("Clase chat borrado con exito!!!")) {
                                 System.err.println("Error en borrar la clase en el chat");

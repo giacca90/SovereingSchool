@@ -107,6 +107,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				player.src({
 					src: `https://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
+					withCredentials: true,
 				});
 
 				// Esperar a que el reproductor esté listo

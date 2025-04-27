@@ -451,6 +451,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				this.player.src({
 					src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
+					withCredentials: true,
 				});
 			} else {
 				console.error('No se pudo obtener video.js');
@@ -541,6 +542,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 					this.player.src({
 						src: this.streamingService.UrlPreview,
 						type: 'application/x-mpegURL',
+						withCredentials: true,
 					});
 					// Escucha eventos del reproductor
 					this.player.on('loadeddata', () => {
