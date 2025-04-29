@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -32,6 +33,9 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Value("${variable.FRONT}")
+    private String front;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -79,7 +83,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         String json = objectMapper.writeValueAsString(authResponse);
         String script = "<script>" +
-                "window.opener.postMessage(" + json + ", 'https://localhost:4200');" +
+                "window.opener.postMessage(" + json + "," + front + ");" +
                 "window.close();" +
                 "</script>";
 

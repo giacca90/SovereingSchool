@@ -20,16 +20,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class OBSWebSocketHandler extends TextWebSocketHandler {
-    private final String RTMP_URL = "rtmp://localhost:8060/live/";
+    // private final String RTMP_URL = "rtmp://localhost:8060/live/";
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
     private final Map<String, Thread> previews = new ConcurrentHashMap<>();
     private final StreamingService streamingService;
     private final Executor executor;
+    private final String RTMP_URL;
 
-    public OBSWebSocketHandler(Executor executor, StreamingService streamingService) {
+    public OBSWebSocketHandler(Executor executor, StreamingService streamingService, String RTMP_URL) {
         this.streamingService = streamingService;
         this.executor = executor;
+        this.RTMP_URL = RTMP_URL;
     }
 
     @Override
@@ -95,6 +97,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
             if (userId != null) {
                 // Generar URL RTMP para OBS
                 String rtmpUrl = RTMP_URL + userId + "_" + session.getId();
+                System.out.println("RTMP URL: " + rtmpUrl);
 
                 // Preparar la previsualización de la transmisión
                 executor.execute(() -> {
@@ -163,7 +166,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     }
 
     private String extractStreamId(String payload) {
-        // {"event":"emitirOBS","rtmpUrl":"rtmp://localhost:8060/live/1_31973234-fb5c-4140-a9f1-00cac84f3b60"}
         if (payload.contains("rtmpUrl")) {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode;

@@ -1,6 +1,7 @@
 package com.sovereingschool.back_chat.Configurations;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,6 +43,9 @@ public class SecurityConfig {
     @Autowired
     private JwtTokenValidator JwtTokenValidator;
 
+    @Value("${variable.FRONT}")
+    private String front;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
@@ -58,7 +62,7 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("text/plain;charset=UTF-8");
+                            response.setContentType("text/plain");
                             response.getWriter().write(authException.getMessage());
                         }))
                 .build();
@@ -97,7 +101,7 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("https://localhost:4200"); // Origen permitido
+        config.addAllowedOrigin(front); // Origen permitido
         config.addAllowedMethod("*"); // Métodos permitidos
         config.addAllowedHeader("*"); // Headers permitidos
         config.setAllowCredentials(true); // Permitir credenciales

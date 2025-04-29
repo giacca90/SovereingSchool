@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -55,12 +56,16 @@ public class UsuarioService implements IUsuarioService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Value("${variable.BACK_CHAT}")
+    private String backChatURL;
+
+    @Value("${variable.BACK_STREAM}")
+    private String backStreamURL;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
-    private final String backChatURL = "https://localhost:8070";
-    private final String backStreamURL = "https://localhost:8090";
 
     UsuarioService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;

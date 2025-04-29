@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,9 @@ public class StreamingService {
 
     @Autowired
     private ClaseRepository claseRepo;
+
+    @Value("${variable.RTMP}")
+    private String RTMP;
 
     private final String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Videos";
 
@@ -137,7 +141,7 @@ public class StreamingService {
             inputSpecifier = "pipe:0"; // Entrada desde el pipe
             ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, ffmpegInputStream, streamIdAndSettings);
         } else if (inputStream instanceof String) {
-            inputSpecifier = "rtmp://localhost:8060/live/" + userId;// Entrada desde una URL RTMP
+            inputSpecifier = RTMP + "/live/" + userId;// Entrada desde una URL RTMP
             ffmpegCommand = this.creaComandoFFmpeg(inputSpecifier, true, null, streamIdAndSettings);
         } else {
             throw new IllegalArgumentException("Fuente de entrada no soportada");

@@ -1,15 +1,34 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine } from '@angular/ssr/node';
 import express from 'express';
+import fs from 'fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bootstrap from './src/main.server';
 
-// The Express app is exported so that it can be used by serverless Functions.
+// Genera el archivo `env.json` antes de iniciar el servidor
+const envConfig = {
+	BACK_BASE: process.env['BACK_BASE'],
+	BACK_STREAM: process.env['BACK_STREAM'],
+	BACK_CHAT: process.env['BACK_CHAT'],
+	BACK_CHAT_WSS: process.env['BACK_CHAT_WSS'],
+	BACK_STREAM_WWS: process.env['BACK_STREAM_WWS'],
+};
+
+// Directorio donde se guardará el archivo env.json
+const serverDistFolder = dirname(fileURLToPath(import.meta.url));
+const browserDistFolder = resolve(serverDistFolder, '../browser');
+const envFilePath = join(browserDistFolder, 'assets/env.json');
+
+// Asegúrate de que la carpeta existe
+fs.mkdirSync(join(browserDistFolder, 'assets'), { recursive: true });
+
+// Escribe el archivo env.json
+fs.writeFileSync(envFilePath, JSON.stringify(envConfig, null, 2));
+console.log('✅ Archivo env.json generado en', envFilePath);
+
 export function app(): express.Express {
 	const server = express();
-	const serverDistFolder = dirname(fileURLToPath(import.meta.url));
-	const browserDistFolder = resolve(serverDistFolder, '../browser');
 	const indexHtml = join(serverDistFolder, 'index.server.html');
 
 	const commonEngine = new CommonEngine();
@@ -17,9 +36,7 @@ export function app(): express.Express {
 	server.set('view engine', 'html');
 	server.set('views', browserDistFolder);
 
-	// Example Express Rest API endpoints
-	// server.get('/api/**', (req, res) => { });
-	// Serve static files from /browser
+	// Servir archivos estáticos, incluido el env.json
 	server.get(
 		'*/assets/*',
 		express.static(browserDistFolder, {
@@ -30,7 +47,7 @@ export function app(): express.Express {
 		}),
 	);
 
-	// All regular routes use the Angular engine
+	// Todas las rutas regulares usan el motor Angular
 	server.get('*', (req, res, next) => {
 		const { protocol, originalUrl, baseUrl, headers } = req;
 
@@ -52,7 +69,7 @@ export function app(): express.Express {
 function run(): void {
 	const port = process.env['PORT'] || 4000;
 
-	// Start up the Node server
+	// Levantar el servidor Express
 	const server = app();
 	server.listen(port, () => {
 		console.log(`Node Express server listening on http://localhost:${port}`);

@@ -1,4 +1,4 @@
-<div id="contenedor" class="relative m-2 flex flex-col items-center rounded-lg border border-black p-2 dark:border-gray-400">
+<div id="contenedor" class="relative m-2 flex cursor-default flex-col items-center rounded-lg border border-black p-2 dark:border-gray-400">
 	@if (this.curso?.imagen_curso) {
 		<img class="absolute -z-10 h-full content-center opacity-20" [src]="this.curso?.imagen_curso" alt="curso" />
 	}
@@ -21,9 +21,9 @@
 		<span class="font-bold">Precio: {{ curso?.precio_curso }}€</span>
 		@if (this.loginService.usuario && this.loginService.usuario.roll_usuario !== undefined && curso && curso.clases_curso) {
 			@if (this.loginService.usuario.roll_usuario === 'ADMIN' || this.loginService.usuario.roll_usuario === 'PROF' || this.loginService.usuario.cursos_usuario?.includes(curso) || compruebaPlan(this.loginService.usuario.plan_usuario) !== null) {
-				<button id="boton" class="ml-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="this.router.navigate(['repro/' + this.loginService.usuario.id_usuario + '/' + this.curso.id_curso + '/0'])">Ir al curso</button>
+				<button id="boton" class="ml-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="this.router.navigate(['repro/' + this.loginService.usuario.id_usuario + '/' + this.curso.id_curso + '/0'])">Ir al curso</button>
 			} @else {
-				<button id="boton" class="ml-2 rounded-lg border border-black p-2 dark:border-gray-400">Compra este curso</button>]
+				<button id="boton" class="ml-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400">Compra este curso</button>]
 			}
 		}
 		@if (compruebaPlan(this.loginService.usuario?.plan_usuario)) {

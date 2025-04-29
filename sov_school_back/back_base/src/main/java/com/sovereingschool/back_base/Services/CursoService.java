@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -55,13 +56,15 @@ public class CursoService implements ICursoService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Value("${variable.BACK_STREAM}")
+    private String backStreamURL;
+
+    @Value("${variable.BACK_CHAT}")
+    private String backChatURL;
     @PersistenceContext
     private EntityManager entityManager;
     private final String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Videos";
     private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
-    private final String backStreamURL = "https://localhost:8090";
-
-    private final String backChatURL = "https://localhost:8070";
 
     @Override
     public Long createCurso(Curso new_curso) {

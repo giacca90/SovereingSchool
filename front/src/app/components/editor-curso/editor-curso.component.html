@@ -22,9 +22,9 @@
 						<div id="clase-{{ clase.id_clase }}" class="m-2 flex grow items-start rounded-lg border border-black p-2 dark:border-gray-400" draggable="true" (dragstart)="onDragStart($event, clase.id_clase)" (dragover)="this.onDragOver($event, clase.id_clase)" (drop)="this.onDrop($event)" (dragend)="this.onDragEnd($event)">
 							<p class="grow md:grow-0">{{ clase.nombre_clase }}</p>
 							<p class="ml-2 hidden grow text-gray-500 md:block">{{ clase.descriccion_clase }}</p>
-							<svg xmlns="http://www.w3.org/2000/svg" (click)="eliminaClase(clase)" width="25px" height="25px" viewBox="0 0 8 8"><path fill="currentColor" d="M3 0c-.55 0-1 .45-1 1H1c-.55 0-1 .45-1 1h7c0-.55-.45-1-1-1H5c0-.55-.45-1-1-1zM1 3v4.81c0 .11.08.19.19.19h4.63c.11 0 .19-.08.19-.19V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1z" /></svg>
+							<svg class="cursor-pointer" xmlns="http://www.w3.org/2000/svg" (click)="eliminaClase(clase)" width="25px" height="25px" viewBox="0 0 8 8"><path fill="currentColor" d="M3 0c-.55 0-1 .45-1 1H1c-.55 0-1 .45-1 1h7c0-.55-.45-1-1-1H5c0-.55-.45-1-1-1zM1 3v4.81c0 .11.08.19.19.19h4.63c.11 0 .19-.08.19-.19V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1z" /></svg>
 						</div>
-						<button class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="editar = clase; this.startVideoJS()">Editar <span class="hidden md:inline">esta clase</span></button>
+						<button class="m-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="editar = clase; this.startVideoJS()">Editar <span class="hidden md:inline">esta clase</span></button>
 					</div>
 				}
 			</div>
@@ -41,7 +41,7 @@
 			<button class="m-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="deleteCurso()">Elimina este curso</button>
 
 			@if (editado) {
-				<button class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="updateCurso()">Guardar cambios</button>
+				<button class="m-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="updateCurso()">Guardar cambios</button>
 			}
 		</div>
 	}
@@ -52,9 +52,9 @@
 			<input class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" type="text" placeholder="Pon un nombre a tu Clase" [(ngModel)]="editar.nombre_clase" />
 			@if (editar.id_clase === 0) {
 				<div class="flex flex-col items-center md:flex-row">
-					<button id="claseVideo" class="text- m-2 rounded-lg border border-black p-2 text-blue-700 dark:border-gray-400" (click)="cambiaTipoClase(0)">Clase en Video pre-gravado</button>
-					<button id="claseOBS" class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="cambiaTipoClase(1)">Clase en Vivo desde OBS</button>
-					<button id="claseWebCam" class="m-2 rounded-lg border border-black p-2 dark:border-gray-400" (click)="cambiaTipoClase(2)">Clase en Vivo desde la Webcam</button>
+					<button id="claseVideo" class="text- m-2 cursor-pointer rounded-lg border border-black p-2 text-blue-700 dark:border-gray-400" (click)="cambiaTipoClase(0)">Clase en Video pre-gravado</button>
+					<button id="claseOBS" class="m-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="cambiaTipoClase(1)">Clase en Vivo desde OBS</button>
+					<button id="claseWebCam" class="m-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="cambiaTipoClase(2)">Clase en Vivo desde la Webcam</button>
 					<p class="m-2 font-bold text-red-500">ATENCIÓN: No se podrá cambiar el tipo una vez creada la clase</p>
 				</div>
 				<div class="flex grow flex-col items-center md:flex-row md:items-start">

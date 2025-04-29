@@ -22,6 +22,7 @@ import javax.imageio.stream.ImageOutputStream;
 
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
@@ -59,6 +60,9 @@ public class UsuarioController {
 	private IUsuarioService service;
 
 	private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
+
+	@Value("${variable.BACK_BASE}")
+	private String back_base;
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
@@ -337,7 +341,7 @@ public class UsuarioController {
 					}
 					// Files.copy(file.getInputStream(), filePath,
 					// StandardCopyOption.REPLACE_EXISTING);
-					fileNames.add("https://localhost:8080/usuario/fotos/" + webpFileName);
+					fileNames.add(back_base + "/usuario/fotos/" + webpFileName);
 				} catch (IOException e) {
 					response = "Error en convertir la imagen: " + e.getMessage();
 					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -345,7 +349,7 @@ public class UsuarioController {
 			} else {
 				try {
 					Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-					fileNames.add("https://localhost:8080/usuario/fotos/" + fileName);
+					fileNames.add(back_base + "/usuario/fotos/" + fileName);
 				} catch (IOException e) {
 					response = "Error en guardar la imagen: " + e.getMessage();
 					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

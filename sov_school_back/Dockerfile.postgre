@@ -1,0 +1,6 @@
+FROM postgres:17.4
+
+RUN apt update && apt upgrade -y && apt install -y nano
+
+# Exponer el puerto por defecto
+EXPOSE 5432

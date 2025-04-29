@@ -1,0 +1,5 @@
+FROM mongo:8.0.8
+
+RUN apt update && apt upgrade -y && apt install -y nano
+# Puerto por defecto
+EXPOSE 27017
