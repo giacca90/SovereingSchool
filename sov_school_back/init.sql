@@ -1,0 +1,1 @@
+CREATE DATABASE Sov_School;

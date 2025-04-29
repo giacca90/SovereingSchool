@@ -4,6 +4,7 @@ import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
+import { Env } from '../../../environment';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
@@ -449,7 +450,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 					preload: 'auto',
 				});
 				this.player.src({
-					src: `https://localhost:8090/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
+					src: `${Env.BACK_BASE}/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
 					withCredentials: true,
 				});

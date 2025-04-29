@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
+import { Env } from '../../../environment';
 import { Clase } from '../../models/Clase';
 import { ClaseChat } from '../../models/ClaseChat';
 import { Curso } from '../../models/Curso';
@@ -105,7 +106,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 					},
 				});
 				player.src({
-					src: `https://localhost:8090/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
+					src: `${Env.BACK_BASE}/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
 					type: 'application/x-mpegURL',
 					withCredentials: true,
 				});

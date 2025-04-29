@@ -1,6 +1,7 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
+import { Env } from '../../environment';
 import { Clase } from '../models/Clase';
 import { Curso } from '../models/Curso';
 import { Usuario } from '../models/Usuario';
@@ -9,8 +10,8 @@ import { Usuario } from '../models/Usuario';
 	providedIn: 'root',
 })
 export class CursosService {
-	backURL: string = 'https://localhost:8080';
-	backURLStreaming: string = 'https://localhost:8090';
+	backURL: string = Env.BACK_BASE;
+	backURLStreaming: string = Env.BACK_STREAM;
 	public cursos: Curso[] = [];
 
 	constructor(private http: HttpClient) {}

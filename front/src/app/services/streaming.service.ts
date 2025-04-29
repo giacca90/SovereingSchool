@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { Env } from '../../environment';
 import { VideoElement } from '../components/editor-curso/editor-webcam/editor-webcam.component';
 import { Clase } from '../models/Clase';
 import { CursosService } from './cursos.service';
@@ -10,9 +11,9 @@ import { LoginService } from './login.service';
 	providedIn: 'root',
 })
 export class StreamingService {
-	private URL: string = 'https://localhost:8090';
-	private webSocketUrlWebcam: string = 'wss://localhost:8090/live-webcam';
-	private webSocketUrlOBS: string = 'wss://localhost:8090/live-obs';
+	private URL: string = Env.BACK_STREAM;
+	private webSocketUrlWebcam: string = Env.BACK_STREAM_WSS + '/live-webcam';
+	private webSocketUrlOBS: string = Env.BACK_STREAM_WSS + '/live-obs';
 	public enGrabacion: boolean = false;
 	private ws: WebSocket | null = null;
 	private mediaRecorder: MediaRecorder | null = null;

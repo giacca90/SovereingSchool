@@ -1,13 +1,14 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
+import { Env } from '../../environment';
 import { Usuario } from '../models/Usuario';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class UsuariosService {
-	private apiUrl = 'https://localhost:8080/usuario/';
+	private apiUrl = Env.BACK_BASE + '/usuario/';
 	public profes: Usuario[] = [];
 	constructor(private http: HttpClient) {}
 

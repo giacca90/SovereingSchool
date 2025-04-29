@@ -1,5 +1,6 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { Env } from '../../../environment';
 import { Auth } from '../../models/Auth';
 import { LoginModalService } from '../../services/login-modal.service';
 import { LoginService } from '../../services/login.service';
@@ -62,13 +63,13 @@ export class LogModalComponent implements AfterViewInit {
 		const left = (window.innerWidth - width) / 2 + window.screenX;
 		const top = (window.innerHeight - height) / 2 + window.screenY;
 		if (provider === 'google') {
-			window.open('https://localhost:8080/oauth2/authorization/google', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+			window.open(Env.BACK_BASE + '/oauth2/authorization/google', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
 		} else if (provider === 'github') {
-			window.open('https://localhost:8080/oauth2/authorization/github', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+			window.open(Env.BACK_BASE + '/oauth2/authorization/github', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
 		}
 
 		const messageListener = (event: MessageEvent) => {
-			if (event.origin !== 'https://localhost:8080') return;
+			if (event.origin !== Env.BACK_BASE) return;
 
 			const authResponse: Auth = event.data;
 			// Guarda el token en localStorage

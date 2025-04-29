@@ -1,6 +1,7 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
+import { Env } from '../../environment';
 import { Curso } from '../models/Curso';
 import { Estadistica } from '../models/Estadistica';
 import { Init } from '../models/Init';
@@ -12,7 +13,7 @@ import { UsuariosService } from './usuarios.service';
 	providedIn: 'root',
 })
 export class InitService {
-	private apiUrl = 'https://localhost:8080/init';
+	private apiUrl = Env.BACK_BASE + '/init';
 	public estadistica: Estadistica | null = null;
 	constructor(
 		private http: HttpClient,

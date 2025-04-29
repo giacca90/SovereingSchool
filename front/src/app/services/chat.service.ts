@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject, switchMap, takeUntil, timer } from 'rxjs';
+import { Env } from '../../environment';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
 import { MensajeChat } from '../models/MensajeChat';
@@ -13,7 +14,7 @@ import { LoginService } from './login.service';
 })
 export class ChatService {
 	private jwtToken: string | null = localStorage.getItem('Token');
-	private url: string = 'wss://localhost:8070/chat-socket';
+	private url: string = Env.BACK_CHAT_WSS + '/chat-socket';
 
 	public initSubject = new BehaviorSubject<InitChatUsuario | null>(null);
 	private cursoSubject = new BehaviorSubject<CursoChat | null>(null);
