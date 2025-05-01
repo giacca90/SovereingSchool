@@ -2,78 +2,53 @@ import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine } from '@angular/ssr/node';
 import express from 'express';
 import fs from 'fs';
+import http from 'http';
+import https from 'https';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bootstrap from './src/main.server';
 
-// Genera el archivo `env.json` antes de iniciar el servidor
-const envConfig = {
-	BACK_BASE: process.env['BACK_BASE'],
-	BACK_STREAM: process.env['BACK_STREAM'],
-	BACK_CHAT: process.env['BACK_CHAT'],
-	BACK_CHAT_WSS: process.env['BACK_CHAT_WSS'],
-	BACK_STREAM_WWS: process.env['BACK_STREAM_WWS'],
-};
+export function createApp(): express.Express {
+	const app = express();
+	const __dirname = dirname(fileURLToPath(import.meta.url));
+	const browserDist = resolve(__dirname, '../browser');
+	const indexHtml = join(__dirname, 'index.server.html');
+	const engine = new CommonEngine();
 
-// Directorio donde se guardará el archivo env.json
-const serverDistFolder = dirname(fileURLToPath(import.meta.url));
-const browserDistFolder = resolve(serverDistFolder, '../browser');
-const envFilePath = join(browserDistFolder, 'assets/env.json');
+	// Servir estáticos
+	app.use('/assets', express.static(join(browserDist, 'assets')));
+	app.use(express.static(browserDist));
 
-// Asegúrate de que la carpeta existe
-fs.mkdirSync(join(browserDistFolder, 'assets'), { recursive: true });
-
-// Escribe el archivo env.json
-fs.writeFileSync(envFilePath, JSON.stringify(envConfig, null, 2));
-console.log('✅ Archivo env.json generado en', envFilePath);
-
-export function app(): express.Express {
-	const server = express();
-	const indexHtml = join(serverDistFolder, 'index.server.html');
-
-	const commonEngine = new CommonEngine();
-
-	server.set('view engine', 'html');
-	server.set('views', browserDistFolder);
-
-	// Servir archivos estáticos, incluido el env.json
-	server.get(
-		'*/assets/*',
-		express.static(browserDistFolder, {
-			maxAge: '1y',
-			setHeaders: (res) => {
-				res.setHeader('Cache-Control', 'public, max-age=15768000');
-			},
-		}),
-	);
-
-	// Todas las rutas regulares usan el motor Angular
-	server.get('*', (req, res, next) => {
-		const { protocol, originalUrl, baseUrl, headers } = req;
-
-		commonEngine
+	// SSR catch-all con expresión regular para evitar errores de path-to-regexp
+	app.get(/.*/, (req, res, next) => {
+		engine
 			.render({
 				bootstrap,
 				documentFilePath: indexHtml,
-				url: `${protocol}://${headers.host}${originalUrl}`,
-				publicPath: browserDistFolder,
-				providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+				url: `${req.protocol}://${req.headers.host}${req.originalUrl}`,
+				publicPath: browserDist,
+				providers: [{ provide: APP_BASE_HREF, useValue: req.baseUrl }],
 			})
 			.then((html) => res.send(html))
 			.catch((err) => next(err));
 	});
 
-	return server;
+	return app;
 }
 
-function run(): void {
-	const port = process.env['PORT'] || 4000;
+// Leer certificados desde la raíz del proyecto (donde está package.json)
+const projectRoot = process.cwd();
+const key = fs.readFileSync(join(projectRoot, 'key.pem'));
+const cert = fs.readFileSync(join(projectRoot, 'cert.pem'));
 
-	// Levantar el servidor Express
-	const server = app();
-	server.listen(port, () => {
-		console.log(`Node Express server listening on http://localhost:${port}`);
-	});
-}
+// Redirigir HTTP → HTTPS
+http.createServer((req, res) => {
+	const host = req.headers.host;
+	res.writeHead(301, { Location: `https://${host}${req.url}` });
+	res.end();
+}).listen(80, () => console.log('HTTP redirige a HTTPS en puerto 80'));
 
-run();
+// Arrancar servidor HTTPS
+https.createServer({ key, cert }, createApp()).listen(4200, () => {
+	console.log('🔒 Servidor HTTPS escuchando en https://localhost:4200');
+});
