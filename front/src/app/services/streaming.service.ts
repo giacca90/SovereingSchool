@@ -1,7 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Env } from '../../environment';
 import { VideoElement } from '../components/editor-curso/editor-webcam/editor-webcam.component';
 import { Clase } from '../models/Clase';
 import { CursosService } from './cursos.service';
@@ -11,9 +10,6 @@ import { LoginService } from './login.service';
 	providedIn: 'root',
 })
 export class StreamingService {
-	private URL: string = Env.BACK_STREAM;
-	private webSocketUrlWebcam: string = Env.BACK_STREAM_WSS + '/live-webcam';
-	private webSocketUrlOBS: string = Env.BACK_STREAM_WSS + '/live-obs';
 	public enGrabacion: boolean = false;
 	private ws: WebSocket | null = null;
 	private mediaRecorder: MediaRecorder | null = null;
@@ -26,6 +22,27 @@ export class StreamingService {
 		private cursoService: CursosService,
 		private loginService: LoginService,
 	) {}
+
+	get URL(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			return (window as any).__env.BACK_STREAM ?? '';
+		}
+		return '';
+	}
+
+	get webSocketUrlWebcam(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			return (window as any).__env.BACK_STREAM_WSS ?? '' + '/live-webcam';
+		}
+		return '';
+	}
+
+	get webSocketUrlOBS(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			return (window as any).__env.BACK_STREAM_WSS ?? '' + '/live-obs';
+		}
+		return '';
+	}
 
 	getVideo(id_usuario: number, id_curso: number, id_clase: number): Observable<Blob> {
 		return this.http.get(`${this.URL}/${id_usuario}/${id_curso}/${id_clase}`, { responseType: 'blob', withCredentials: true });

@@ -2,9 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
-import { Env } from '../../../environment';
 import { Clase } from '../../models/Clase';
 import { ClaseChat } from '../../models/ClaseChat';
 import { Curso } from '../../models/Curso';
@@ -29,6 +27,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	public curso: Curso | null = null;
 	public clase: Clase | null = null;
 	@ViewChild(ChatComponent, { static: false }) chatComponent!: ChatComponent;
+	backBase = '';
 
 	constructor(
 		private route: ActivatedRoute,
@@ -68,6 +67,9 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.momento = qparams['momento'] || null;
 			}),
 		);
+		if (isPlatformBrowser(this.platformId)) {
+			this.backBase = (window as any).__env?.BACK_BASE ?? '';
+		}
 	}
 
 	loadData() {
@@ -90,77 +92,73 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	private async getVideo() {
+		if (!this.isBrowser) return; // 🛡️ Protección SSR
+
 		try {
 			const video: HTMLVideoElement = document.getElementById('video') as HTMLVideoElement;
-
-			if (video) {
-				const player = videojs(video, {
-					controls: true,
-					autoplay: true,
-					preload: 'auto',
-					techOrder: ['html5'],
-					html5: {
-						vhs: {
-							withCredentials: true,
-						},
-					},
-				});
-				player.src({
-					src: `${Env.BACK_BASE}/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
-					type: 'application/x-mpegURL',
-					withCredentials: true,
-				});
-
-				// Esperar a que el reproductor esté listo
-				player.ready(() => {
-					// Obtener el SeekBar del ProgressControl
-					let seekBar = player.getChild('ControlBar');
-					if (seekBar) {
-						console.log('controlBar');
-						seekBar = seekBar.getChild('ProgressControl');
-						if (seekBar) {
-							console.log('progressControl');
-							seekBar = seekBar.getChild('SeekBar');
-							if (seekBar) {
-								console.log('seekBar');
-								// Añadir el evento de clic derecho
-								seekBar.on('contextmenu', (event: { preventDefault: () => void; clientX: number; clientY: number }) => {
-									event.preventDefault(); // Evita el comportamiento predeterminado del clic
-									if (seekBar) {
-										const rect = seekBar.el().getBoundingClientRect();
-										const clickPosition = event.clientX - rect.left;
-										const clickRatio = clickPosition / rect.width;
-										const duration = player.duration();
-										if (duration) {
-											const timeInSeconds = clickRatio * duration;
-											this.muestraCortina(event.clientX, event.clientY, timeInSeconds);
-										}
-									}
-								});
-							}
-						}
-					}
-					this.loading = false;
-					if (this.momento) {
-						if (this.momento > 3) {
-							player.currentTime(this.momento - 3);
-						} else {
-							player.currentTime(this.momento);
-						}
-					}
-					this.cdr.detectChanges();
-				});
-
-				// Cuando se reproduce el video
-				player.on('play', () => {
-					this.esperarChatComponent(player);
-				});
+			if (!video) {
+				console.warn('Elemento de video no encontrado');
+				return;
 			}
+
+			// 📦 Importación dinámica
+			const videojsModule = await import('video.js');
+			const videojs = videojsModule.default;
+
+			const player = videojs(video, {
+				controls: true,
+				autoplay: true,
+				preload: 'auto',
+				techOrder: ['html5'],
+				html5: {
+					vhs: {
+						withCredentials: true,
+					},
+				},
+			});
+
+			player.src({
+				src: `${this.backBase}/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
+				type: 'application/x-mpegURL',
+				withCredentials: true,
+			});
+
+			player.ready(() => {
+				const controlBar = player.getChild('ControlBar');
+				const progressControl = controlBar?.getChild('ProgressControl');
+				const seekBar = progressControl?.getChild('SeekBar');
+
+				if (seekBar) {
+					seekBar.on('contextmenu', (event: MouseEvent) => {
+						event.preventDefault();
+						const rect = seekBar.el().getBoundingClientRect();
+						const clickPosition = event.clientX - rect.left;
+						const clickRatio = clickPosition / rect.width;
+						const duration = player.duration();
+
+						if (duration) {
+							const timeInSeconds = clickRatio * duration;
+							this.muestraCortina(event.clientX, event.clientY, timeInSeconds);
+						}
+					});
+				}
+
+				this.loading = false;
+
+				if (this.momento) {
+					player.currentTime(this.momento > 3 ? this.momento - 3 : this.momento);
+				}
+
+				this.cdr.detectChanges();
+			});
+
+			player.on('play', () => {
+				this.esperarChatComponent(player);
+			});
 		} catch (error) {
 			console.error('Error loading video:', error);
 		}
 	}
-
 	ngOnDestroy(): void {
 		this.subscription.unsubscribe();
 	}

@@ -1,7 +1,6 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
-import { Env } from '../../environment';
 import { Clase } from '../models/Clase';
 import { Curso } from '../models/Curso';
 import { Usuario } from '../models/Usuario';
@@ -10,11 +9,26 @@ import { Usuario } from '../models/Usuario';
 	providedIn: 'root',
 })
 export class CursosService {
-	backURL: string = Env.BACK_BASE;
-	backURLStreaming: string = Env.BACK_STREAM;
 	public cursos: Curso[] = [];
 
-	constructor(private http: HttpClient) {}
+	constructor(
+		private http: HttpClient,
+		@Inject(PLATFORM_ID) private platformId: object,
+	) {}
+
+	get backURL(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			return (window as any).__env.BACK_BASE ?? '';
+		}
+		return '';
+	}
+
+	get backURLStreaming(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			return (window as any).__env.BACK_STREAM ?? '';
+		}
+		return '';
+	}
 
 	async getCurso(id_curso: number, fromServer?: boolean): Promise<Curso | null> {
 		for (let i = 0; i < this.cursos.length; i++) {

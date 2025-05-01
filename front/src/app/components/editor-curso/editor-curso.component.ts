@@ -1,10 +1,9 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
-import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
-import { Env } from '../../../environment';
 import { Clase } from '../../models/Clase';
 import { Curso } from '../../models/Curso';
 import { CursosService } from '../../services/cursos.service';
@@ -20,7 +19,7 @@ import { EditorWebcamComponent, VideoElement } from '../editor-curso/editor-webc
 	templateUrl: './editor-curso.component.html',
 	styleUrl: './editor-curso.component.css',
 })
-export class EditorCursoComponent implements OnInit, OnDestroy {
+export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewInit {
 	private subscription: Subscription = new Subscription();
 	id_curso: number = 0;
 	curso: Curso | null = null;
@@ -33,6 +32,9 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 	ready: Subject<boolean> = new Subject<boolean>();
 	savedFiles: File[] = [];
 	savedPresets: Map<string, { elements: VideoElement[]; shortcut: string }> = new Map();
+	backBase = '';
+	isBrowser: boolean = false;
+	videojs: any;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -41,6 +43,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		public loginService: LoginService,
 		public streamingService: StreamingService,
 		private initService: InitService,
+		@Inject(PLATFORM_ID) private platformId: Object,
 	) {
 		this.subscription.add(
 			this.route.params.subscribe((params) => {
@@ -60,6 +63,13 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				}
 			}),
 		);
+
+		this.isBrowser = isPlatformBrowser(platformId);
+	}
+	ngAfterViewInit(): void {
+		if (this.isBrowser) {
+			this.videojs = require('video.js'); // 👈 importante: cargarlo dinámicamente
+		}
 	}
 
 	ngOnInit(): void {
@@ -74,6 +84,10 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 				}
 			}),
 		);
+
+		if (isPlatformBrowser(this.platformId)) {
+			this.backBase = (window as any).__env?.BACK_BASE ?? '';
+		}
 	}
 
 	ngOnDestroy(): void {
@@ -84,6 +98,8 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 
 	@HostListener('window:beforeunload', ['$event'])
 	unloadNotification($event: { returnValue: string }): void {
+		if (!this.isBrowser) return;
+
 		if (this.editado) {
 			$event.returnValue = 'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?';
 		}
@@ -436,30 +452,35 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		}, 100);
 	}
 
-	startVideoJS() {
-		setTimeout(() => {
-			if (!this.editar) return;
-			window.scrollTo(0, 0); // Subir la vista al inicio de la página
-			document.body.style.overflow = 'hidden';
-			const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
-			if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.length > 0 && this.editar.direccion_clase.endsWith('.m3u8')) {
-				this.player = videojs(videoPlayer, {
-					aspectRatio: '16:9',
-					controls: true,
-					autoplay: false,
-					preload: 'auto',
-				});
-				this.player.src({
-					src: `${Env.BACK_BASE}/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
-					type: 'application/x-mpegURL',
-					withCredentials: true,
-				});
-			} else {
-				console.error('No se pudo obtener video.js');
-			}
-		}, 100);
-	}
+	async startVideoJS() {
+		if (!this.isBrowser || !this.editar) return;
 
+		// Dinámicamente importa video.js solo en el navegador
+		const videojsModule = await import('video.js');
+		const videojs = videojsModule.default;
+
+		window.scrollTo(0, 0);
+		document.body.style.overflow = 'hidden';
+
+		const videoPlayer = document.getElementById('videoPlayer') as HTMLVideoElement;
+
+		if (videoPlayer && this.editar.direccion_clase && this.editar.direccion_clase.endsWith('.m3u8')) {
+			this.player = videojs(videoPlayer, {
+				aspectRatio: '16:9',
+				controls: true,
+				autoplay: false,
+				preload: 'auto',
+			});
+
+			this.player.src({
+				src: `${this.backBase}/${this.loginService.usuario?.id_usuario}/${this.curso?.id_curso}/${this.editar.id_clase}/master.m3u8`,
+				type: 'application/x-mpegURL',
+				withCredentials: true,
+			});
+		} else {
+			console.error('No se pudo obtener video.js');
+		}
+	}
 	visualizeAudio(stream: MediaStream, audioLevel: HTMLDivElement) {
 		const audioContext = new AudioContext();
 		const analyser = audioContext.createAnalyser();
@@ -517,49 +538,66 @@ export class EditorCursoComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	startOBS() {
-		if (this.loginService.usuario?.id_usuario) {
-			this.streamingService.startOBS(this.loginService.usuario.id_usuario);
+	async startOBS() {
+		if (!this.isBrowser) return; // ✅ Evita ejecutar en SSR
 
-			setTimeout(() => {
-				const videoOBS = document.getElementById('OBS') as HTMLInputElement;
-				if (videoOBS) {
-					this.player = videojs(videoOBS, {
-						aspectRatio: '16:9',
-						controls: false,
-						autoplay: true,
-						preload: 'auto',
-						html5: {
-							hls: {
-								overrideNative: true,
-								enableLowLatency: true,
-							},
-							vhs: {
-								lowLatencyMode: true, // Activa LL-HLS
-							},
-						},
-						liveui: true, // Activa la interfaz de usuario para transmisiones en vivo
-					});
-					this.player.src({
-						src: this.streamingService.UrlPreview,
-						type: 'application/x-mpegURL',
-						withCredentials: true,
-					});
-					// Escucha eventos del reproductor
-					this.player.on('loadeddata', () => {
-						console.log('Archivo .m3u8 cargado correctamente');
-						this.m3u8Loaded = true;
-						// Capturar el MediaStream
-						const mediaStream = (this.player?.tech(true).el() as HTMLVideoElement & { captureStream(): MediaStream }).captureStream();
-						const audioLevel = document.getElementById('audio-level') as HTMLDivElement;
+		const userId = this.loginService.usuario?.id_usuario;
+		if (!userId) return;
+
+		this.streamingService.startOBS(userId);
+
+		// Esperar a que el DOM esté listo
+		setTimeout(async () => {
+			const videoOBS = document.getElementById('OBS') as HTMLVideoElement;
+			if (!videoOBS) {
+				console.error('Elemento con ID "OBS" no encontrado');
+				return;
+			}
+
+			// ✅ Importar dinámicamente video.js
+			const videojsModule = await import('video.js');
+			const videojs = videojsModule.default;
+
+			this.player = videojs(videoOBS, {
+				aspectRatio: '16:9',
+				controls: false,
+				autoplay: true,
+				preload: 'auto',
+				html5: {
+					hls: {
+						overrideNative: true,
+						enableLowLatency: true,
+					},
+					vhs: {
+						lowLatencyMode: true,
+					},
+				},
+				liveui: true,
+			});
+
+			this.player.src({
+				src: this.streamingService.UrlPreview,
+				type: 'application/x-mpegURL',
+				withCredentials: true,
+			});
+
+			this.player.on('loadeddata', () => {
+				console.log('Archivo .m3u8 cargado correctamente');
+				this.m3u8Loaded = true;
+
+				const techEl = this.player?.tech(true)?.el() as HTMLVideoElement & { captureStream(): MediaStream };
+				if (techEl?.captureStream) {
+					const mediaStream = techEl.captureStream();
+					const audioLevel = document.getElementById('audio-level') as HTMLDivElement;
+					if (audioLevel) {
 						this.visualizeAudio(mediaStream, audioLevel);
-					});
-					videoOBS.style.height = 'content'; // Esto asegura que el video mantenga su proporción de aspecto
-				} else {
-					console.error('No se pudo obtener video.js');
+					}
 				}
-			}, 300);
-		}
+			});
+
+			// ✅ Asegura el estilo solo si el elemento existe
+			videoOBS.style.height = 'auto'; // Usar 'auto' en lugar de 'content' (no válido en CSS)
+		}, 300);
 	}
 
 	emiteOBS() {

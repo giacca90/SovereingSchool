@@ -1,7 +1,6 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
-import { Env } from '../../environment';
 import { Curso } from '../models/Curso';
 import { Estadistica } from '../models/Estadistica';
 import { Init } from '../models/Init';
@@ -13,7 +12,6 @@ import { UsuariosService } from './usuarios.service';
 	providedIn: 'root',
 })
 export class InitService {
-	private apiUrl = Env.BACK_BASE + '/init';
 	public estadistica: Estadistica | null = null;
 	constructor(
 		private http: HttpClient,
@@ -21,6 +19,14 @@ export class InitService {
 		private usuarioService: UsuariosService,
 	) {
 		this.carga();
+	}
+
+	get apiUrl(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			const url = (window as any).__env.BACK_BASE ?? '';
+			return url + '/init';
+		}
+		return '';
 	}
 
 	async carga() {

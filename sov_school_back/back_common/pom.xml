@@ -8,11 +8,13 @@
 		<groupId>com.lagolesoftware.app</groupId>
 		<artifactId>sov_school_back</artifactId>
 		<version>1.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<groupId>com.sovereingschool</groupId>
 	<artifactId>back_common</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+
 
 	<name>back_common</name>
 

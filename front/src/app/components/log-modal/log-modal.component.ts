@@ -1,6 +1,6 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, Inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { Env } from '../../../environment';
 import { Auth } from '../../models/Auth';
 import { LoginModalService } from '../../services/login-modal.service';
 import { LoginService } from '../../services/login.service';
@@ -18,16 +18,21 @@ export class LogModalComponent implements AfterViewInit {
 	login: HTMLButtonElement | null = null;
 	register: HTMLButtonElement | null = null;
 	isLoginHidden: boolean = false;
+	backBase = '';
 
 	constructor(
 		private modalService: LoginModalService,
 		private loginService: LoginService,
 		private router: Router,
+		@Inject(PLATFORM_ID) private platformId: Object,
 	) {}
 
 	ngAfterViewInit(): void {
 		this.login = document.getElementById('login') as HTMLButtonElement;
 		this.register = document.getElementById('register') as HTMLButtonElement;
+		if (isPlatformBrowser(this.platformId)) {
+			this.backBase = (window as any).__env?.BACK_BASE ?? '';
+		}
 	}
 
 	clickLogin() {
@@ -63,13 +68,13 @@ export class LogModalComponent implements AfterViewInit {
 		const left = (window.innerWidth - width) / 2 + window.screenX;
 		const top = (window.innerHeight - height) / 2 + window.screenY;
 		if (provider === 'google') {
-			window.open(Env.BACK_BASE + '/oauth2/authorization/google', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+			window.open(this.backBase + '/oauth2/authorization/google', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
 		} else if (provider === 'github') {
-			window.open(Env.BACK_BASE + '/oauth2/authorization/github', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
+			window.open(this.backBase + '/oauth2/authorization/github', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
 		}
 
 		const messageListener = (event: MessageEvent) => {
-			if (event.origin !== Env.BACK_BASE) return;
+			if (event.origin !== this.backBase) return;
 
 			const authResponse: Auth = event.data;
 			// Guarda el token en localStorage

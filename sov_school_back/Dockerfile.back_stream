@@ -1,0 +1,41 @@
+# Etapa 1: Build de la aplicación
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+
+# Crear directorio base
+WORKDIR /app
+
+# Copiar todos los módulos del proyecto multi-módulo
+COPY ./back_common ./back_common
+COPY ./back_streaming ./back_streaming
+COPY ./pom.xml ./
+
+# Instalar el POM padre para que los módulos puedan encontrarlo
+RUN mvn -f pom.xml install -N
+
+WORKDIR /app/back_common
+# Compilar el microservicio
+RUN mvn clean install -DskipTests
+
+WORKDIR /app/back_streaming
+RUN mvn clean package -DskipTests
+
+# Etapa 2: Imagen final con solo el JAR
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+# Copiar el JAR compilado desde el build
+COPY --from=build /app/back_streaming/target/*.jar app.jar
+
+# Copiar el script de inicio al contenedor
+COPY /init.sh /init.sh
+
+# Dar permisos de ejecución al script
+RUN chmod +x /init.sh
+
+# Instalar FFmpeg
+RUN apt update && apt install ffmpeg -y && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 8070
+
+ENTRYPOINT ["/init.sh"]

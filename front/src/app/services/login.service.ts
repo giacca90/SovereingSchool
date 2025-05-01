@@ -1,7 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { afterNextRender, Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
-import { Env } from '../../environment';
 import { Auth } from '../models/Auth';
 import { Usuario } from '../models/Usuario';
 
@@ -9,7 +8,6 @@ import { Usuario } from '../models/Usuario';
 	providedIn: 'root',
 })
 export class LoginService {
-	private apiUrl = Env.BACK_BASE + '/login/';
 	private id_usuario: number | null = null;
 	public usuario: Usuario | null = null;
 
@@ -20,6 +18,14 @@ export class LoginService {
 				this.loginWithToken(token);
 			}
 		});
+	}
+
+	get apiUrl(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			const url = (window as any).__env.BACK_BASE ?? '';
+			return url + '/login/';
+		}
+		return '';
 	}
 
 	async compruebaCorreo(correo: string): Promise<boolean> {

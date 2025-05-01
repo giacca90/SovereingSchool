@@ -1,16 +1,22 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
-import { Env } from '../../environment';
 import { Usuario } from '../models/Usuario';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class UsuariosService {
-	private apiUrl = Env.BACK_BASE + '/usuario/';
 	public profes: Usuario[] = [];
 	constructor(private http: HttpClient) {}
+
+	get apiUrl(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			const url = (window as any).__env.BACK_BASE ?? '';
+			return url + '/usuario/';
+		}
+		return '';
+	}
 
 	getUsuario(id_usuario: number) {
 		const sub = this.http.get<Usuario>(this.apiUrl + id_usuario, { observe: 'response' }).subscribe({
