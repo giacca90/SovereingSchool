@@ -1,14 +1,6 @@
 <!doctype html>
 <html lang="es">
 	<head>
-		<script>
-			// Detecta el tema del sistema y aplica la clase dark si es necesario
-			if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-				document.documentElement.classList.add('dark');
-			} else {
-				document.documentElement.classList.remove('dark');
-			}
-		</script>
 		<script id="env">
 			window.__env = {
 				BACK_BASE: 'https://localhost:8080',
@@ -17,6 +9,14 @@
 				BACK_CHAT_WSS: 'wss://localhost:8070',
 				BACK_STREAM_WSS: 'wss://localhost8090',
 			};
+		</script>
+		<script>
+			// Detecta el tema del sistema y aplica la clase dark si es necesario
+			if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+				document.documentElement.classList.add('dark');
+			} else {
+				document.documentElement.classList.remove('dark');
+			}
 		</script>
 		<script>
 			var global = window;

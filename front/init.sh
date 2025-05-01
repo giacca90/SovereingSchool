@@ -1,21 +1,18 @@
 #!/bin/bash
 
-# Crear el archivo keystore.p12 a partir de la variable de entorno KEYSTORE_CONTENT
-if [ -z "$KEYSTORE_CONTENT" ]; then
-  echo "Error: La variable de entorno KEYSTORE_CONTENT no está configurada."
+# Verifica que las variables están definidas
+if [ -z "$SSL_CERT_B64" ] || [ -z "$SSL_KEY_B64" ]; then
+  echo "Error: Faltan variables de entorno SSL_CERT_B64 o SSL_KEY_B64"
   exit 1
 fi
 
-echo "$KEYSTORE_CONTENT" | base64 -d > /keystore.p12
+# Crea los archivos en /app
+echo "$SSL_CERT_B64" | base64 -d > /app/cert.pem
+echo "$SSL_KEY_B64" | base64 -d > /app/key.pem
 
-# Verificar que el archivo keystore.p12 se haya creado correctamente
-if [ -f /keystore.p12 ]; then
-    echo "Keystore file created successfully."
-else
-    echo "Failed to create keystore file."
-    exit 1
-fi
+# Verifica existencia
+[ -f /app/cert.pem ] && echo "Certificado generado correctamente"
+[ -f /app/key.pem ] && echo "Clave generada correctamente"
 
-# Arrancar la aplicación (ajustar el comando según cómo inicies tu app)
-echo "Iniciando la aplicación SSR..."
-exec node dist/server/main.js
+# Ejecuta tu app
+exec node dist/front/server/server.mjs

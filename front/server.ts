@@ -29,7 +29,24 @@ export function createApp(): express.Express {
 				publicPath: browserDist,
 				providers: [{ provide: APP_BASE_HREF, useValue: req.baseUrl }],
 			})
-			.then((html) => res.send(html))
+			.then((html) => {
+				const newEnvScript = `
+				<script id="env">
+					window.__env = {
+						BACK_BASE: '${process.env['BACK_BASE'] || 'https://localhost:8080'}',
+						BACK_STREAM: '${process.env['BACK_STREAM'] || 'https://localhost:8090'}',
+						BACK_CHAT: '${process.env['BACK_CHAT'] || 'https://localhost:8070'}',
+						BACK_CHAT_WSS: '${process.env['BACK_CHAT_WSS'] || 'wss://localhost:8070'}',
+						BACK_STREAM_WSS: '${process.env['BACK_STREAM_WSS'] || 'wss://localhost:8090'}'
+					};
+				</script>
+			`;
+
+				// Sustituir el contenido del script original (por id)
+				html = html.replace(/<script id="env">[\\s\\S]*?<\/script>/, newEnvScript);
+
+				res.send(html);
+			})
 			.catch((err) => next(err));
 	});
 
