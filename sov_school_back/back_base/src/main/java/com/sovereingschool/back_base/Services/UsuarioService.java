@@ -65,7 +65,8 @@ public class UsuarioService implements IUsuarioService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
+    @Value("${variable.FOTOS_DIR}")
+    private String uploadDir;
 
     UsuarioService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;

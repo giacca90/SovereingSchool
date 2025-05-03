@@ -41,9 +41,13 @@ public class StreamingService {
     @Value("${variable.RTMP}")
     private String RTMP;
 
-    private final String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Videos";
+    @Value("${variable.VIDEOS_DIR}")
+    private String uploadDir;
+    private Path baseUploadDir;
 
-    private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
+    public StreamingService(@Value("${variable.VIDEOS_DIR}") String uploadDir) {
+        this.baseUploadDir = Paths.get(uploadDir);
+    }
 
     /**
      * Función para convertir los videos de un curso

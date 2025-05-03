@@ -59,7 +59,8 @@ public class UsuarioController {
 	@Autowired
 	private IUsuarioService service;
 
-	private String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
+	@Value("${variable.FOTOS_DIR}")
+	private String uploadDir;
 
 	@Value("${variable.BACK_BASE}")
 	private String back_base;
@@ -100,10 +101,9 @@ public class UsuarioController {
 
 	@GetMapping("/fotos/{nombreFoto}")
 	public ResponseEntity<?> getFotos(@PathVariable String nombreFoto) {
-		final String photosDirectory = "/home/matt/Escritorio/Proyectos/SovereingSchool/Fotos";
 		Object response = new Object();
 
-		Path photoPath = Paths.get(photosDirectory).resolve(nombreFoto).normalize();
+		Path photoPath = Paths.get(uploadDir).resolve(nombreFoto).normalize();
 		File photoFile = photoPath.toFile();
 
 		if (!photoFile.exists() || !photoFile.isFile()) {

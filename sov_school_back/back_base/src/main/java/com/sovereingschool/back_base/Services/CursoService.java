@@ -61,10 +61,19 @@ public class CursoService implements ICursoService {
 
     @Value("${variable.BACK_CHAT}")
     private String backChatURL;
+
+    private String uploadDir;
+    private Path baseUploadDir;
+
     @PersistenceContext
     private EntityManager entityManager;
-    private final String uploadDir = "/home/matt/Escritorio/Proyectos/SovereingSchool/Videos";
-    private final Path baseUploadDir = Paths.get(uploadDir); // Directorio base para subir videos
+
+    public CursoService(
+            @Value("${variable.VIDEOS_DIR}") String uploadDir,
+            EntityManager entityManager) {
+        this.baseUploadDir = Paths.get(uploadDir);
+        this.entityManager = entityManager;
+    }
 
     @Override
     public Long createCurso(Curso new_curso) {
