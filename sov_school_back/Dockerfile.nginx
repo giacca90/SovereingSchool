@@ -1,6 +1,8 @@
 # Usamos la imagen base de nginx con el módulo RTMP
 FROM tiangolo/nginx-rtmp
 
+RUN apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
+
 # RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN sed -i 's/listen 1935;/listen 8060;/' /etc/nginx/nginx.conf
 

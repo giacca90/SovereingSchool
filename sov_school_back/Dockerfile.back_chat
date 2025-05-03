@@ -24,6 +24,8 @@ FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
+RUN apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
+
 # Copiar el JAR compilado desde el build
 COPY --from=build /app/back_chat/target/*.jar app.jar
 

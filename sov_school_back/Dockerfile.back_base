@@ -22,6 +22,8 @@ RUN mvn clean package -DskipTests
 # Etapa 2: Imagen final con solo el JAR
 FROM eclipse-temurin:21-jdk
 
+RUN apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copiar el JAR compilado desde el build

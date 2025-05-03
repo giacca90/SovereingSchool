@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 
 public class OBSWebSocketHandler extends TextWebSocketHandler {
-    // private final String RTMP_URL = "rtmp://localhost:8060/live/";
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, Thread> ffmpegThreads = new ConcurrentHashMap<>();
     private final Map<String, Thread> previews = new ConcurrentHashMap<>();

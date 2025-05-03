@@ -89,8 +89,6 @@ export class PerfilUsuarioComponent implements OnDestroy {
 		const temp: Usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 		if (this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
 			const fotoPrincipal: string = (document.getElementById('fotoPrincipal') as HTMLImageElement).src;
-			console.log('FOTO PRINCIPAL: ' + fotoPrincipal);
-			console.log('FOTOS: ' + this.usuario.foto_usuario);
 			if (fotoPrincipal !== this.usuario.foto_usuario[0]) {
 				const f: string[] = [];
 				f.push(fotoPrincipal);

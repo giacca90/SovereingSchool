@@ -34,7 +34,7 @@ COPY /init.sh /init.sh
 RUN chmod +x /init.sh
 
 # Instalar FFmpeg
-RUN apt update && apt install ffmpeg -y && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt upgrade -y && apt install ffmpeg -y && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8070
 
