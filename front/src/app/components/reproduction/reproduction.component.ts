@@ -27,7 +27,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	public curso: Curso | null = null;
 	public clase: Clase | null = null;
 	@ViewChild(ChatComponent, { static: false }) chatComponent!: ChatComponent;
-	backBase = '';
+	backStream: string = '';
 
 	constructor(
 		private route: ActivatedRoute,
@@ -68,7 +68,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 			}),
 		);
 		if (isPlatformBrowser(this.platformId)) {
-			this.backBase = (window as any).__env?.BACK_BASE ?? '';
+			this.backStream = (window as any).__env?.BACK_STREAM ?? '';
 		}
 	}
 
@@ -118,7 +118,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 			});
 
 			player.src({
-				src: `${this.backBase}/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
+				src: `${this.backStream}/${this.id_usuario}/${this.id_curso}/${this.id_clase}/master.m3u8`,
 				type: 'application/x-mpegURL',
 				withCredentials: true,
 			});

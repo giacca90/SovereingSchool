@@ -42,6 +42,9 @@ public class PresetController {
     public ResponseEntity<?> getPresets(@PathVariable Long id_usuario) {
         try {
             Preset result = this.usuarioPresetsService.getPresetsForUser(id_usuario);
+            if (result == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
             Map<String, PresetValue> presetsMap = result.getPresets();
             return new ResponseEntity<>(presetsMap, HttpStatus.OK);
         } catch (Exception e) {

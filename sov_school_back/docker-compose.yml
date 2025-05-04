@@ -14,9 +14,9 @@ services:
     networks:
       - sovschool-network     
     depends_on:
-      - sovschool-back_base
-      - sovschool-back_chat
-      - sovschool-back_stream
+      - sovschool-back-base
+      - sovschool-back-chat
+      - sovschool-back-stream
       - sovschool-rtmp
 
   sovschool-postgres:
@@ -59,12 +59,12 @@ services:
     networks:
       - sovschool-network
 
-  sovschool-back_base:
-    image: sovschool-back_base
+  sovschool-back-base:
+    image: sovschool-back-base
     build:
       context: .
       dockerfile: Dockerfile.back_base
-    container_name: sovschool-back_base
+    container_name: sovschool-back-base
     env_file:
       - .env.back_base
     ports:
@@ -78,12 +78,12 @@ services:
       - sovschool-postgres
       - sovschool-mongo
 
-  sovschool-back_chat:
-    image: sovschool-back_chat
+  sovschool-back-chat:
+    image: sovschool-back-chat
     build:
       context: .
       dockerfile: Dockerfile.back_chat
-    container_name: sovschool-back_chat
+    container_name: sovschool-back-chat
     env_file:
       - .env.back_chat
     ports:
@@ -94,12 +94,12 @@ services:
       - sovschool-postgres
       - sovschool-mongo
 
-  sovschool-back_stream:
-    image: sovschool-back_stream
+  sovschool-back-stream:
+    image: sovschool-back-stream
     build:
       context: .
       dockerfile: Dockerfile.back_stream
-    container_name: sovschool-back_stream
+    container_name: sovschool-back-stream
     env_file:
       - .env.back_stream
     ports:

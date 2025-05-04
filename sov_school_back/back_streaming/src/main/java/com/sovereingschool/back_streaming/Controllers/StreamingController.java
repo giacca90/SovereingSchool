@@ -61,7 +61,7 @@ public class StreamingController {
     private StreamingService streamingService;
 
     @GetMapping("/{id_usuario}/{id_curso}/{id_clase}/{lista}")
-    public ResponseEntity<InputStreamResource> getListas(@PathVariable Long id_usuario, @PathVariable Long id_curso,
+    public ResponseEntity<?> getListas(@PathVariable Long id_usuario, @PathVariable Long id_curso,
             @PathVariable Long id_clase,
             @PathVariable String lista,
             @RequestHeader HttpHeaders headers) throws IOException {
@@ -69,12 +69,14 @@ public class StreamingController {
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
         if (direccion_carpeta == null) {
             System.err.println("No se encuentra la carpeta del curso: " + direccion_carpeta);
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No se encuentra la carpeta del curso: " + direccion_carpeta);
         }
         direccion_carpeta = direccion_carpeta.substring(0, direccion_carpeta.lastIndexOf("/"));
         if (direccion_carpeta == null) {
             System.err.println("El video no tiene ruta");
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("El video no tiene ruta");
         }
 
         Path carpetaPath = Paths.get(direccion_carpeta);
@@ -83,7 +85,8 @@ public class StreamingController {
 
         if (!Files.exists(videoPath)) {
             System.err.println("No existe el archivo: " + videoPath);
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No existe el archivo: " + videoPath);
         }
 
         // Obtener el tipo MIME del video

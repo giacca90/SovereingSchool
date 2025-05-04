@@ -49,7 +49,7 @@ public class JwtTokenCookieFilter extends OncePerRequestFilter {
     }
 
     private boolean isValidCookieName(String name) {
-        return "initToken".equals(name) || "refreshToken".equals(name);
+        return "refreshToken".equals(name);
     }
 
     private boolean hasText(String s) {

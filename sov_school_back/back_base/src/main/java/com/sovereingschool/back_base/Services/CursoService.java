@@ -3,6 +3,7 @@ package com.sovereingschool.back_base.Services;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -453,22 +455,28 @@ public class CursoService implements ICursoService {
     }
 
     public WebClient createSecureWebClient(String baseUrl) throws Exception {
+        URI uri = new URI(baseUrl);
+        String host = uri.getHost(); // p.ej. "sovschool-back-chat"
+        int port = uri.getPort(); // p.ej. 8070
+
         SslContext sslContext = SslContextBuilder.forClient()
                 .trustManager(InsecureTrustManagerFactory.INSTANCE)
                 .build();
 
-        // Configurar HttpClient con el contexto SSL
         HttpClient httpClient = HttpClient.create()
                 .secure(spec -> spec.sslContext(sslContext));
 
-        // Obtener token
         String authToken = this.jwtUtil.generateToken(null, "server", null);
 
-        // Conectar HttpClient con WebClient y añadir header por defecto
+        String hostHeader = (port == 443 || port == -1)
+                ? host
+                : host + ":" + port;
+
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .baseUrl(baseUrl)
-                .defaultHeader("Authorization", "Bearer " + authToken)
+                .defaultHeader(HttpHeaders.HOST, hostHeader)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
                 .build();
     }
 
