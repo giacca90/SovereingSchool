@@ -14,7 +14,10 @@ import org.springframework.http.HttpRange;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sovereingschool.back_common.Models.Clase;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Usuario;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 import com.sovereingschool.back_streaming.Services.UsuarioCursosService;
 
@@ -60,11 +64,21 @@ public class StreamingController {
     @Autowired
     private StreamingService streamingService;
 
-    @GetMapping("/{id_usuario}/{id_curso}/{id_clase}/{lista}")
-    public ResponseEntity<?> getListas(@PathVariable Long id_usuario, @PathVariable Long id_curso,
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @GetMapping("/{id_curso}/{id_clase}/{lista}")
+    public ResponseEntity<?> getListas(@PathVariable Long id_curso,
             @PathVariable Long id_clase,
             @PathVariable String lista,
             @RequestHeader HttpHeaders headers) throws IOException {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+        }
+        Long id_usuario = (Long) authentication.getDetails();
 
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
         if (direccion_carpeta == null) {
@@ -108,13 +122,19 @@ public class StreamingController {
 
     }
 
-    @GetMapping("/{id_usuario}/{id_curso}/{id_clase}/{lista}/{video}")
-    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable Long id_usuario, @PathVariable Long id_curso,
+    @GetMapping("/{id_curso}/{id_clase}/{lista}/{video}")
+    public ResponseEntity<InputStreamResource> streamVideo(@PathVariable Long id_curso,
             @PathVariable Long id_clase,
             @PathVariable String lista,
             @PathVariable String video,
             @RequestHeader HttpHeaders headers) throws IOException {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("No autenticado");
+        }
+        Long id_usuario = (Long) authentication.getDetails();
         String direccion_carpeta = this.usuarioCursosService.getClase(id_usuario, id_curso, id_clase);
         direccion_carpeta = direccion_carpeta.substring(0, direccion_carpeta.lastIndexOf("/"));
         if (direccion_carpeta == null) {

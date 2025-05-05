@@ -32,6 +32,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,6 +52,7 @@ import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Plan;
 import com.sovereingschool.back_common.Models.RoleEnum;
 import com.sovereingschool.back_common.Models.Usuario;
+import com.sovereingschool.back_common.Utils.JwtUtil;
 
 @RestController
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
@@ -58,6 +61,9 @@ public class UsuarioController {
 
 	@Autowired
 	private IUsuarioService service;
+
+	@Autowired
+	private JwtUtil jwtUtil;
 
 	@Value("${variable.FOTOS_DIR}")
 	private String uploadDir;
@@ -224,6 +230,16 @@ public class UsuarioController {
 	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@PutMapping("/edit")
 	public ResponseEntity<?> editUsuario(@RequestBody Usuario usuario) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+		}
+		Long idUsuario = (Long) authentication.getDetails();
+
+		if (idUsuario == null || !idUsuario.equals(usuario.getId_usuario())) {
+			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+		}
 		Object response = new Object();
 		try {
 			Long resultado = this.service.updateUsuario(usuario).getId_usuario();
@@ -242,6 +258,15 @@ public class UsuarioController {
 	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@PutMapping("/plan")
 	public ResponseEntity<?> changePlanUsuario(@RequestBody Usuario usuario) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+		}
+		Long idUsuario = (Long) authentication.getDetails();
+		if (idUsuario == null || !idUsuario.equals(usuario.getId_usuario())) {
+			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+		}
 		Object response = new Object();
 		try {
 			Integer resultado = this.service.changePlanUsuario(usuario);
@@ -260,6 +285,15 @@ public class UsuarioController {
 	@PreAuthorize("hasRole('USER') or hasRole('PROF') or hasRole('ADMIN')")
 	@PutMapping("/cursos")
 	public ResponseEntity<?> changeCursosUsuario(@RequestBody Usuario usuario) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+		}
+		Long idUsuario = (Long) authentication.getDetails();
+		if (idUsuario == null || !idUsuario.equals(usuario.getId_usuario())) {
+			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+		}
 		Object response = new Object();
 		try {
 			Integer resultado = this.service.changeCursosUsuario(usuario);
@@ -278,6 +312,7 @@ public class UsuarioController {
 	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
+
 		Object response = new Object();
 		try {
 			String result = this.service.deleteUsuario(id);
