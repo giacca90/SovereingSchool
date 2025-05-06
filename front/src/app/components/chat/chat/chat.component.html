@@ -30,10 +30,10 @@
 									</div>
 									<p class="text-gray-500">{{ mex.respuesta.mensaje }}</p>
 								}
-								@if (mex.pregunta) {
+								@if (mex.pregunta && mex.id_curso && mex.id_clase) {
 									<p class="text-gray-500">
 										Pregunta en el momento
-										<a class="text-blue-500 underline visited:text-purple-600 hover:text-blue-700" href="repro/{{ this.loginService.usuario?.id_usuario }}/{{ mex.id_curso }}/{{ mex.id_clase }}?momento={{ mex.pregunta }}">{{ Math.floor(mex.pregunta / 60) }}:{{ (mex.pregunta % 60).toString().padStart(2, '0') }}</a>
+										<a [routerLink]="['/repro', loginService.usuario?.id_usuario, mex.id_curso, mex.id_clase]" [queryParams]="{ momento: mex.pregunta }" class="text-blue-500 underline visited:text-purple-600 hover:text-blue-700"> {{ Math.floor(mex.pregunta / 60) }}:{{ (mex.pregunta % 60).toString().padStart(2, '0') }} </a>
 									</p>
 								}
 								<p>{{ mex.mensaje }}</p>

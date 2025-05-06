@@ -163,6 +163,10 @@ export class CursosService {
 				}
 				return false;
 			}),
+			catchError((e: Error) => {
+				console.error('Error al obtener el estado del curso:', e.message);
+				return of(false);
+			}),
 		);
 	}
 }

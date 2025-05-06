@@ -1,5 +1,5 @@
 import { afterNextRender, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CursoChat } from '../../../models/CursoChat';
 import { MensajeChat } from '../../../models/MensajeChat';
@@ -9,7 +9,7 @@ import { LoginService } from '../../../services/login.service';
 @Component({
 	selector: 'app-chat',
 	standalone: true,
-	imports: [],
+	imports: [RouterModule],
 	templateUrl: './chat.component.html',
 	styleUrl: './chat.component.css',
 })
@@ -27,6 +27,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 		public chatService: ChatService,
 		public loginService: LoginService,
 		private route: ActivatedRoute,
+		private router: Router,
 		public cdr: ChangeDetectorRef,
 	) {
 		if (!this.idCurso) {
@@ -186,7 +187,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 		this.cdr.detectChanges();
 	}
 
-	navegaAlVideo(arg0: number) {
-		console.log('NAVEGA AL VIDEO' + arg0);
+	navegaAlVideo(id_curso: number, id_clase: number, momento?: number) {
+		if (momento) {
+			this.router.navigate(['repro', this.loginService.usuario?.id_usuario, id_curso, id_clase], { queryParams: { momento } });
+		} else {
+			this.router.navigate(['repro', this.loginService.usuario?.id_usuario, id_curso, id_clase]);
+		}
 	}
 }

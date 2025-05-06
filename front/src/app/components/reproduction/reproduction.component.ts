@@ -45,7 +45,6 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.id_usuario = params['id_usuario'];
 				this.id_curso = params['id_curso'];
 				this.id_clase = params['id_clase'];
-				this.momento = params['momento'] || null;
 
 				if (this.id_clase == 0) {
 					this.cursoService.getStatusCurso(this.id_usuario, this.id_curso).subscribe({
@@ -65,6 +64,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.subscription.add(
 			this.route.queryParams.subscribe((qparams) => {
 				this.momento = qparams['momento'] || null;
+				this.loadData();
 			}),
 		);
 		if (isPlatformBrowser(this.platformId)) {
@@ -80,6 +80,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 				if (result) {
 					this.clase = result;
 					this.cdr.detectChanges();
+					this.getVideo();
 				}
 			}
 		});
@@ -147,6 +148,11 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 
 				if (this.momento) {
 					player.currentTime(this.momento > 3 ? this.momento - 3 : this.momento);
+					this.router.navigate([], {
+						queryParams: { momento: null },
+						queryParamsHandling: 'merge',
+						replaceUrl: true,
+					});
 				}
 
 				this.cdr.detectChanges();
@@ -164,9 +170,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	navega(clase: Clase) {
-		this.router.navigate(['/']).then(() => {
-			this.router.navigate(['repro/' + this.id_usuario + '/' + this.id_curso + '/' + clase.id_clase]);
-		});
+		this.router.navigate(['repro/' + this.id_usuario + '/' + this.id_curso + '/' + clase.id_clase]);
 	}
 
 	cambiaVista(vista: number) {
