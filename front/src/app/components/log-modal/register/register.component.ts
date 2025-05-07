@@ -70,8 +70,8 @@ export class RegisterComponent implements OnDestroy {
 				<br />
 				<input type="password" id="password2" class="m-4 rounded-lg border border-black p-1" placeholder="Repite la contraseña" />
 				<br />
-				<button id="nextButton2" class="m-4 rounded-lg border text-black border-black bg-green-300 p-1" >Siguiente</button>
-				<button id="cancelButton2" class="m-4 rounded-lg border text-black border-black bg-red-300 p-1" >Cancelar</button>
+				<button id="nextButton2" class="cursor-pointer m-4 rounded-lg border text-black border-black bg-green-300 p-1" >Siguiente</button>
+				<button id="cancelButton2" class="cursor-pointer m-4 rounded-lg border text-black border-black bg-red-300 p-1" >Cancelar</button>
 			`;
 			const nextButton = document.getElementById('nextButton2') as HTMLButtonElement;
 			const cancelButton = document.getElementById('cancelButton2') as HTMLButtonElement;
@@ -107,13 +107,22 @@ export class RegisterComponent implements OnDestroy {
 		if (pass == pass2) {
 			this.nuevoUsuario.password = pass;
 			this.nuevoUsuario.fecha_registro_usuario = new Date();
-			this.registerService.registrarNuevoUsuario(this.nuevoUsuario).then(() => {
-				message.classList.remove('text-red-600');
-				message.classList.add('text-green-700');
-				message.innerHTML = 'Te has registrado con éxito!!!';
-				setTimeout(() => {
-					this.close();
-				}, 1000);
+			this.registerService.registrarNuevoUsuario(this.nuevoUsuario).then((resp: boolean) => {
+				if (resp) {
+					const content: HTMLDivElement = document.getElementById('content2') as HTMLDivElement;
+					content.innerHTML = `
+					<br />
+					<div class="text-green-700 ml-4 mr-4">
+					<p>Te hemos enviado un correo electrónico con el enlace para activar tu cuenta.</p>
+					<p>El enlace expirará en 24 horas.</p>
+					</div>
+					<button id="button" class="cursor-pointer m-4 rounded-lg border text-black border-black bg-green-300 p-1">Cerrar</button>
+					`;
+				}
+				const button: HTMLButtonElement = document.getElementById('button') as HTMLButtonElement;
+				if (button) {
+					button.addEventListener('click', () => this.close());
+				}
 				return;
 			});
 		} else {

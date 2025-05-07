@@ -1,6 +1,10 @@
 package com.sovereingschool.back_common.Utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +29,20 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.sovereingschool.back_common.DTOs.NewUsuario;
 
 @Component
 public class JwtUtil {
+
+    public static String convertirObjetoABase64(Object objeto) throws IOException {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        ObjectOutputStream objStream = new ObjectOutputStream(byteStream);
+        objStream.writeObject(objeto);
+        objStream.flush();
+
+        byte[] bytes = byteStream.toByteArray();
+        return Base64.getEncoder().encodeToString(bytes);
+    }
 
     @Value("${security.jwt.private.key}")
     private String privateKay;
@@ -105,6 +120,26 @@ public class JwtUtil {
                 .sign(algorithm);
 
         return jwtToken;
+    }
+
+    public String generateRegistrationToken(NewUsuario newUsuario) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(this.privateKay);
+            String jwtToken = JWT.create()
+                    .withIssuer(this.userGenerator)
+                    .withSubject(newUsuario.getCorreo_electronico())
+                    .withClaim("rol", "ROLE_USER")
+                    .withClaim("new_usuario", convertirObjetoABase64(newUsuario))
+                    .withIssuedAt(new Date())
+                    .withExpiresAt(getExpiredForInitToken())
+                    .withJWTId(UUID.randomUUID().toString())
+                    .withNotBefore(new Date(System.currentTimeMillis())) //
+                    .sign(algorithm);
+            return jwtToken;
+        } catch (Exception e) {
+            System.err.println("Error al generar el token de registro: " + e.getMessage());
+            throw new RuntimeException("Error al generar el token de registro: " + e.getMessage());
+        }
     }
 
     /**

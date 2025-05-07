@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Confirmación de Correo</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f4f4f4;
+				color: #333;
+				padding: 20px;
+			}
+
+			.head-body {
+				background-color: #00bbd9;
+			}
+
+			.gold {
+				color: #fcab00;
+			}
+
+			/* Modo oscuro */
+			@media (prefers-color-scheme: dark) {
+				body {
+					background-color: #333 !important;
+					color: #fff !important;
+				}
+
+				/* Solo la tabla con esta clase */
+				.content-table {
+					background-color: #333 !important;
+				}
+				/* Y para que el texto dentro sea legible */
+				.content-table td,
+				.content-table th {
+					color: #ffffff !important;
+				}
+
+				.head-body {
+					background-color: #0049b5;
+				}
+
+				.gold {
+					color: #dc8200;
+				}
+			}
+
+			.btn {
+				background-color: #4caf50;
+				color: white;
+				padding: 10px 20px;
+				text-decoration: none;
+				border-radius: 5px;
+				display: inline-block;
+				margin-top: 20px;
+			}
+
+			.footer {
+				font-size: 12px;
+				color: #888;
+			}
+
+			@media only screen and (max-width: 480px) {
+				h1 {
+					font-size: 1.5rem;
+				}
+				.btn {
+					width: 100%;
+					text-align: center;
+					box-sizing: border-box;
+				}
+			}
+		</style>
+	</head>
+	<body style="margin: 0; padding: 0; background-color: #f4f4f4">
+		<!-- Header a pantalla completa -->
+		<table class="head-body" width="100%" cellpadding="0" cellspacing="0" border="0">
+			<tr>
+				<td align="center">
+					<h1 class="gold" style="margin: 0; font-size: 24px">SOVEREIGN SCHOOL</h1>
+					<h5 style="color: #008236; margin: 0; margin-bottom: 4px">El mejor lugar para aprender Soberanía!!!</h5>
+				</td>
+			</tr>
+		</table>
+
+		<!-- Contenido (nota la clase content-table) -->
+		<table width="100%" class="content-table" align="center" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; padding: 20px">
+			<tr>
+				<td>
+					<h3>Hola <span th:text="${nombre}"></span>,</h3>
+					<p>Gracias por registrarte!!!</p>
+					<p>Estámos encantados de que te interese la Soberanía y la libertad individual.</p>
+					<p>Haz click en el botón de abajo para confirmar tu correo.</p>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a th:href="${link}" class="btn">Confirmar Correo</a>
+				</td>
+			</tr>
+		</table>
+
+		<!-- Footer a pantalla completa -->
+		<table class="head-body" width="100%" cellpadding="0" cellspacing="0" border="0">
+			<tr>
+				<td align="center" style="color: #ffffff; padding: 16px; font-size: 12px">© <span th:text="${currentYear}"></span> - Todos los derechos reservados.</td>
+			</tr>
+		</table>
+	</body>
+</html>

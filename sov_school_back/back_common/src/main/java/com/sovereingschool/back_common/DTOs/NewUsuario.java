@@ -1,5 +1,6 @@
-package com.sovereingschool.back_base.DTOs;
+package com.sovereingschool.back_common.DTOs;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -17,7 +18,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class NewUsuario {
+public class NewUsuario implements Serializable {
 	private String nombre_usuario;
 
 	private String correo_electronico;

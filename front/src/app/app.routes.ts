@@ -52,6 +52,10 @@ export const routes: Routes = [
 		loadComponent: () => import('./components/privacy/privacy.component').then((m) => m.PrivacyComponent),
 	},
 	{
+		path: 'confirm-email',
+		loadComponent: () => import('./components/confirm-email/confirm-email.component').then((m) => m.ConfirmEmailComponent),
+	},
+	{
 		path: '**',
 		redirectTo: '',
 	},

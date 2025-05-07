@@ -1,6 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Auth } from '../models/Auth';
 import { NuevoUsuario } from '../models/NuevoUsuario';
 import { LoginService } from './login.service';
 
@@ -22,15 +21,17 @@ export class RegisterService {
 
 	async registrarNuevoUsuario(nuevoUsuario: NuevoUsuario): Promise<boolean> {
 		return new Promise(async (resolve, reject) => {
-			const sub = this.http.post<Auth>(`${this.apiUrl}/usuario/nuevo`, nuevoUsuario, { observe: 'response', responseType: 'text' as 'json' }).subscribe({
-				next: (response: HttpResponse<Auth>) => {
+			const sub = this.http.post<string>(`${this.apiUrl}/usuario/nuevo`, nuevoUsuario, { observe: 'response', responseType: 'text' as 'json' }).subscribe({
+				next: (response: HttpResponse<string>) => {
 					if (response.status === 200 && response.body) {
-						this.loginService.usuario = response.body.usuario;
-						localStorage.setItem('Token', response.body.accessToken);
-						resolve(true);
-						sub.unsubscribe();
+						if (response.body === 'Correo enviado con éxito!!!') {
+							sub.unsubscribe();
+							resolve(true);
+						} else {
+							alert('Ha habido un error al registrarte. Por favor, inténtalo de nuevo.');
+						}
 					} else {
-						resolve(false);
+						reject(false);
 					}
 				},
 				error: (error: HttpErrorResponse) => {

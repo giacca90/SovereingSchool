@@ -16,9 +16,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sovereingschool.back_base.DTOs.AuthResponse;
-import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Services.LoginService;
 import com.sovereingschool.back_base.Services.UsuarioService;
+import com.sovereingschool.back_common.DTOs.NewUsuario;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

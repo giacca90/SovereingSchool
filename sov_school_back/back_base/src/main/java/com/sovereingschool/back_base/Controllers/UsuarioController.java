@@ -1,8 +1,10 @@
 package com.sovereingschool.back_base.Controllers;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,6 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -46,8 +49,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sovereingschool.back_base.DTOs.AuthResponse;
-import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
+import com.sovereingschool.back_common.DTOs.NewUsuario;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Plan;
 import com.sovereingschool.back_common.Models.RoleEnum;
@@ -58,6 +61,12 @@ import com.sovereingschool.back_common.Utils.JwtUtil;
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
 @RequestMapping("/usuario")
 public class UsuarioController {
+
+	public static Object convertirBase64AObjeto(String base64) throws IOException, ClassNotFoundException {
+		byte[] data = Base64.getDecoder().decode(base64);
+		ObjectInputStream objStream = new ObjectInputStream(new ByteArrayInputStream(data));
+		return objStream.readObject();
+	}
 
 	@Autowired
 	private IUsuarioService service;
@@ -198,9 +207,36 @@ public class UsuarioController {
 	public ResponseEntity<?> createUsuario(@RequestBody NewUsuario newUsuario) {
 		Object response = new Object();
 		try {
+			boolean mailResp = this.service.sendConfirmationEmail(newUsuario);
+			if (!mailResp) {
+				response = "Error en enviar el correo de confirmación";
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			String resp = "Correo enviado con éxito!!!";
+			response = resp;
+			return ResponseEntity.ok()
+					.body(response);
+		} catch (Exception ex) {
+			response = "Error en crear el nuevo usuario: " + ex.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PostMapping("/confirmation")
+	public ResponseEntity<?> confirmationEmail(@RequestBody String token) {
+		Object response = new Object();
+		try {
+			this.jwtUtil.isTokenValid(token);
+			String newUsuarioB64 = this.jwtUtil.getSpecificClaim(token, "new_usuario");
+			if (newUsuarioB64 == null || newUsuarioB64.isEmpty()) {
+				response = "Error en el token de acceso";
+				return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			}
+			NewUsuario newUsuario = (NewUsuario) convertirBase64AObjeto(newUsuarioB64);
+
 			AuthResponse authResponse = this.service.createUsuario(newUsuario);
-			if (!authResponse.status()) {
-				response = "Error en crear el nuevo usuario: " + authResponse.message();
+			if (authResponse == null || !authResponse.status()) {
+				response = "Error en crear el usuario";
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			String refreshToken = authResponse.refreshToken();
@@ -210,20 +246,17 @@ public class UsuarioController {
 
 			// Construir la cookie segura
 			ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
-					.httpOnly(true) // No accesible desde JavaScript
-					.secure(true) // Solo por HTTPS
-					.path("/") // Ruta donde será accesible
-					.maxAge(15 * 24 * 60 * 60) // 15 días
-					.sameSite("None") // Cambia a "None" si trabajas con frontend separado
+					.httpOnly(true)
+					.secure(true)
+					.path("/")
+					.maxAge(15 * 24 * 60 * 60)
+					.sameSite("None")
 					.build();
-
 			return ResponseEntity.ok()
 					.header("Set-Cookie", refreshTokenCookie.toString())
 					.body(response);
-
 		} catch (Exception e) {
-			response = "Error en crear el nuevo usuario: " + e.getMessage();
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("Error en crear el usuario", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

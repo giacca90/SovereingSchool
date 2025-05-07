@@ -4,12 +4,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,10 +25,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import com.sovereingschool.back_base.DTOs.AuthResponse;
-import com.sovereingschool.back_base.DTOs.NewUsuario;
 import com.sovereingschool.back_base.Interfaces.IUsuarioService;
+import com.sovereingschool.back_common.DTOs.NewUsuario;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Login;
 import com.sovereingschool.back_common.Models.Plan;
@@ -35,6 +43,8 @@ import com.sovereingschool.back_common.Utils.JwtUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -56,11 +66,17 @@ public class UsuarioService implements IUsuarioService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private JavaMailSender mailSender;
+
     @Value("${variable.BACK_CHAT}")
     private String backChatURL;
 
     @Value("${variable.BACK_STREAM}")
     private String backStreamURL;
+
+    @Value("${variable.FRONT}")
+    private String frontURL;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -68,9 +84,12 @@ public class UsuarioService implements IUsuarioService {
     @Value("${variable.FOTOS_DIR}")
     private String uploadDir;
 
+    @Autowired
+    private SpringTemplateEngine templateEngine;
+
     UsuarioService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
-    }
+    };
 
     @Override
     public AuthResponse createUsuario(NewUsuario new_usuario) {
@@ -160,7 +179,7 @@ public class UsuarioService implements IUsuarioService {
 
         return new AuthResponse(true, "Usuario creado con éxito", usuarioInsertado, accessToken, refreshToken);
 
-    };
+    }
 
     @Override
     public Usuario getUsuario(Long id_usuario) {
@@ -275,6 +294,49 @@ public class UsuarioService implements IUsuarioService {
         return this.repo.findProfes();
     }
 
+    @Override
+    public boolean sendConfirmationEmail(NewUsuario newUsuario) {
+        Context context = new Context();
+        String token = jwtUtil.generateRegistrationToken(newUsuario);
+        context.setVariable("nombre", newUsuario.getNombre_usuario());
+        context.setVariable("link", frontURL + "/confirm-email?token=" + token);
+        context.setVariable("currentYear", Year.now().getValue());
+
+        String htmlContent = templateEngine.process("mail-registro", context);
+
+        // Enviar el correo como HTML
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(newUsuario.getCorreo_electronico());
+            helper.setSubject("Confirmación de Correo Electrónico");
+            helper.setText(htmlContent, true);
+            mailSender.send(mimeMessage);
+            return true;
+        } catch (MailAuthenticationException e) {
+            // Error de autenticación con el servidor SMTP
+            System.err.println("Error de autenticación al enviar el correo: " + e.getMessage());
+            return false;
+        } catch (MailSendException e) {
+            // Error al enviar el mensaje
+            System.err.println("Error al enviar el correo: " + e.getMessage());
+            return false;
+        } catch (MailException e) {
+            // Otros errores relacionados con el envío de correos
+            System.err.println("Error general al enviar el correo: " + e.getMessage());
+            return false;
+        } catch (MessagingException e) {
+            // Error al construir el mensaje MIME
+            System.err.println("Error al construir el mensaje de correo: " + e.getMessage());
+            return false;
+        } catch (Exception e) {
+            // Cualquier otro error inesperado
+            System.err.println("Error inesperado al enviar el correo: " + e.getMessage());
+            return false;
+        }
+
+    }
+
     public WebClient createSecureWebClient(String baseUrl) throws Exception {
 
         SslContext sslContext = SslContextBuilder.forClient()
@@ -295,4 +357,5 @@ public class UsuarioService implements IUsuarioService {
                 .defaultHeader("Authorization", "Bearer " + authToken)
                 .build();
     }
+
 }

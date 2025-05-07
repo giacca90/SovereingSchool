@@ -3,11 +3,13 @@ package com.sovereingschool.back_base.Interfaces;
 import java.util.List;
 
 import com.sovereingschool.back_base.DTOs.AuthResponse;
-import com.sovereingschool.back_base.DTOs.NewUsuario;
+import com.sovereingschool.back_common.DTOs.NewUsuario;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Plan;
 import com.sovereingschool.back_common.Models.RoleEnum;
 import com.sovereingschool.back_common.Models.Usuario;
+
+import jakarta.mail.MessagingException;
 
 public interface IUsuarioService {
     public AuthResponse createUsuario(NewUsuario new_usuario);
@@ -33,4 +35,6 @@ public interface IUsuarioService {
     public String deleteUsuario(Long id);
 
     public List<Usuario> getProfes();
+
+    public boolean sendConfirmationEmail(NewUsuario newUsuario) throws MessagingException;
 }

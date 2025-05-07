@@ -4,7 +4,7 @@
 	@if (usuario) {
 		<div class="flex w-full flex-col items-center md:flex-row">
 			<div class="m-4 w-1/2 md:w-1/6">
-				<img id="fotoPrincipal" class="border border-black dark:border-gray-400" [src]="usuario.foto_usuario[0]" alt="Foto" />
+				<img id="fotoPrincipal" class="border border-black dark:border-gray-400" [src]="usuario.foto_usuario !== null ? usuario.foto_usuario[0] : 'assets/user-avatar.svg'" alt="Foto " />
 				<div class="flex flex-wrap">
 					@for (foto of this.usuario.foto_usuario; track foto; let i = $index) {
 						@if (editable) {
