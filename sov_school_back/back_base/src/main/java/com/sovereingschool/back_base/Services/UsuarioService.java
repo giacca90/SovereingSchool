@@ -136,6 +136,12 @@ public class UsuarioService implements IUsuarioService {
                 webClient.post().uri("/crea_usuario_chat")
                         .body(Mono.just(usuarioInsertado), Usuario.class)
                         .retrieve()
+                        .onStatus(
+                                status -> status.isError(), // compatible con HttpStatusCode
+                                response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                    System.err.println("Error HTTP del microservicio de stream: " + errorBody);
+                                    return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                                }))
                         .bodyToMono(String.class)
                         .onErrorResume(e -> {
                             System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
@@ -154,19 +160,29 @@ public class UsuarioService implements IUsuarioService {
             // Crear el usuario en el microservicio de stream
             try {
                 WebClient webClientStream = createSecureWebClient(backStreamURL);
-                webClientStream.put().uri("/nuevoUsuario")
+                webClientStream.put()
+                        .uri("/nuevoUsuario")
                         .body(Mono.just(usuarioInsertado), Usuario.class)
                         .retrieve()
+                        .onStatus(
+                                status -> status.isError(), // compatible con HttpStatusCode
+                                response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                    System.err.println("Error HTTP del microservicio de stream: " + errorBody);
+                                    return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                                }))
                         .bodyToMono(String.class)
                         .onErrorResume(e -> {
-                            System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
-                            return Mono.empty(); // Continuar sin interrumpir la aplicación
-                        }).subscribe(res -> {
+                            System.err
+                                    .println("Excepción al conectar con el microservicio de stream: " + e.getMessage());
+                            return Mono.empty();
+                        })
+                        .subscribe(res -> {
                             if (res == null || !res.equals("Nuevo Usuario Insertado con Exito!!!")) {
-                                System.err.println("Error en crear el usuario en el stream:");
+                                System.err.println("Error inesperado al crear el usuario en el stream:");
                                 System.err.println(res);
                             }
                         });
+
             } catch (Exception e) {
                 System.err.println("Error en crear el usuario en el stream: " + e.getMessage());
             }

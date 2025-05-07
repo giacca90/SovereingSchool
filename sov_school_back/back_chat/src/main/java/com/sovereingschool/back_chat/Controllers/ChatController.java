@@ -82,7 +82,7 @@ public class ChatController {
             this.cursoChatService.creaUsuarioChat(message);
             return new ResponseEntity<String>("Usuario chat creado con exito!!!", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error en crear en usuario del chat: " + e.getCause(),
+            return new ResponseEntity<>(e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -244,6 +244,7 @@ public class CursoChatService {
             usuarioChatRepo.save(usuarioChat);
         } catch (Exception e) {
             System.err.println("Error en crear el usuario del chat: " + e.getMessage());
+            throw new RuntimeException("Error en crear el usuario del chat: " + e.getMessage());
         }
     }
 

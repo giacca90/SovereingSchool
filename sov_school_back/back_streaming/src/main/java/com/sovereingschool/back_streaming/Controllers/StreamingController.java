@@ -271,7 +271,7 @@ public class StreamingController {
         try {
             return new ResponseEntity<>(this.usuarioCursosService.addNuevoUsuario(usuario), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
