@@ -27,6 +27,7 @@ import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -255,8 +256,11 @@ public class UsuarioController {
 			return ResponseEntity.ok()
 					.header("Set-Cookie", refreshTokenCookie.toString())
 					.body(response);
+		} catch (DataIntegrityViolationException e) {
+			return new ResponseEntity<>("El usuario ya existe", HttpStatus.BAD_REQUEST);
 		} catch (Exception e) {
-			return new ResponseEntity<>("Error en crear el usuario", HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("Error en crear el usuario: " + e.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

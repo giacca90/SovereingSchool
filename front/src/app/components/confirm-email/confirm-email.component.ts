@@ -52,7 +52,17 @@ export class ConfirmEmailComponent implements OnInit {
 				}
 			},
 			error: (error: HttpErrorResponse) => {
-				console.error('Error al enviar el token: ' + error.message);
+				const mensaje: HTMLParagraphElement = document.getElementById('mensaje') as HTMLParagraphElement;
+				mensaje.classList.add('text-red-500');
+				mensaje.innerHTML = 'Ha habido un error al confirmar tu correo electrónico:';
+				const mensaje2: HTMLParagraphElement = document.getElementById('mensaje2') as HTMLParagraphElement;
+				mensaje2.classList.add('text-red-500');
+				mensaje2.innerHTML = error.error;
+				/* setTimeout(() => {
+					this.router.navigate(['/']).then(() => {
+						window.location.reload();
+					});
+				}, 3000); */
 			},
 		});
 	}

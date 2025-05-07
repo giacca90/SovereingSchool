@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.MailException;
@@ -106,79 +107,82 @@ public class UsuarioService implements IUsuarioService {
                 true,
                 true,
                 true);
-        Usuario usuarioInsertado = this.repo.save(usuario);
-        if (usuarioInsertado.getId_usuario() == null) {
-            throw new RuntimeException("Error al crear el usuario");
-        }
-        Login login = new Login();
-        login.setUsuario(usuarioInsertado);
-        login.setCorreo_electronico(new_usuario.getCorreo_electronico());
-        login.setPassword(passwordEncoder.encode(new_usuario.getPassword()));
-        this.loginRepo.save(login);
-
-        // Crear el usuario en el microservicio de chat
         try {
-            WebClient webClient = createSecureWebClient(backChatURL);
-            webClient.post().uri("/crea_usuario_chat")
-                    .body(Mono.just(usuarioInsertado), Usuario.class)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .onErrorResume(e -> {
-                        System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
-                        return Mono.empty(); // Continuar sin interrumpir la aplicación
-                    }).subscribe(res -> {
-                        // Maneja el resultado cuando esté disponible
-                        if (res == null || !res.equals("Usuario chat creado con exito!!!")) {
-                            System.err.println("Error en crear el usuario en el chat:");
-                            System.err.println(res);
-                        }
-                    });
-        } catch (Exception e) {
-            System.err.println("Error en crear el usuario en el chat: " + e.getMessage());
+            Usuario usuarioInsertado = this.repo.save(usuario);
+            if (usuarioInsertado.getId_usuario() == null) {
+                throw new RuntimeException("Error al crear el usuario");
+            }
+            Login login = new Login();
+            login.setUsuario(usuarioInsertado);
+            login.setCorreo_electronico(new_usuario.getCorreo_electronico());
+            login.setPassword(passwordEncoder.encode(new_usuario.getPassword()));
+            this.loginRepo.save(login);
+
+            // Crear el usuario en el microservicio de chat
+            try {
+                WebClient webClient = createSecureWebClient(backChatURL);
+                webClient.post().uri("/crea_usuario_chat")
+                        .body(Mono.just(usuarioInsertado), Usuario.class)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .onErrorResume(e -> {
+                            System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
+                            return Mono.empty(); // Continuar sin interrumpir la aplicación
+                        }).subscribe(res -> {
+                            // Maneja el resultado cuando esté disponible
+                            if (res == null || !res.equals("Usuario chat creado con exito!!!")) {
+                                System.err.println("Error en crear el usuario en el chat:");
+                                System.err.println(res);
+                            }
+                        });
+            } catch (Exception e) {
+                System.err.println("Error en crear el usuario en el chat: " + e.getMessage());
+            }
+
+            // Crear el usuario en el microservicio de stream
+            try {
+                WebClient webClientStream = createSecureWebClient(backStreamURL);
+                webClientStream.put().uri("/nuevoUsuario")
+                        .body(Mono.just(usuarioInsertado), Usuario.class)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .onErrorResume(e -> {
+                            System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
+                            return Mono.empty(); // Continuar sin interrumpir la aplicación
+                        }).subscribe(res -> {
+                            if (res == null || !res.equals("Nuevo Usuario Insertado con Exito!!!")) {
+                                System.err.println("Error en crear el usuario en el stream:");
+                                System.err.println(res);
+                            }
+                        });
+            } catch (Exception e) {
+                System.err.println("Error en crear el usuario en el stream: " + e.getMessage());
+            }
+
+            // Creamos la respuesta con JWT
+            List<SimpleGrantedAuthority> roles = new ArrayList<>();
+            roles.add(new SimpleGrantedAuthority("ROLE_" + usuarioInsertado.getRoll_usuario().name()));
+            UserDetails userDetails = new User(usuarioInsertado.getNombre_usuario(),
+                    login.getPassword(),
+                    usuarioInsertado.getIsEnabled(),
+                    usuarioInsertado.getAccountNoExpired(),
+                    usuarioInsertado.getCredentialsNoExpired(),
+                    usuarioInsertado.getAccountNoLocked(),
+                    roles);
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(new_usuario.getCorreo_electronico(),
+                    userDetails.getPassword(),
+                    userDetails.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            String accessToken = jwtUtil.generateToken(auth, "access", usuarioInsertado.getId_usuario());
+            String refreshToken = jwtUtil.generateToken(auth, "refresh", usuarioInsertado.getId_usuario());
+
+            return new AuthResponse(true, "Usuario creado con éxito", usuarioInsertado, accessToken, refreshToken);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new DataIntegrityViolationException("El usuario ya existe");
         }
-
-        // Crear el usuario en el microservicio de stream
-        try {
-            WebClient webClientStream = createSecureWebClient(backStreamURL);
-            webClientStream.put().uri("/nuevoUsuario")
-                    .body(Mono.just(usuarioInsertado), Usuario.class)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .onErrorResume(e -> {
-                        System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
-                        return Mono.empty(); // Continuar sin interrumpir la aplicación
-                    }).subscribe(res -> {
-                        if (res == null || !res.equals("Nuevo Usuario Insertado con Exito!!!")) {
-                        } else {
-                            System.err.println("Error en crear el usuario en el stream:");
-                            System.err.println(res);
-                        }
-                    });
-        } catch (Exception e) {
-            System.err.println("Error en crear el usuario en el stream: " + e.getMessage());
-        }
-
-        // Creamos la respuesta con JWT
-        List<SimpleGrantedAuthority> roles = new ArrayList<>();
-        roles.add(new SimpleGrantedAuthority("ROLE_" + usuarioInsertado.getRoll_usuario().name()));
-        UserDetails userDetails = new User(usuarioInsertado.getNombre_usuario(),
-                login.getPassword(),
-                usuarioInsertado.getIsEnabled(),
-                usuarioInsertado.getAccountNoExpired(),
-                usuarioInsertado.getCredentialsNoExpired(),
-                usuarioInsertado.getAccountNoLocked(),
-                roles);
-
-        Authentication auth = new UsernamePasswordAuthenticationToken(new_usuario.getCorreo_electronico(),
-                userDetails.getPassword(),
-                userDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        String accessToken = jwtUtil.generateToken(auth, "access", usuarioInsertado.getId_usuario());
-        String refreshToken = jwtUtil.generateToken(auth, "refresh", usuarioInsertado.getId_usuario());
-
-        return new AuthResponse(true, "Usuario creado con éxito", usuarioInsertado, accessToken, refreshToken);
-
     }
 
     @Override
