@@ -58,11 +58,11 @@ export class ConfirmEmailComponent implements OnInit {
 				const mensaje2: HTMLParagraphElement = document.getElementById('mensaje2') as HTMLParagraphElement;
 				mensaje2.classList.add('text-red-500');
 				mensaje2.innerHTML = error.error;
-				/* setTimeout(() => {
+				setTimeout(() => {
 					this.router.navigate(['/']).then(() => {
 						window.location.reload();
 					});
-				}, 3000); */
+				}, 3000);
 			},
 		});
 	}

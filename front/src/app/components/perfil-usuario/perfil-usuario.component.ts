@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { lastValueFrom, Subscription } from 'rxjs';
@@ -9,7 +10,7 @@ import { UsuariosService } from '../../services/usuarios.service';
 @Component({
 	selector: 'app-perfil-usuario',
 	standalone: true,
-	imports: [FormsModule],
+	imports: [FormsModule, CommonModule],
 	templateUrl: './perfil-usuario.component.html',
 	styleUrl: './perfil-usuario.component.css',
 })
@@ -32,10 +33,16 @@ export class PerfilUsuarioComponent implements OnDestroy {
 		if (!input.files) {
 			return;
 		}
+		if (this.usuario?.foto_usuario[0].startsWith('#')) {
+			this.usuario.foto_usuario = [];
+		}
 		// Procesa cada archivo seleccionado
-		Array.from(input.files).forEach((file) => {
+		Array.from(input.files).forEach((file, index) => {
 			// Genera una URL temporal para previsualizar el archivo
 			const objectURL = URL.createObjectURL(file);
+			if (index === 0 && this.usuario?.foto_usuario.length === 0) {
+				(document.getElementById('fotoPrincipal') as HTMLImageElement).src = objectURL;
+			}
 			this.fotos.set(objectURL, file);
 			this.usuario?.foto_usuario.push(objectURL); // Guarda la URL temporal para previsualizar
 		});
@@ -88,17 +95,19 @@ export class PerfilUsuarioComponent implements OnDestroy {
 	actualizaUsuario() {
 		const temp: Usuario = JSON.parse(JSON.stringify(this.loginService.usuario));
 		if (this.usuario?.foto_usuario && this.loginService.usuario?.foto_usuario !== undefined) {
-			const fotoPrincipal: string = (document.getElementById('fotoPrincipal') as HTMLImageElement).src;
+			let fotoPrincipal: string = (document.getElementById('fotoPrincipal') as HTMLImageElement).src;
+			if (fotoPrincipal === undefined) {
+				fotoPrincipal = this.usuario.foto_usuario[0];
+			}
 			if (fotoPrincipal !== this.usuario.foto_usuario[0]) {
 				const f: string[] = [];
 				f.push(fotoPrincipal);
 				this.usuario.foto_usuario.forEach((foto: string) => {
-					if (foto !== fotoPrincipal) {
+					if (foto !== fotoPrincipal && !foto.startsWith('#')) {
 						f.push(foto);
 					}
 				});
 				this.usuario.foto_usuario = f;
-				console.log('FOTOS2: ' + this.usuario.foto_usuario);
 			}
 			temp.foto_usuario = this.usuario.foto_usuario;
 			temp.nombre_usuario = this.usuario.nombre_usuario;
@@ -147,5 +156,14 @@ export class PerfilUsuarioComponent implements OnDestroy {
 	}
 	ngOnDestroy(): void {
 		this.subscription.unsubscribe();
+	}
+
+	generateRandomColor(): string {
+		return (
+			'#' +
+			Math.floor(Math.random() * 16777215)
+				.toString(16)
+				.padStart(6, '0')
+		);
 	}
 }

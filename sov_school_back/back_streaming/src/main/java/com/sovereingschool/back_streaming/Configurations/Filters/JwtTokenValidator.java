@@ -1,17 +1,13 @@
 package com.sovereingschool.back_streaming.Configurations.Filters;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -39,14 +35,8 @@ public class JwtTokenValidator extends OncePerRequestFilter {
         if (jwtToken != null && jwtToken.startsWith("Bearer ")) {
             jwtToken = jwtToken.substring(7);
             try {
-                String username = jwtUtil.getUsername(jwtToken);
-                String roles = jwtUtil.getRoles(jwtToken);
-
-                Collection<? extends GrantedAuthority> authorities = AuthorityUtils
-                        .commaSeparatedStringToAuthorityList(roles);
-
                 SecurityContext context = SecurityContextHolder.getContext();
-                Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                Authentication authentication = this.jwtUtil.createAuthenticationFromToken(jwtToken);
                 context.setAuthentication(authentication);
                 SecurityContextHolder.setContext(context);
             } catch (AuthenticationException e) {

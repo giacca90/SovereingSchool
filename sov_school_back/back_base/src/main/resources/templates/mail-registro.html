@@ -13,8 +13,16 @@
 				padding: 20px;
 			}
 
-			.head-body {
+			.head {
 				background-color: #00bbd9;
+				border-bottom-right-radius: 0.5rem;
+				border-bottom-left-radius: 0.5rem;
+			}
+
+			.foot {
+				background-color: #00bbd9;
+				border-top-right-radius: 0.5rem;
+				border-top-left-radius: 0.5rem;
 			}
 
 			.gold {
@@ -38,8 +46,12 @@
 					color: #ffffff !important;
 				}
 
-				.head-body {
-					background-color: #0049b5;
+				.head {
+					background-color: #003bc5;
+				}
+
+				.foot {
+					background-color: #003bc5;
 				}
 
 				.gold {
@@ -76,7 +88,7 @@
 	</head>
 	<body style="margin: 0; padding: 0; background-color: #f4f4f4">
 		<!-- Header a pantalla completa -->
-		<table class="head-body" width="100%" cellpadding="0" cellspacing="0" border="0">
+		<table class="head" width="100%" cellpadding="0" cellspacing="0" border="0">
 			<tr>
 				<td align="center">
 					<h1 class="gold" style="margin: 0; font-size: 24px">SOVEREIGN SCHOOL</h1>
@@ -103,7 +115,7 @@
 		</table>
 
 		<!-- Footer a pantalla completa -->
-		<table class="head-body" width="100%" cellpadding="0" cellspacing="0" border="0">
+		<table class="foot" width="100%" cellpadding="0" cellspacing="0" border="0">
 			<tr>
 				<td align="center" style="color: #ffffff; padding: 16px; font-size: 12px">© <span th:text="${currentYear}"></span> - Todos los derechos reservados.</td>
 			</tr>

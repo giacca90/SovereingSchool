@@ -269,7 +269,10 @@ public class JwtUtil {
         try {
             String username = getUsername(token);
             String rolesString = getRoles(token);
-            Long idUsuario = getIdUsuario(token);
+            Long idUsuario = null;
+            if (username != null && !username.equals("server")) {
+                idUsuario = getIdUsuario(token);
+            }
 
             List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesString.split(","))
                     .map(SimpleGrantedAuthority::new)

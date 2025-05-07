@@ -270,12 +270,13 @@ public class UsuarioController {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		if (authentication == null || !authentication.isAuthenticated()) {
-			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<>("Error en el token de acceso: nulo o no autenticado", HttpStatus.UNAUTHORIZED);
 		}
 		Long idUsuario = (Long) authentication.getDetails();
 
 		if (idUsuario == null || !idUsuario.equals(usuario.getId_usuario())) {
-			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<>("Error en el token de acceso: idUsuario no coincide\nidUsuario: "
+					+ usuario.getId_usuario() + "\nidUsuario del token: " + idUsuario, HttpStatus.UNAUTHORIZED);
 		}
 		Object response = new Object();
 		try {

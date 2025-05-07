@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sovereingschool.back_common.Models.Clase;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Usuario;
-import com.sovereingschool.back_common.Utils.JwtUtil;
 import com.sovereingschool.back_streaming.Services.StreamingService;
 import com.sovereingschool.back_streaming.Services.UsuarioCursosService;
 
@@ -63,9 +62,6 @@ public class StreamingController {
 
     @Autowired
     private StreamingService streamingService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
 
     @GetMapping("/{id_curso}/{id_clase}/{lista}")
     public ResponseEntity<?> getListas(@PathVariable Long id_curso,

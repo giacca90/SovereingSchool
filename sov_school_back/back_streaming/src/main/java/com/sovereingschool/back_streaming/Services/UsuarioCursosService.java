@@ -47,6 +47,8 @@ public class UsuarioCursosService implements IUsuarioCursosService {
     public void syncUserCourses() {
         List<Usuario> users = usuarioRepository.findAll();
         for (Usuario user : users) {
+            if (usuarioCursosRepository.findByIdUsuario(user.getId_usuario()) != null)
+                continue;
             List<Curso> courses = user.getCursos_usuario();
             List<StatusCurso> courseStatuses = courses.stream().map(course -> {
                 List<Clase> classes = course.getClases_curso();
@@ -74,6 +76,9 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
     @Override
     public String addNuevoUsuario(Usuario usuario) {
+        if (usuarioCursosRepository.findByIdUsuario(usuario.getId_usuario()) != null) {
+            throw new RuntimeException("Ya existe un usuario con ese ID");
+        }
         List<Curso> courses = usuario.getCursos_usuario();
         List<StatusCurso> courseStatuses = new ArrayList<>();
         if (courses != null) {

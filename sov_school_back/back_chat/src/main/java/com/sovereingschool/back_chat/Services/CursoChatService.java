@@ -114,6 +114,8 @@ public class CursoChatService {
     public void init() {
         List<Curso> cursos = cursoRepo.findAll();
         for (Curso curso : cursos) {
+            if (cursoChatRepo.findByIdCurso(curso.getId_curso()) != null)
+                continue;
             List<Clase> clases = curso.getClases_curso();
             List<ClaseChat> clasesChat = new ArrayList<>();
             for (Clase clase : clases) {
@@ -126,6 +128,8 @@ public class CursoChatService {
 
         List<Usuario> usuarios = usuarioRepo.findAll();
         for (Usuario usuario : usuarios) {
+            if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()) != null)
+                continue;
             UsuarioChat usuarioChat = new UsuarioChat(null, usuario.getId_usuario(), new ArrayList<>(),
                     new ArrayList<>());
             usuarioChatRepo.save(usuarioChat);
@@ -227,8 +231,11 @@ public class CursoChatService {
         // Crear una instancia de ObjectMapper para parsear el JSON
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            // Convertir el JSON en un objeto MensajeChatDTO
+            // Convertir el JSON en un objeto Usuario
             Usuario usuario = objectMapper.readValue(message, Usuario.class);
+            if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()) != null) {
+                throw new RuntimeException("Ya existe un usuario con ese ID");
+            }
             UsuarioChat usuarioChat = new UsuarioChat(
                     null, // String id
                     usuario.getId_usuario(), // Long id_usuario

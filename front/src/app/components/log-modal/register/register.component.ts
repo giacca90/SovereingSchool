@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { afterNextRender, Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { NuevoUsuario } from '../../../models/NuevoUsuario';
 import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
@@ -15,12 +15,24 @@ export class RegisterComponent implements OnDestroy {
 	@Output() oauth2: EventEmitter<string> = new EventEmitter<string>();
 
 	private nuevoUsuario: NuevoUsuario = new NuevoUsuario();
+	private fase: number = 0;
 
 	constructor(
 		private modalService: LoginModalService,
 		private loginService: LoginService,
 		private registerService: RegisterService,
-	) {}
+	) {
+		afterNextRender(() => {
+			document.addEventListener('keydown', (e: KeyboardEvent) => {
+				if (e.key === 'Enter') {
+					this.fase === 0 ? this.compruebaCorreo() : this.fase === 1 ? this.compruebaPassword() : this.close();
+				}
+				if (e.key === 'Escape') {
+					this.close();
+				}
+			});
+		});
+	}
 
 	ngOnDestroy(): void {
 		this.nuevoUsuario = new NuevoUsuario();
@@ -56,6 +68,7 @@ export class RegisterComponent implements OnDestroy {
 		}
 
 		if ((await this.loginService.compruebaCorreo(correo)) == false) {
+			this.fase = 1;
 			this.nuevoUsuario.correo_electronico = correo;
 			this.nuevoUsuario.nombre_usuario = (document.getElementById('nombre2') as HTMLInputElement).value;
 			const content: HTMLDivElement = document.getElementById('content2') as HTMLDivElement;
@@ -109,6 +122,7 @@ export class RegisterComponent implements OnDestroy {
 			this.nuevoUsuario.fecha_registro_usuario = new Date();
 			this.registerService.registrarNuevoUsuario(this.nuevoUsuario).then((resp: boolean) => {
 				if (resp) {
+					this.fase = 2;
 					const content: HTMLDivElement = document.getElementById('content2') as HTMLDivElement;
 					content.innerHTML = `
 					<br />

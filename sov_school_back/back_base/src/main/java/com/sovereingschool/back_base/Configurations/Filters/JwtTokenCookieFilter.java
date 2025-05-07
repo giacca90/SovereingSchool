@@ -34,24 +34,30 @@ public class JwtTokenCookieFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             Cookie[] cookies = req.getCookies();
+            String init = "";
+            String refresh = "";
             if (cookies != null) {
                 for (Cookie c : cookies) {
-                    if (isValidCookieName(c.getName()) && hasText(c.getValue())) {
-                        Authentication auth = jwtUtil.createAuthenticationFromToken(c.getValue());
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                        break;
+                    if (c.getName().equals("initToken") && hasText(c.getValue())) {
+                        init = c.getValue();
+                    }
+                    if (c.getName().equals("refreshToken") && hasText(c.getValue())) {
+                        refresh = c.getValue();
                     }
                 }
+            }
+            if (!refresh.isEmpty()) {
+                Authentication auth = jwtUtil.createAuthenticationFromToken(refresh);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } else if (!init.isEmpty()) {
+                Authentication auth = jwtUtil.createAuthenticationFromToken(init);
+                SecurityContextHolder.getContext().setAuthentication(auth);
             }
             chain.doFilter(req, res);
         } catch (AuthenticationException ex) {
             SecurityContextHolder.clearContext();
             throw new BadCredentialsException("Error en JwtTokenCookieFilter: " + ex.getMessage());
         }
-    }
-
-    private boolean isValidCookieName(String name) {
-        return "initToken".equals(name) || "refreshToken".equals(name);
     }
 
     private boolean hasText(String s) {

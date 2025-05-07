@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +58,14 @@ import reactor.netty.http.client.HttpClient;
 @Transactional
 public class UsuarioService implements IUsuarioService {
 
+    public static String generarColorHex() {
+        Random random = new Random();
+        int r = random.nextInt(256);
+        int g = random.nextInt(256);
+        int b = random.nextInt(256);
+        return String.format("#%02X%02X%02X", r, g, b);
+    }
+
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -86,18 +96,20 @@ public class UsuarioService implements IUsuarioService {
     private String uploadDir;
 
     @Autowired
-    private SpringTemplateEngine templateEngine;
+    private SpringTemplateEngine templateEngine;;
 
     UsuarioService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
-    };
+    }
 
     @Override
     public AuthResponse createUsuario(NewUsuario new_usuario) {
         Usuario usuario = new Usuario(
                 null, // Long id_usuario
                 new_usuario.getNombre_usuario(), // String nombre_usuario
-                new_usuario.getFoto_usuario(), // List<String> foto_usuario
+                new_usuario.getFoto_usuario() == null || new_usuario.getFoto_usuario().isEmpty()
+                        ? new ArrayList<>(Arrays.asList(generarColorHex()))
+                        : new_usuario.getFoto_usuario(), // List<String> foto_usuario
                 null, // Strting presentación
                 RoleEnum.USER, // Integer rol_usuario
                 new_usuario.getPlan_usuario(), // Plan plan_usuario
@@ -131,7 +143,7 @@ public class UsuarioService implements IUsuarioService {
                         }).subscribe(res -> {
                             // Maneja el resultado cuando esté disponible
                             if (res == null || !res.equals("Usuario chat creado con exito!!!")) {
-                                System.err.println("Error en crear el usuario en el chat:");
+                                System.err.println("Error en crear el usuario en el chat: ");
                                 System.err.println(res);
                             }
                         });
@@ -227,7 +239,12 @@ public class UsuarioService implements IUsuarioService {
 
         for (String foto : usuario_old.getFoto_usuario()) {
             if (!usuario.getFoto_usuario().contains(foto)) {
-                Path photoPath = Paths.get(uploadDir, foto.substring(foto.lastIndexOf("/")));
+                Path photoPath = null;
+                if (foto.contains("/")) {
+                    photoPath = Paths.get(uploadDir, foto.substring(foto.lastIndexOf("/") + 1));
+                } else {
+                    photoPath = Paths.get(uploadDir, foto);
+                }
                 try {
                     if (Files.exists(photoPath)) {
                         Files.delete(photoPath);
@@ -361,5 +378,4 @@ public class UsuarioService implements IUsuarioService {
                 .defaultHeader("Authorization", "Bearer " + authToken)
                 .build();
     }
-
 }

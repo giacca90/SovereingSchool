@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { afterNextRender, Component, EventEmitter, Output } from '@angular/core';
 import { LoginModalService } from '../../../services/login-modal.service';
 import { LoginService } from '../../../services/login.service';
 
@@ -11,10 +11,23 @@ import { LoginService } from '../../../services/login.service';
 })
 export class LoginComponent {
 	@Output() oauth2: EventEmitter<string> = new EventEmitter<string>();
+	private fase: number = 0;
 	constructor(
 		private modalService: LoginModalService,
 		private loginService: LoginService,
-	) {}
+	) {
+		afterNextRender(() => {
+			document.addEventListener('keydown', (e: KeyboardEvent) => {
+				if (e.key === 'Enter') {
+					this.fase === 0 ? this.compruebaCorreo() : this.compruebaPassword();
+					this.compruebaCorreo();
+				}
+				if (e.key === 'Escape') {
+					this.close();
+				}
+			});
+		});
+	}
 
 	close() {
 		this.modalService.hide();
@@ -38,6 +51,7 @@ export class LoginComponent {
 			return;
 		}
 		if ((await this.loginService.compruebaCorreo(correo)) === true) {
+			this.fase = 1;
 			const content: HTMLDivElement = document.getElementById('content') as HTMLDivElement;
 			content.innerHTML = `
 				<br />
@@ -46,8 +60,8 @@ export class LoginComponent {
 				<br />
 				<input type="password" id="password" class="m-4 rounded-lg border border-black p-1" placeholder="Password" />
 				<br />
-				<button id="nextButton" class="m-4 rounded-lg text-black border border-black bg-green-300 p-1" (click)="compruebaCorreo()">Siguiente</button>
-				<button id="cancelButton" class="m-4 rounded-lg text-black border border-black bg-red-300 p-1" (click)="close()">Cancelar</button>
+				<button id="nextButton" class="cursor-pointer m-4 rounded-lg text-black border border-black bg-green-300 p-1" (click)="compruebaCorreo()">Siguiente</button>
+				<button id="cancelButton" class="cursor-pointer m-4 rounded-lg text-black border border-black bg-red-300 p-1" (click)="close()">Cancelar</button>
 			`;
 			const nextButton = document.getElementById('nextButton') as HTMLButtonElement;
 			const cancelButton = document.getElementById('cancelButton') as HTMLButtonElement;
@@ -59,6 +73,18 @@ export class LoginComponent {
 			if (cancelButton) {
 				cancelButton.addEventListener('click', () => this.close());
 			}
+
+			document.removeEventListener('keydown', (e: KeyboardEvent) => {
+				if (e.key === 'Enter') {
+					this.compruebaCorreo();
+				}
+			});
+
+			document.addEventListener('keydown', (e: KeyboardEvent) => {
+				if (e.key === 'Enter') {
+					this.compruebaPassword();
+				}
+			});
 		} else {
 			const mex: HTMLParagraphElement = document.createElement('p');
 			mex.textContent = 'Este correo no está registrado!!!';
