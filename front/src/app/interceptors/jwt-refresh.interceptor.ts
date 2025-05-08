@@ -10,7 +10,6 @@ export const jwtRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			if (error.status === 401) {
-				console.log('JWT Refresh Interceptor');
 				localStorage.removeItem('Token');
 				return loginService.refreshToken().pipe(
 					switchMap((token) => {

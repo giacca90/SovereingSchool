@@ -37,14 +37,12 @@ export class ChatComponent implements OnInit, OnDestroy {
 			});
 		}
 		afterNextRender(() => {
-			console.log('AFTERNEXTRENDER');
 			if (this.idCurso && this.idMensaje) {
 				this.chatService.mensajeLeido(this.idMensaje);
 			}
 			if (this.idCurso) {
 				this.subscription = this.chatService.getChat(this.idCurso).subscribe({
 					next: (data: CursoChat | null) => {
-						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', data);
 						if (data) {
 							this.chat = data;
 							this.cdr.detectChanges();
@@ -61,7 +59,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 											this.abreChatClase(clase.id_clase);
 											this.cdr.detectChanges();
 											const mexc = document.getElementById('mex-' + this.idMensaje);
-											console.log('MEXC2: ' + mexc);
 
 											if (mexc) {
 												mexc.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -94,7 +91,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
-		//console.log('Se destruye el componente');
 		this.idCurso = null;
 		this.chat = null;
 		this.respuesta = null;
@@ -147,8 +143,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 			claseElement?.classList.add('hidden');
 			flechaElement?.classList.remove('rotate-180');
 		} else {
-			console.log('Se abre la clase ' + idClase);
-
 			// Oculta todas las cortinas y resetea las flechas
 			const clases: NodeListOf<Element> = document.querySelectorAll('.clases');
 			const flechas: NodeListOf<Element> = document.querySelectorAll('.arrow');
@@ -172,7 +166,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 		const minutes = Math.floor(momento / 60);
 		const seconds = Math.floor(momento % 60);
 		this.pregunta = { minute: minutes, second: seconds };
-		console.log(`Clic en el tiempo: ${minutes}:${seconds}`);
 		const input: HTMLInputElement = document.getElementById('mexc-' + idClase) as HTMLInputElement;
 		input.placeholder = `Haz una pregunta en ${minutes}:${seconds}`;
 		input.focus();

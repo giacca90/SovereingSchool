@@ -52,7 +52,7 @@ public class LoginController {
 		try {
 			AuthResponse authResponse = this.loginService.loginUser(id, password);
 			if (authResponse == null || !authResponse.status()) {
-				response = "Usuario no encontrado";
+				response = "Usuario no encontrado en getUsuario";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 			String refreshToken = authResponse.refreshToken();
@@ -84,7 +84,7 @@ public class LoginController {
 		try {
 			String correo = this.loginService.getCorreoLogin(id);
 			if (correo == null) {
-				response = "Usuario no encontrado";
+				response = "Usuario no encontrado en getCorreoLogin";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 			response = correo;
@@ -101,7 +101,7 @@ public class LoginController {
 		try {
 			String password = this.loginService.getPasswordLogin(id);
 			if (password == null) {
-				response = "Usuario no encontrado";
+				response = "Usuario no encontrado en getPasswordLogin";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 			response = password;
@@ -191,7 +191,7 @@ public class LoginController {
 
 			AuthResponse authResponse = this.loginService.refreshAccessToken(idUsuario);
 			if (authResponse == null || !authResponse.status()) {
-				response = "Usuario no encontrado";
+				response = "Usuario no encontrado en refreshAccessToken";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 			String newRefreshToken = authResponse.refreshToken();

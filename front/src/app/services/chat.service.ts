@@ -36,21 +36,16 @@ export class ChatService {
 
 			this.client.onStompError = (frame) => {
 				const message = frame.headers['message'];
-				if (message && message.includes('Invalid token')) {
-					console.log('Token inválido. Intentando refrescarlo...');
-
+				if (message && message.includes('Token inválido')) {
 					this.loginService.refreshToken().subscribe({
 						next: (token: string | null) => {
 							if (token) {
-								console.log('Nuevo token recibido: ' + token);
-
 								// Actualiza el localStorage y jwtToken
 								localStorage.setItem('Token', token);
 								this.jwtToken = token;
 
 								// Desactiva el cliente STOMP anterior antes de crear uno nuevo
 								if (this.client) {
-									console.log('Desactivando el cliente STOMP anterior...');
 									this.client.deactivate(); // Desactiva el cliente STOMP actual
 								}
 
@@ -59,7 +54,6 @@ export class ChatService {
 									brokerURL: this.url + '?token=' + this.jwtToken,
 									reconnectDelay: 1000, // Esperar entre intentos de reconexión
 									onConnect: (frame) => {
-										console.log('Nuevo cliente STOMP conectado:', frame);
 										this.initUsuario();
 									},
 									onDisconnect: () => {
@@ -85,7 +79,6 @@ export class ChatService {
 			};
 
 			this.client.onConnect = (frame) => {
-				console.log('Conectado: ' + frame);
 				this.initUsuario();
 			};
 
@@ -103,7 +96,6 @@ export class ChatService {
 	}
 
 	private initUsuario(): Observable<InitChatUsuario | null> {
-		console.log('INITUSUARIO');
 		// Si ya hay una suscripción activa, desuscríbete primero
 		if (this.currentSubscription) {
 			this.currentSubscription.unsubscribe();
@@ -111,9 +103,7 @@ export class ChatService {
 
 		// Suscríbete a las respuestas del backend
 		this.currentSubscription = this.client.subscribe('/init_chat/result', (response) => {
-			console.log('RESPONSE: ', response.body);
 			if (response.body.startsWith('Error en el token')) {
-				console.log('Error en el token: ' + response.body);
 				this.loginService.refreshToken().subscribe({
 					next: (token: string | null) => {
 						if (token) {
@@ -130,7 +120,7 @@ export class ChatService {
 								body: '',
 							});
 						} else {
-							console.log('No se pudo refrescar el token');
+							console.error('No se pudo refrescar el token');
 							this.client.deactivate();
 							this.loginService.logout();
 						}
@@ -143,8 +133,6 @@ export class ChatService {
 				});
 			}
 			const init: InitChatUsuario = JSON.parse(response.body) as InitChatUsuario;
-			console.log('SE RECIBE RESPUESTA DEL BACK!!!', init);
-			console.log('INIT.MENSAJES', init.mensajes);
 
 			// Emitir el valor recibido a través del subject
 			this.initSubject.next(init);

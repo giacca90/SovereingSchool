@@ -133,7 +133,16 @@ public class CursoChatService {
 
     public void init() {
         try {
-
+            // Inicializar usuarios
+            List<Usuario> usuarios = usuarioRepo.findAll();
+            for (Usuario usuario : usuarios) {
+                if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()) != null)
+                    continue;
+                UsuarioChat usuarioChat = new UsuarioChat(null, usuario.getId_usuario(), new ArrayList<>(),
+                        new ArrayList<>());
+                usuarioChatRepo.save(usuarioChat);
+            }
+            // Inicializar cursos
             List<Curso> cursos = cursoRepo.findAll();
             for (Curso curso : cursos) {
                 if (cursoChatRepo.findByIdCurso(curso.getId_curso()) != null)
@@ -146,15 +155,12 @@ public class CursoChatService {
                 }
                 CursoChat cursoChat = new CursoChat(null, curso.getId_curso(), clasesChat, new ArrayList<>(), null);
                 cursoChatRepo.save(cursoChat);
-            }
-
-            List<Usuario> usuarios = usuarioRepo.findAll();
-            for (Usuario usuario : usuarios) {
-                if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()) != null)
-                    continue;
-                UsuarioChat usuarioChat = new UsuarioChat(null, usuario.getId_usuario(), new ArrayList<>(),
-                        new ArrayList<>());
-                usuarioChatRepo.save(usuarioChat);
+                List<Usuario> profesores = curso.getProfesores_curso();
+                for (Usuario profesor : profesores) {
+                    UsuarioChat profChat = usuarioChatRepo.findByIdUsuario(profesor.getId_usuario());
+                    profChat.getCursos().add(cursoChat.getId());
+                    usuarioChatRepo.save(profChat);
+                }
             }
         } catch (Exception e) {
             System.err.println("Error en inicializar chat: " + e.getMessage());

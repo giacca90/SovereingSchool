@@ -7,11 +7,11 @@ import { ChatService } from '../../../services/chat.service';
 import { LoginService } from '../../../services/login.service';
 
 @Component({
-    selector: 'app-home-chat',
+	selector: 'app-home-chat',
 	standalone: true,
-    imports: [],
-    templateUrl: './home-chat.component.html',
-    styleUrl: './home-chat.component.css'
+	imports: [],
+	templateUrl: './home-chat.component.html',
+	styleUrl: './home-chat.component.css',
 })
 export class HomeChatComponent {
 	chats: MensajeChat[] = [];
@@ -30,7 +30,6 @@ export class HomeChatComponent {
 			if (this.loginService.usuario) {
 				this.chatService.initSubject.subscribe({
 					next: (init: InitChatUsuario | null) => {
-						console.log('LLEGA LA RESPUESTA AL COMPONENTE: ', init);
 						if (init && init.mensajes && init.cursos && init.idUsuario === this.loginService.usuario?.id_usuario) {
 							this.chats = init.mensajes;
 							this.cursos = init.cursos;

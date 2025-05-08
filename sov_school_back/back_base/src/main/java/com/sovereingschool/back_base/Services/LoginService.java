@@ -147,7 +147,7 @@ public class LoginService implements UserDetailsService, ILoginService {
 
         Optional<Usuario> usuario = this.usuarioRepository.findById(login.get().getId_usuario());
         if (usuario.isEmpty()) {
-            System.err.println("Usuario no encontrado");
+            System.err.println("Usuario no encontrado en loadUserByUsername");
             throw new UsernameNotFoundException("Usuario no encontrado");
         }
 
@@ -202,7 +202,7 @@ public class LoginService implements UserDetailsService, ILoginService {
                         })
                         .getId_usuario());
         if (usuarioOpt.isEmpty()) {
-            System.err.println("Usuario no encontrado");
+            System.err.println("Usuario no encontrado en loginUser");
             throw new UsernameNotFoundException("Usuario no encontrado");
         }
         Usuario usuario = usuarioOpt.get();
@@ -231,7 +231,7 @@ public class LoginService implements UserDetailsService, ILoginService {
                 });
         UserDetails userDetails = this.loadUserByUsername(correo);
         if (userDetails == null) {
-            System.err.println("Usuario no encontrado");
+            System.err.println("Usuario no encontrado en refreshAccessToken");
             throw new BadCredentialsException("Usuario no encontrado");
         }
 
@@ -258,7 +258,7 @@ public class LoginService implements UserDetailsService, ILoginService {
             Long id_usuario = jwtUtil.getIdUsuario(token);
             Optional<Usuario> opUsuario = this.usuarioRepository.findById(id_usuario);
             if (opUsuario.isEmpty()) {
-                System.err.println("Usuario no encontrado");
+                System.err.println("Usuario no encontrado en loginWithToken");
                 throw new BadCredentialsException("Usuario no encontrado");
             }
             Usuario usuario = opUsuario.get();

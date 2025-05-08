@@ -205,7 +205,6 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewInit {
 
 		// Recuperar imagenes del curso y del usuario para el componente WebOBS
 		if (this.curso && this.curso.imagen_curso) {
-			console.log('Imagen del curso:', this.curso.imagen_curso);
 			fetch(this.curso.imagen_curso, { credentials: 'include' }).then((response) => {
 				response.blob().then((blob) => {
 					if (!this.curso) return;

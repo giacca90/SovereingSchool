@@ -112,7 +112,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
     public String getClase(Long id_usuario, Long id_curso, Long id_clase) {
         UsuarioCursos usuario = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
         if (usuario == null) {
-            System.err.println("Usuario no encontrado");
+            System.err.println("Usuario no encontrado en getClase");
             return null;
         }
 

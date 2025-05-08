@@ -232,20 +232,15 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	async esperarChatComponent(player: Player) {
 		// Si `chat` no está cargado, espera un segundo antes de continuar
 		while (!this.chatComponent.chat) {
-			console.log('CHAT NO CARGADO');
 			await new Promise((resolve) => setTimeout(resolve, 300)); // Espera 0.3 segundos
 		}
 
 		// Ejecutar el código después de verificar que `chat` está definido
-		console.log('CHAT CARGADO');
-		console.log('this.id_clase: ' + this.id_clase);
 		const claseChat: ClaseChat | undefined = this.chatComponent.chat?.clases.find((clase) => clase.id_clase == this.id_clase);
 		if (claseChat) {
-			console.log('CLASE CHAT: ' + claseChat);
 			claseChat.mensajes
 				.filter((mex) => mex.pregunta)
 				.forEach((preg) => {
-					console.log('PREG: ' + preg);
 					if (preg.pregunta) {
 						const duration = player.duration(); // Duración total del video en segundos
 						const preguntaTime = preg.pregunta; // Tiempo de la pregunta en segundos
@@ -255,8 +250,6 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 							if (seekBar) {
 								const rect = seekBar.el().getBoundingClientRect();
 								const preguntaPosX = rect.width * clickRatio; // Posición en píxeles en la barra de progreso
-
-								console.log(`Pregunta en el tiempo: ${preguntaTime} segundos, Posición en la barra: ${preguntaPosX}px`);
 
 								// Crear el marcador como un div
 								const marcador = document.createElement('div');
@@ -298,7 +291,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 										if (mensajeElement) {
 											mensajeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 										} else {
-											console.log('No se encontró el mensaje');
+											console.error('No se encontró el mensaje');
 										}
 									});
 

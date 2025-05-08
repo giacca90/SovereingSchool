@@ -37,7 +37,6 @@ export class ConfirmEmailComponent implements OnInit {
 		this.http.post<Auth>(this.backURL + '/usuario/confirmation', this.token, { observe: 'response', responseType: 'text' as 'json', withCredentials: true }).subscribe({
 			next: (response: HttpResponse<Auth>) => {
 				if (response.ok && response.body) {
-					console.log('Respuesta del back: ' + response.body);
 					this.loginService.usuario = response.body.usuario;
 					localStorage.setItem('Token', response.body.accessToken);
 					const mensaje: HTMLParagraphElement = document.getElementById('mensaje') as HTMLParagraphElement;
