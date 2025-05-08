@@ -3,6 +3,7 @@ package com.sovereingschool.back_common.Repositories;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,13 +22,13 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
     List<Curso> getAllCursos();
 
     @Query("SELECT c.nombre_curso FROM Curso c WHERE c.id_curso = :id")
-    String findNombreCursoById(@Param("id") Long id);
+    Optional<String> findNombreCursoById(@Param("id") Long id);
 
     @Query("SELECT u FROM Usuario u WHERE u IN (SELECT c.profesores_curso FROM Curso c WHERE c.id_curso = :id)")
     List<Usuario> findProfesoresCursoById(@Param("id") Long id);
 
     @Query("SELECT c.fecha_publicacion_curso FROM Curso c WHERE c.id_curso = :id")
-    Date findFechaCreacionCursoById(@Param("id") Long id);
+    Optional<Date> findFechaCreacionCursoById(@Param("id") Long id);
 
     @Query("SELECT cl FROM Clase cl WHERE cl.curso_clase.id_curso = :id")
     List<Clase> findClasesCursoById(@Param("id") Long id);
@@ -36,8 +37,8 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
     List<Plan> findPlanesCursoById(@Param("id") Long id);
 
     @Query("SELECT c.precio_curso FROM Curso c WHERE c.id_curso = :id")
-    BigDecimal findPrecioCursoById(@Param("id") Long id);
+    Optional<BigDecimal> findPrecioCursoById(@Param("id") Long id);
 
     @Query("SELECT c.imagen_curso FROM Curso c WHERE c.id_curso = :id")
-    String findImagenCursoById(@Param("id") Long id);
+    Optional<String> findImagenCursoById(@Param("id") Long id);
 }

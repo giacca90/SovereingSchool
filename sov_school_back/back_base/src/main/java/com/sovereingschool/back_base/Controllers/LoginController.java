@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back_base.DTOs.AuthResponse;
 import com.sovereingschool.back_base.DTOs.ChangePassword;
-import com.sovereingschool.back_base.Interfaces.ILoginService;
+import com.sovereingschool.back_base.Services.LoginService;
 import com.sovereingschool.back_common.Models.Login;
 import com.sovereingschool.back_common.Utils.JwtUtil;
 
@@ -27,7 +27,9 @@ import com.sovereingschool.back_common.Utils.JwtUtil;
 public class LoginController {
 
 	@Autowired
-	private ILoginService service;
+	// TODO: Volver a activar la interfaz despues de mejorar el manejo de errores
+	// private ILoginService loginService;
+	private LoginService loginService;
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -36,7 +38,7 @@ public class LoginController {
 	public ResponseEntity<?> conpruebaCorreo(@PathVariable String correo) {
 		Object response = new Object();
 		try {
-			response = this.service.compruebaCorreo(correo);
+			response = this.loginService.compruebaCorreo(correo);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			response = "Error en obtener el correo del usuario: " + e.getMessage();
@@ -48,7 +50,7 @@ public class LoginController {
 	public ResponseEntity<?> getUsuario(@PathVariable Long id, @PathVariable String password) {
 		Object response = new Object();
 		try {
-			AuthResponse authResponse = this.service.loginUser(id, password);
+			AuthResponse authResponse = this.loginService.loginUser(id, password);
 			if (authResponse == null || !authResponse.status()) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -80,7 +82,7 @@ public class LoginController {
 	public ResponseEntity<?> getCorreoLogin(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			String correo = this.service.getCorreoLogin(id);
+			String correo = this.loginService.getCorreoLogin(id);
 			if (correo == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -97,7 +99,7 @@ public class LoginController {
 	public ResponseEntity<?> getPasswordLogin(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			String password = this.service.getPasswordLogin(id);
+			String password = this.loginService.getPasswordLogin(id);
 			if (password == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -114,7 +116,7 @@ public class LoginController {
 	public ResponseEntity<?> createNuevoLogin(@RequestBody Login login) {
 		Object response = new Object();
 		try {
-			response = this.service.createNuevoLogin(login);
+			response = this.loginService.createNuevoLogin(login);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			response = "Error en crear el nuevo login " + e.getMessage();
@@ -134,7 +136,7 @@ public class LoginController {
 				response = "El correo electrónico no puede ser vació";
 				return new ResponseEntity<>(response, HttpStatus.FAILED_DEPENDENCY);
 			}
-			response = this.service.changeCorreoLogin(login);
+			response = this.loginService.changeCorreoLogin(login);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			response = "Error en cambiar de correo: " + e.getMessage();
@@ -146,7 +148,7 @@ public class LoginController {
 	public ResponseEntity<?> changePasswordLogin(@RequestBody ChangePassword changepassword) {
 		Object response = new Object();
 		try {
-			Integer respuesta = this.service.changePasswordLogin(changepassword);
+			Integer respuesta = this.loginService.changePasswordLogin(changepassword);
 			if (respuesta == null) {
 				response = "La contraseña no puede estar vacía";
 				return new ResponseEntity<>(response, HttpStatus.FAILED_DEPENDENCY);
@@ -167,7 +169,7 @@ public class LoginController {
 	public ResponseEntity<?> deleteLogin(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			response = this.service.deleteLogin(id);
+			response = this.loginService.deleteLogin(id);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			response = "Error en cambiar la contraseña: " + e.getMessage();
@@ -187,7 +189,7 @@ public class LoginController {
 
 			Long idUsuario = this.jwtUtil.getIdUsuario(refreshToken);
 
-			AuthResponse authResponse = this.service.refreshAccessToken(idUsuario);
+			AuthResponse authResponse = this.loginService.refreshAccessToken(idUsuario);
 			if (authResponse == null || !authResponse.status()) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -224,7 +226,7 @@ public class LoginController {
 		}
 
 		try {
-			response = this.service.loginWithToken(token);
+			response = this.loginService.loginWithToken(token);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			System.err.println("Error en login con token: " + e.getMessage());

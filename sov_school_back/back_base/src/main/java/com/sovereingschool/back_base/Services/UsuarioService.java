@@ -8,6 +8,7 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import reactor.core.publisher.Mono;
@@ -102,6 +104,18 @@ public class UsuarioService implements IUsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Función para crear un nuevo usuario
+     * 
+     * @param new_usuario Objeto NewUsuario con los datos del usuario
+     * @return Objeto AuthResponse con los datos del usuario
+     * @throws DataIntegrityViolationException si el usuario ya existe
+     * @throws IOException                     si ocurre un error al subir la foto
+     * @throws MessagingException              si ocurre un error al enviar el
+     *                                         correo
+     * @throws RuntimeException                si ocurre un error en el servidor
+     * 
+     */
     @Override
     public AuthResponse createUsuario(NewUsuario new_usuario) {
         Usuario usuario = new Usuario(
@@ -209,44 +223,116 @@ public class UsuarioService implements IUsuarioService {
             return new AuthResponse(true, "Usuario creado con éxito", usuarioInsertado, accessToken, refreshToken);
 
         } catch (DataIntegrityViolationException e) {
+            System.err.println("El usuario ya existe");
             throw new DataIntegrityViolationException("El usuario ya existe");
         }
     }
 
+    /**
+     * Función para obtener los datos del usuario
+     * 
+     * @param id_usuario ID del usuario
+     * @return Objeto Usuario con los datos del usuario
+     * @throws EntityNotFoundException si el usuario no existe
+     * 
+     */
     @Override
     public Usuario getUsuario(Long id_usuario) {
-        return this.repo.findUsuarioForId(id_usuario);
+        return this.repo.findUsuarioForId(id_usuario).orElseThrow(() -> {
+            System.err.println("Error en obtener el usuario con ID " + id_usuario);
+            return new EntityNotFoundException("Error en obtener el usuario con ID " + id_usuario);
+        });
     }
 
+    /**
+     * Función para obtener el nombre del usuario
+     * 
+     * @param id_usuario ID del usuario
+     * @return String con el nombre del usuario
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * 
+     */
     @Override
     public String getNombreUsuario(Long id_usuario) {
-        return this.repo.findNombreUsuarioForId(id_usuario);
+        return this.repo.findNombreUsuarioForId(id_usuario).orElseThrow(() -> {
+            System.err.println("Error en obtener el nombre del usuario con ID " + id_usuario);
+            return new EntityNotFoundException("Error en obtener el nombre del usuario con ID " + id_usuario);
+        });
     }
 
+    /**
+     * Función para obtener las fotos del usuario
+     * 
+     * @param id_usuario ID del usuario
+     * @return Lista de String con las fotos del usuario
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * 
+     */
     @Override
     public List<String> getFotosUsuario(Long id_usuario) {
-        Usuario usuario = this.repo.findUsuarioForId(id_usuario);
-        if (usuario == null)
-            return null;
-        return usuario.getFoto_usuario();
+        return this.repo.findUsuarioForId(id_usuario)
+                .map(Usuario::getFoto_usuario)
+                .orElse(null);
     }
 
+    /**
+     * Función para obtener el rol del usuario
+     * 
+     * @param id_usuario ID del usuario
+     * @return RoleEnum con el rol del usuario
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     *
+     */
     @Override
     public RoleEnum getRollUsuario(Long id_usuario) {
-        return this.repo.findRollUsuarioForId(id_usuario);
+        return this.repo.findRollUsuarioForId(id_usuario).orElseThrow(() -> {
+            System.err.println("Error en obtener el rol del usuario con ID " + id_usuario);
+            return new EntityNotFoundException("Error en obtener el rol del usuario con ID " + id_usuario);
+        });
     }
 
+    /**
+     * Función para obtener el plan del usuario
+     * 
+     * @param id_usuario ID del usuario
+     * @return Plan con el plan del usuario
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     *
+     */
     @Override
     public Plan getPlanUsuario(Long id_usuario) {
-        return this.repo.findPlanUsuarioForId(id_usuario);
+        return this.repo.findPlanUsuarioForId(id_usuario).orElseThrow(() -> {
+            System.err.println("Error en obtener el plan del usuario con ID " + id_usuario);
+            return new EntityNotFoundException("Error en obtener el plan del usuario con ID " + id_usuario);
+        });
     }
 
+    /**
+     * Función para obtener los cursos del usuario
+     * 
+     * @param id_usuario ID del usuario
+     * @return Lista de Curso con los cursos del usuario
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * @throws IllegalStateException    si el usuario no está autenticado
+     * @throws AccessDeniedException    si el usuario no tiene permiso para acceder
+     *                                  a este recurso
+     * 
+     */
     @Override
     public List<Curso> getCursosUsuario(Long id_usuario) {
-        Usuario usuario = this.repo.findUsuarioForId(id_usuario);
-        if (usuario == null)
-            return null;
-        return usuario.getCursos_usuario();
+        return this.repo.findUsuarioForId(id_usuario)
+                .map(Usuario::getCursos_usuario)
+                .orElse(null);
     }
 
     @Override
@@ -268,25 +354,54 @@ public class UsuarioService implements IUsuarioService {
                         System.out.println("La foto no existe: " + photoPath.toString());
                     }
                 } catch (IOException e) {
-                    System.err.println("Error al eliminar la foto: " + photoPath.toString());
-                    e.printStackTrace();
+                    System.err.println("Error al eliminar la foto: " + photoPath.toString() + ": " + e.getMessage());
                 }
             }
         }
         return this.repo.save(usuario);
     }
 
+    /**
+     * Función para cambiar el plan del usuario
+     * 
+     * @param usuario Objeto Usuario con los datos del usuario
+     * @return Integer con el resultado de la operación
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * @throws IllegalStateException    si el usuario no está autenticado
+     * @throws AccessDeniedException    si el usuario no tiene permiso para acceder
+     *                                  a este recurso
+     * 
+     */
     @Override
     public Integer changePlanUsuario(Usuario usuario) {
-        return this.repo.changePlanUsuarioForId(usuario.getId_usuario(), usuario.getPlan_usuario());
+        return this.repo.changePlanUsuarioForId(usuario.getId_usuario(), usuario.getPlan_usuario()).orElseThrow(() -> {
+            System.err.println("Error en cambiar el plan del usuario");
+            return new EntityNotFoundException("Error en cambiar el plan del usuario");
+        });
     }
 
+    /**
+     * Función para cambiar los cursos del usuario
+     * 
+     * @param usuario Objeto Usuario con los datos del usuario
+     * @return Integer con el resultado de la operación
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * @throws IllegalStateException    si el usuario no está autenticado
+     * @throws AccessDeniedException    si el usuario no tiene permiso para acceder
+     *                                  a este recurso
+     *
+     */
     @Override
     public Integer changeCursosUsuario(Usuario usuario) {
-        Usuario old_usuario = this.repo.findUsuarioForId(usuario.getId_usuario());
-        if (old_usuario == null)
+        Optional<Usuario> old_usuario = this.repo.findUsuarioForId(usuario.getId_usuario());
+        if (old_usuario.isEmpty()) {
             return 0;
-        old_usuario.setCursos_usuario(usuario.getCursos_usuario());
+        }
+        old_usuario.get().setCursos_usuario(usuario.getCursos_usuario());
 
         try {
             // Añadir el usuario al microservicio de stream
@@ -313,9 +428,14 @@ public class UsuarioService implements IUsuarioService {
         // Añadir el usuario al microservicio de chat
         // TODO: Implementar la lógica para añadir el usuario al microservicio de chat
 
-        return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario);
+        return this.repo.changeUsuarioForId(usuario.getId_usuario(), old_usuario.get()).orElseThrow(() -> {
+            System.err.println("Error en cambiar los cursos del usuario");
+            return new RuntimeException("Error en cambiar los cursos del usuario");
+        });
     }
 
+    // TODO: Mejorar la gestión de errores y eliminar el usuario en ambos
+    // microservicios
     @Override
     public String deleteUsuario(Long id) {
         if (this.repo.findUsuarioForId(id) == null) {
@@ -331,6 +451,7 @@ public class UsuarioService implements IUsuarioService {
         return this.repo.findProfes();
     }
 
+    // TODO: Mejorar la gestión de errores pasandolos por tipos al controller
     @Override
     public boolean sendConfirmationEmail(NewUsuario newUsuario) {
         Context context = new Context();
@@ -374,7 +495,7 @@ public class UsuarioService implements IUsuarioService {
 
     }
 
-    public WebClient createSecureWebClient(String baseUrl) throws Exception {
+    private WebClient createSecureWebClient(String baseUrl) throws Exception {
 
         SslContext sslContext = SslContextBuilder.forClient()
                 .trustManager(InsecureTrustManagerFactory.INSTANCE)

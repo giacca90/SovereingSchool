@@ -1,5 +1,7 @@
 package com.sovereingschool.back_common.Repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +23,6 @@ public interface ClaseRepository extends JpaRepository<Clase, Long> {
 			@Param("posicion_clase") Integer posicion_clase);
 
 	@Query("SELECT c.nombre_clase FROM Clase c WHERE c.id_clase = :id")
-	String findNombreClaseById(@Param("id") Long id);
+	Optional<String> findNombreClaseById(@Param("id") Long id);
 
 }

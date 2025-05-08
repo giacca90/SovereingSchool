@@ -32,6 +32,7 @@ import com.sovereingschool.back_common.Repositories.CursoRepository;
 import com.sovereingschool.back_common.Repositories.UsuarioRepository;
 import com.sovereingschool.back_common.Utils.JwtUtil;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -81,10 +82,14 @@ public class CursoChatService {
                             mensajesDTO = initChatService.getMensajesDTO(mensajesChat);
                         }
                     }
+                    String nombreClase = claseRepo.findNombreClaseById(clase.getIdClase()).orElseThrow(() -> {
+                        System.err.println("Error en obtener el nombre de la clase");
+                        return new EntityNotFoundException("Error en obtener el nombre de la clase");
+                    });
                     clasesDTO.add(new ClaseChatDTO(
                             clase.getIdClase(),
                             cursoChat.getIdCurso(),
-                            claseRepo.findNombreClaseById(clase.getIdClase()),
+                            nombreClase,
                             mensajesDTO));
                 }
             }
@@ -99,12 +104,22 @@ public class CursoChatService {
                 }
             }
 
+            String nombreCurso = cursoRepo.findNombreCursoById(idCurso).orElseThrow(() -> {
+                System.err.println("Error en obtener el nombre del curso");
+                return new EntityNotFoundException("Error en obtener el nombre del curso");
+            });
+
+            String imagenCurso = cursoRepo.findImagenCursoById(idCurso).orElseThrow(() -> {
+                System.err.println("Error en obtener la imagen del curso");
+                return new EntityNotFoundException("Error en obtener la imagen del curso");
+            });
+
             cursoChatDTO = new CursoChatDTO(
                     idCurso,
                     clasesDTO,
                     mensajesDTO,
-                    cursoRepo.findNombreCursoById(idCurso),
-                    cursoRepo.findImagenCursoById(idCurso));
+                    nombreCurso,
+                    imagenCurso);
         }
 
         // ("LOG5: " + cursoChatDTO.toString());

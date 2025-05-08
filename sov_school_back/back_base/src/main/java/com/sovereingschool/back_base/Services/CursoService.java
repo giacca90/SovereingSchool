@@ -40,6 +40,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import reactor.core.publisher.Mono;
@@ -84,28 +85,68 @@ public class CursoService implements ICursoService {
         return res.getId_curso();
     }
 
+    /**
+     * Función para obtener un curso
+     * 
+     * @param id_curso ID del curso
+     * @return Curso con los datos del curso
+     * @throws EntityNotFoundException si el curso no existe
+     * 
+     */
     @Override
     public Curso getCurso(Long id_curso) {
-        Optional<Curso> curso = this.repo.findById(id_curso);
-        if (curso.isPresent()) {
-            return curso.get();
-        }
-        return null;
+        return this.repo.findById(id_curso).orElseThrow(() -> {
+            System.err.println("Error en obtener el curso con ID " + id_curso);
+            return new EntityNotFoundException("Error en obtener el curso con ID " + id_curso);
+        });
     }
 
+    /**
+     * Función para obtener el nombre del curso
+     * 
+     * @param id_curso ID del curso
+     * @return String con el nombre del curso
+     * @throws EntityNotFoundException si el curso no existe
+     */
     @Override
     public String getNombreCurso(Long id_curso) {
-        return this.repo.findNombreCursoById(id_curso);
+        return this.repo.findNombreCursoById(id_curso)
+                .orElseThrow(() -> {
+                    System.err.println("Error en obtener el nombre del curso con ID " + id_curso);
+                    return new EntityNotFoundException("Error en obtener el nombre del curso con ID " + id_curso);
+                });
     }
 
+    /**
+     * Función para obtener los profesores del curso
+     * 
+     * @param id_curso ID del curso
+     * @return Lista de usuarios con los profesores del curso
+     * @throws EntityNotFoundException si el curso no existe
+     */
     @Override
     public List<Usuario> getProfesoresCurso(Long id_curso) {
+        List<Usuario> profesores = this.repo.findProfesoresCursoById(id_curso);
+        if (profesores == null || profesores.isEmpty()) {
+            System.err.println("Error en obtener los profesores del curso con ID " + id_curso);
+            throw new EntityNotFoundException("Error en obtener los profesores del curso con ID " + id_curso);
+        }
         return this.repo.findProfesoresCursoById(id_curso);
     }
 
+    /**
+     * Función para obtener la fecha de creación del curso
+     * 
+     * @param id_curso ID del curso
+     * @return Date con la fecha de creación del curso
+     * @throws EntityNotFoundException si el curso no existe
+     */
     @Override
     public Date getFechaCreacionCurso(Long id_curso) {
-        return this.repo.findFechaCreacionCursoById(id_curso);
+        return this.repo.findFechaCreacionCursoById(id_curso).orElseThrow(() -> {
+            System.err.println("Error en obtener la fecha de creación del curso con ID " + id_curso);
+            return new EntityNotFoundException("Error en obtener la fecha de creación del curso con ID " + id_curso);
+        });
     }
 
     @Override
@@ -118,15 +159,32 @@ public class CursoService implements ICursoService {
         return this.repo.findPlanesCursoById(id_curso);
     }
 
+    /**
+     * Función para obtener el precio del curso
+     * 
+     * @param id_curso ID del curso
+     * @return BigDecimal con el precio del curso
+     * @throws EntityNotFoundException si el curso no existe
+     */
     @Override
     public BigDecimal getPrecioCurso(Long id_curso) {
-        return this.repo.findPrecioCursoById(id_curso);
+        return this.repo.findPrecioCursoById(id_curso).orElseThrow(() -> {
+            System.err.println("Error en obtener el precio del curso con ID " + id_curso);
+            return new EntityNotFoundException("Error en obtener el precio del curso con ID " + id_curso);
+        });
     }
 
     /**
+     * TODO: Mejorar el manejo de errores
+     * 
      * Función para actualizar o crear un nuevo curso
      * 
      * @param curso Curso: curso a actualizar
+     * @return Curso con los datos actualizados
+     * @throws EntityNotFoundException si el curso no existe
+     * @throws RuntimeException        si ocurre un error en el servidor
+     *
+     *                                 TODO: Mejorar la gestión de errores
      */
     @Override
     public Curso updateCurso(Curso curso) {
@@ -146,7 +204,6 @@ public class CursoService implements ICursoService {
                         .onErrorResume(e -> {
                             System.err.println("Error al conectar con el microservicio de chat " + e.getMessage());
                             return Mono.empty(); // Continuar sin interrumpir la aplicación
-
                         }).subscribe(res -> {
                             if (res == null || !res.equals("Curso chat creado con exito!!!")) {
                             } else {
@@ -158,6 +215,8 @@ public class CursoService implements ICursoService {
                 System.err.println("Error en crear el curso: " + e.getMessage());
                 return null;
             }
+
+            // TODO: Crear el curso en el microservicio de streaming
         }
         // Crear la carpeta del curso si no existe
         Path cursoPath = baseUploadDir.resolve(curso.getId_curso().toString());
@@ -428,8 +487,10 @@ public class CursoService implements ICursoService {
         } else {
             System.err.println("Clase no encontrada con ID: " + clase.getId_clase());
         }
+        // TODO: Mirar si se necesita eliminar algo en el microservicio de streaming
     }
 
+    // TODO: Mejorar la gestión de errores
     @Override
     public String subeVideo(MultipartFile file) {
         try {
@@ -454,7 +515,7 @@ public class CursoService implements ICursoService {
         }
     }
 
-    public WebClient createSecureWebClient(String baseUrl) throws Exception {
+    private WebClient createSecureWebClient(String baseUrl) throws Exception {
         URI uri = new URI(baseUrl);
         String host = uri.getHost(); // p.ej. "sovschool-back-chat"
         int port = uri.getPort(); // p.ej. 8070

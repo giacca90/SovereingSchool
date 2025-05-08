@@ -43,13 +43,17 @@ public class UserDetailServiceImpl implements UserDetailsService {
         System.out.println("Usuario: " + usuario.getNombre_usuario());
         System.out.println("Rol asignado: ROLE_" + usuario.getRoll_usuario().name());
 
+        // TODO: Investigar porque en el chat hace falta la contraseña del usuario
+        String password = loginRepository.findPasswordLoginForId(usuario.getId_usuario()).orElseThrow(() -> {
+            System.err.println("Error en obtener la contraseña del usuario");
+            return new RuntimeException("Error en obtener la contraseña del usuario");
+        });
         return new User(usuario.getNombre_usuario(),
-                loginRepository.findPasswordLoginForId(usuario.getId_usuario()),
+                password,
                 usuario.getIsEnabled(),
                 usuario.getAccountNoExpired(),
                 usuario.getCredentialsNoExpired(),
                 usuario.getAccountNoLocked(),
                 roles);
     }
-
 }

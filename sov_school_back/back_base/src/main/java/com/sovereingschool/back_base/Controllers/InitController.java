@@ -21,14 +21,14 @@ public class InitController {
     private static final Logger logger = LoggerFactory.getLogger(InitController.class);
 
     @Autowired
-    private IInitAppService service;
+    private IInitAppService initAppService;
 
     @GetMapping()
     public ResponseEntity<?> getInit() {
         Object response = new Object();
         try {
-            response = this.service.getInit();
-            String initToken = this.service.getInitToken();
+            response = this.initAppService.getInit();
+            String initToken = this.initAppService.getInitToken();
             // Construir la cookie segura
             ResponseCookie initTokenCookie = ResponseCookie.from("initToken", initToken)
                     .httpOnly(true) // No accesible desde JavaScript

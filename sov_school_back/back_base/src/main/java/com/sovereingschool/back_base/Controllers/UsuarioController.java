@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sovereingschool.back_base.DTOs.AuthResponse;
-import com.sovereingschool.back_base.Interfaces.IUsuarioService;
+import com.sovereingschool.back_base.Services.UsuarioService;
 import com.sovereingschool.back_common.DTOs.NewUsuario;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Plan;
@@ -70,7 +70,9 @@ public class UsuarioController {
 	}
 
 	@Autowired
-	private IUsuarioService service;
+	// TODO: Volver a activar la interfaz despues de mejorar el manejo de errores
+	// private IUsuarioService usuarioService;
+	private UsuarioService usuarioService;
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -85,7 +87,7 @@ public class UsuarioController {
 	public ResponseEntity<?> getUsuario(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			Usuario usuario = this.service.getUsuario(id);
+			Usuario usuario = this.usuarioService.getUsuario(id);
 			if (usuario == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -102,7 +104,7 @@ public class UsuarioController {
 	public ResponseEntity<?> getNombreUsuario(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			String nombre = this.service.getNombreUsuario(id);
+			String nombre = this.usuarioService.getNombreUsuario(id);
 			if (nombre == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -157,7 +159,7 @@ public class UsuarioController {
 	public ResponseEntity<?> getRollUsuario(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			RoleEnum roll = this.service.getRollUsuario(id);
+			RoleEnum roll = this.usuarioService.getRollUsuario(id);
 			if (roll == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -174,7 +176,7 @@ public class UsuarioController {
 	public ResponseEntity<?> getPlanUsuario(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			Plan plan = this.service.getPlanUsuario(id);
+			Plan plan = this.usuarioService.getPlanUsuario(id);
 			if (plan == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -191,7 +193,7 @@ public class UsuarioController {
 	public ResponseEntity<?> getCursosUsuario(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			List<Curso> cursos = this.service.getCursosUsuario(id);
+			List<Curso> cursos = this.usuarioService.getCursosUsuario(id);
 			if (cursos == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -208,7 +210,7 @@ public class UsuarioController {
 	public ResponseEntity<?> createUsuario(@RequestBody NewUsuario newUsuario) {
 		Object response = new Object();
 		try {
-			boolean mailResp = this.service.sendConfirmationEmail(newUsuario);
+			boolean mailResp = this.usuarioService.sendConfirmationEmail(newUsuario);
 			if (!mailResp) {
 				response = "Error en enviar el correo de confirmación";
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -235,7 +237,7 @@ public class UsuarioController {
 			}
 			NewUsuario newUsuario = (NewUsuario) convertirBase64AObjeto(newUsuarioB64);
 
-			AuthResponse authResponse = this.service.createUsuario(newUsuario);
+			AuthResponse authResponse = this.usuarioService.createUsuario(newUsuario);
 			if (authResponse == null || !authResponse.status()) {
 				response = "Error en crear el usuario";
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -280,7 +282,7 @@ public class UsuarioController {
 		}
 		Object response = new Object();
 		try {
-			Long resultado = this.service.updateUsuario(usuario).getId_usuario();
+			Long resultado = this.usuarioService.updateUsuario(usuario).getId_usuario();
 			if (resultado == 0) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -307,7 +309,7 @@ public class UsuarioController {
 		}
 		Object response = new Object();
 		try {
-			Integer resultado = this.service.changePlanUsuario(usuario);
+			Integer resultado = this.usuarioService.changePlanUsuario(usuario);
 			if (resultado == 0) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -334,7 +336,7 @@ public class UsuarioController {
 		}
 		Object response = new Object();
 		try {
-			Integer resultado = this.service.changeCursosUsuario(usuario);
+			Integer resultado = this.usuarioService.changeCursosUsuario(usuario);
 			if (resultado == 0) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -353,7 +355,7 @@ public class UsuarioController {
 
 		Object response = new Object();
 		try {
-			String result = this.service.deleteUsuario(id);
+			String result = this.usuarioService.deleteUsuario(id);
 			if (result == null) {
 				response = "Usuario no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -370,7 +372,7 @@ public class UsuarioController {
 	public ResponseEntity<?> getProfes() {
 		Object response = new Object();
 		try {
-			response = this.service.getProfes();
+			response = this.usuarioService.getProfes();
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			response = "Error en obtener los profesores: " + e.getMessage();

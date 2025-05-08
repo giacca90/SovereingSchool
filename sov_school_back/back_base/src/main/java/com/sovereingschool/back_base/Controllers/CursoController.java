@@ -21,25 +21,29 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sovereingschool.back_base.Interfaces.ICursoService;
+import com.sovereingschool.back_base.Services.CursoService;
 import com.sovereingschool.back_common.Models.Clase;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Plan;
 import com.sovereingschool.back_common.Models.Usuario;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/cursos")
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
 public class CursoController {
 	@Autowired
-	private ICursoService service;
+	// TODO: Volver a activar la interfaz
+	// private ICursoService cursoService;
+	private CursoService cursoService;
 
 	/* Parte de gestión de cursos */
 	@GetMapping("/getAll")
 	public ResponseEntity<?> getAll() {
 		Object response = new Object();
 		try {
-			response = this.service.getAll();
+			response = this.cursoService.getAll();
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			response = "Error en obtener los cursos: " + e.getMessage();
@@ -51,13 +55,11 @@ public class CursoController {
 	public ResponseEntity<?> getCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			Curso curso = this.service.getCurso(id);
-			if (curso == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			Curso curso = this.cursoService.getCurso(id);
 			response = curso;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException ex) {
+			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en obtener el curso: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -68,13 +70,11 @@ public class CursoController {
 	public ResponseEntity<?> getNombreCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			String nombre_curso = this.service.getNombreCurso(id);
-			if (nombre_curso == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			String nombre_curso = this.cursoService.getNombreCurso(id);
 			response = nombre_curso;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException ex) {
+			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en obtener el nombre del curso: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -85,15 +85,13 @@ public class CursoController {
 	public ResponseEntity<?> getNombresProfesoresCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			List<Usuario> profesores = this.service.getProfesoresCurso(id);
+			List<Usuario> profesores = this.cursoService.getProfesoresCurso(id);
 			List<String> nombres_profesores = profesores.stream().map(Usuario::getNombre_usuario)
 					.collect(Collectors.toList());
-			if (nombres_profesores.isEmpty()) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
 			response = nombres_profesores;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException ex) {
+			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en obtener los nombres de los profesores: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -104,24 +102,23 @@ public class CursoController {
 	public ResponseEntity<?> getFechaCreacionCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			Date fecha = this.service.getFechaCreacionCurso(id);
-			if (fecha == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			Date fecha = this.cursoService.getFechaCreacionCurso(id);
 			response = fecha;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException ex) {
+			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en obtener la fecha del curso: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
+	// TODO: Mejorar la gestión de errores
 	@GetMapping("/getClasesDelCurso/{id}")
 	public ResponseEntity<?> getClasesDelCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			List<Clase> clases = this.service.getClasesDelCurso(id);
+			List<Clase> clases = this.cursoService.getClasesDelCurso(id);
 			if (clases.isEmpty()) {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -135,11 +132,12 @@ public class CursoController {
 		}
 	}
 
+	// TODO: Mejorar la gestión de errores
 	@GetMapping("/getPlanesDelCurso/{id}")
 	public ResponseEntity<?> getPlanesDelCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			List<Plan> planes = this.service.getPlanesDelCurso(id);
+			List<Plan> planes = this.cursoService.getPlanesDelCurso(id);
 			if (planes.isEmpty()) {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -156,13 +154,11 @@ public class CursoController {
 	public ResponseEntity<?> getPrecioCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			BigDecimal precio = this.service.getPrecioCurso(id);
-			if (precio == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			BigDecimal precio = this.cursoService.getPrecioCurso(id);
 			response = precio;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException ex) {
+			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en obtener el precio del curso: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -174,7 +170,7 @@ public class CursoController {
 	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
 		Object response = new Object();
 		try {
-			Curso result = this.service.updateCurso(curso);
+			Curso result = this.cursoService.updateCurso(curso);
 			if (result == null) {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -188,12 +184,13 @@ public class CursoController {
 		}
 	}
 
+	// TODO: Mejorar la gestión de errores
 	@PreAuthorize("hasAnyRole('PROF', 'ADMIN')")
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			Boolean result = this.service.deleteCurso(id);
+			Boolean result = this.cursoService.deleteCurso(id);
 			if (result == false) {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -212,11 +209,7 @@ public class CursoController {
 	public ResponseEntity<?> getClaseForId(@PathVariable Long idCurso, @PathVariable Long idClase) {
 		Object response = new Object();
 		try {
-			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null) {
-				response = "Curso eliminado con éxito!!!";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			Curso curso = this.cursoService.getCurso(idCurso);
 			List<Clase> clases = curso.getClases_curso();
 			for (Clase clase : clases) {
 				if (clase.getId_clase().equals(idClase)) {
@@ -226,6 +219,8 @@ public class CursoController {
 			}
 			response = "Clase no encontrada";
 			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+		} catch (EntityNotFoundException ex) {
+			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en encontrar la clase: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -237,11 +232,7 @@ public class CursoController {
 	public ResponseEntity<?> deleteClase(@PathVariable Long idCurso, @PathVariable Long idClase) {
 		Object response = new Object();
 		try {
-			Curso curso = this.service.getCurso(idCurso);
-			if (curso == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			Curso curso = this.cursoService.getCurso(idCurso);
 			List<Clase> clases = curso.getClases_curso();
 			Clase eliminada = null;
 			for (int i = 0; i < clases.size(); i++) {
@@ -256,14 +247,15 @@ public class CursoController {
 			if (eliminada != null) {
 				clases.remove(eliminada);
 				curso.setClases_curso(clases);
-				this.service.updateCurso(curso);
-				this.service.deleteClase(eliminada);
+				this.cursoService.updateCurso(curso);
+				this.cursoService.deleteClase(eliminada);
 				response = "Clase eliminada con exito!!!";
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response = "Clase no encontrada";
 			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-
+		} catch (EntityNotFoundException ex) {
+			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en borrar la clase: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -280,7 +272,7 @@ public class CursoController {
 			response = "Archivo vacío";
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
-		String filePath = this.service.subeVideo(file);
+		String filePath = this.cursoService.subeVideo(file);
 		if (filePath == null) {
 			response = "Error al subir el video";
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
