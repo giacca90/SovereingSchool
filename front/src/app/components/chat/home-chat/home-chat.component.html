@@ -21,7 +21,7 @@
 						@if (mensaje.pregunta) {
 							<p class="text-gray-500">
 								Pregunta en el momento
-								<a class="text-blue-500 underline visited:text-purple-600 hover:text-blue-700" href="repro/{{ this.loginService.usuario?.id_usuario }}/{{ mensaje.id_curso }}/{{ mensaje.id_clase }}?momento={{ mensaje.pregunta }}">{{ Math.floor(mensaje.pregunta / 60) }}:{{ (mensaje.pregunta % 60).toString().padStart(2, '0') }}</a>
+								<a class="text-blue-500 underline visited:text-purple-600 hover:text-blue-700" href="repro/{{ mensaje.id_curso }}/{{ mensaje.id_clase }}?momento={{ mensaje.pregunta }}">{{ Math.floor(mensaje.pregunta / 60) }}:{{ (mensaje.pregunta % 60).toString().padStart(2, '0') }}</a>
 							</p>
 						}
 						<p>{{ mensaje.mensaje }}</p>
@@ -46,7 +46,7 @@
 					@if (curso.mensajes[0].pregunta) {
 						<p class="text-gray-500">
 							Pregunta en el momento
-							<a class="text-blue-500 underline visited:text-purple-600 hover:text-blue-700" href="repro/{{ this.loginService.usuario?.id_usuario }}/{{ curso.mensajes[0].id_curso }}/{{ curso.mensajes[0].id_clase }}?momento={{ curso.mensajes[0].pregunta }}">{{ Math.floor(curso.mensajes[0].pregunta / 60) }}:{{ (curso.mensajes[0].pregunta % 60).toString().padStart(2, '0') }}</a>
+							<a class="text-blue-500 underline visited:text-purple-600 hover:text-blue-700" href="repro/{{ curso.mensajes[0].id_curso }}/{{ curso.mensajes[0].id_clase }}?momento={{ curso.mensajes[0].pregunta }}">{{ Math.floor(curso.mensajes[0].pregunta / 60) }}:{{ (curso.mensajes[0].pregunta % 60).toString().padStart(2, '0') }}</a>
 						</p>
 					}
 					<p>{{ curso.mensajes[0].mensaje }}</p>

@@ -221,12 +221,13 @@ public class UsuarioCursosService implements IUsuarioCursosService {
     }
 
     public Long getStatus(Long id_usuario, Long id_curso) {
-        UsuarioCursos uc = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
-        if (uc != null) {
-            if (uc.getRol_usuario().name().equals("PROFESOR") || uc.getRol_usuario().name().equals("ADMIN")) {
+        UsuarioCursos usuarioCursos = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
+        if (usuarioCursos != null) {
+            if (usuarioCursos.getRol_usuario().name().equals("PROFESOR")
+                    || usuarioCursos.getRol_usuario().name().equals("ADMIN")) {
                 return this.cursoRepository.findById(id_curso).get().getClases_curso().get(0).getId_clase();
             } else {
-                List<StatusCurso> lst = uc.getCursos();
+                List<StatusCurso> lst = usuarioCursos.getCursos();
                 for (StatusCurso sc : lst) {
                     if (sc.getId_curso().equals(id_curso)) {
                         List<StatusClase> lscl = sc.getClases();
@@ -254,12 +255,12 @@ public class UsuarioCursosService implements IUsuarioCursosService {
             return false;
         }
 
-        for (UsuarioCursos UC : usuarioCursos) {
-            List<StatusCurso> statusCurso = UC.getCursos();
+        for (UsuarioCursos usrCursos : usuarioCursos) {
+            List<StatusCurso> statusCurso = usrCursos.getCursos();
             for (int i = 0; i < statusCurso.size(); i++) {
                 if (statusCurso.get(i).getId_curso().equals(id)) {
                     statusCurso.remove(i);
-                    this.usuarioCursosRepository.save(UC);
+                    this.usuarioCursosRepository.save(usrCursos);
                     break;
                 }
             }

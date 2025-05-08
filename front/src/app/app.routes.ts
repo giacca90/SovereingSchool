@@ -33,7 +33,7 @@ export const routes: Routes = [
 		canActivate: [GuestGuard, UserGuard],
 	},
 	{
-		path: 'repro/:id_usuario/:id_curso/:id_clase',
+		path: 'repro/:id_curso/:id_clase',
 		loadComponent: () => import('./components/reproduction/reproduction.component').then((m) => m.ReproductionComponent),
 		canActivate: [GuestGuard, UserGuard],
 	},

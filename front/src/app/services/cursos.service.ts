@@ -155,8 +155,8 @@ export class CursosService {
 		);
 	}
 
-	getStatusCurso(id_usuario: number, id_curso: number): Observable<number | boolean> {
-		return this.http.get<number>(this.backURLStreaming + '/status/' + id_usuario + '/' + id_curso, { observe: 'response' }).pipe(
+	getStatusCurso(id_curso: number): Observable<number | boolean> {
+		return this.http.get<number>(this.backURLStreaming + '/status/' + id_curso, { observe: 'response' }).pipe(
 			map((response: HttpResponse<number>) => {
 				if (response.ok && response.body) {
 					return response.body;

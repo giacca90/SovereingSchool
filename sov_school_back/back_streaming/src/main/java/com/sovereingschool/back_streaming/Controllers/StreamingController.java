@@ -190,6 +190,12 @@ public class StreamingController {
                 .body(resource);
     }
 
+    /**
+     * Función temporal para desarrollo
+     * TODO: Eliminar en producción
+     * 
+     * @return
+     */
     @GetMapping("/init")
     public ResponseEntity<?> get() {
         try {
@@ -200,9 +206,14 @@ public class StreamingController {
         }
     }
 
-    @GetMapping("/status/{id_usuario}/{id_curso}")
-    public ResponseEntity<?> getStatus(@PathVariable Long id_usuario, @PathVariable Long id_curso) {
+    @GetMapping("/status/{id_curso}")
+    public ResponseEntity<?> getStatus(@PathVariable Long id_curso) {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return new ResponseEntity<>("Error en el token: no autenticado", HttpStatus.UNAUTHORIZED);
+            }
+            Long id_usuario = (Long) authentication.getDetails();
             return new ResponseEntity<Long>(this.usuarioCursosService.getStatus(id_usuario, id_curso), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Error en obtener la clase: " + e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);

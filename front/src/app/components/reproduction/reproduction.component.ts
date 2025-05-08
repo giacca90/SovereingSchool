@@ -17,7 +17,6 @@ import { ChatComponent } from '../chat/chat/chat.component';
 	styleUrl: './reproduction.component.css',
 })
 export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
-	public id_usuario: number = 0;
 	public id_curso: number = 0;
 	public id_clase: number = 0;
 	public momento: number | null = null;
@@ -42,18 +41,20 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	ngOnInit(): void {
 		this.subscription.add(
 			this.route.params.subscribe((params) => {
-				this.id_usuario = params['id_usuario'];
 				this.id_curso = params['id_curso'];
 				this.id_clase = params['id_clase'];
 
 				if (this.id_clase == 0) {
-					this.cursoService.getStatusCurso(this.id_usuario, this.id_curso).subscribe({
+					this.cursoService.getStatusCurso(this.id_curso).subscribe({
 						next: (resp) => {
 							if (resp === 0) {
 								this.router.navigate(['/']);
 							} else {
-								this.router.navigate(['repro/' + this.id_usuario + '/' + this.id_curso + '/' + resp]);
+								this.router.navigate(['repro/' + this.id_curso + '/' + resp]);
 							}
+						},
+						error: (e) => {
+							console.error('Error en recibir el estado del curso: ' + e.message);
 						},
 					});
 				} else {
@@ -170,7 +171,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	navega(clase: Clase) {
-		this.router.navigate(['repro/' + this.id_usuario + '/' + this.id_curso + '/' + clase.id_clase]);
+		this.router.navigate(['repro/' + this.id_curso + '/' + clase.id_clase]);
 	}
 
 	cambiaVista(vista: number) {
