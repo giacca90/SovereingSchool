@@ -20,6 +20,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -335,6 +336,19 @@ public class UsuarioService implements IUsuarioService {
                 .orElse(null);
     }
 
+    /**
+     * Función para actualizar un usuario
+     * 
+     * @param usuario Objeto Usuario con los datos del usuario
+     * @return Usuario con los datos actualizados
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * @throws IllegalStateException    si el usuario no está autenticado
+     * @throws AccessDeniedException    si el usuario no tiene permiso para acceder
+     *                                  a este recurso
+     *
+     */
     @Override
     public Usuario updateUsuario(Usuario usuario) {
         Usuario usuario_old = this.getUsuario(usuario.getId_usuario());
@@ -355,6 +369,8 @@ public class UsuarioService implements IUsuarioService {
                     }
                 } catch (IOException e) {
                     System.err.println("Error al eliminar la foto: " + photoPath.toString() + ": " + e.getMessage());
+                    throw new RuntimeException(
+                            "Error al eliminar la foto: " + photoPath.toString() + ": " + e.getMessage());
                 }
             }
         }
@@ -434,16 +450,35 @@ public class UsuarioService implements IUsuarioService {
         });
     }
 
-    // TODO: Mejorar la gestión de errores y eliminar el usuario en ambos
-    // microservicios
+    /**
+     * Función para eliminar un usuario
+     * 
+     * @param id ID del usuario
+     * @return String con el resultado de la operación
+     * @throws EntityNotFoundException  si el usuario no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * 
+     */
     @Override
     public String deleteUsuario(Long id) {
-        if (this.repo.findUsuarioForId(id) == null) {
-            return null;
+        this.repo.findUsuarioForId(id).orElseThrow(() -> {
+            System.err.println("Error en obtener el usuario con ID " + id);
+            return new EntityNotFoundException("Error en obtener el usuario con ID " + id);
+        });
+        try {
+            this.loginRepo.deleteById(id);
+            this.repo.deleteById(id);
+            return "Usuario eliminado con éxito!!!";
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error en eliminar el usuario con ID " + id);
+            throw new IllegalArgumentException("Error en eliminar el usuario con ID " + id);
+        } catch (Exception e) {
+            System.out.println("Error en eliminar el usuario con ID " + id);
+            throw new RuntimeException("Error en eliminar el usuario con ID " + id);
         }
-        this.loginRepo.deleteById(id);
-        this.repo.deleteById(id);
-        return "Usuario eliminado con éxito!!!";
+
+        // TODO: Eliminar el usuario en ambos microservicios
     }
 
     @Override
@@ -451,7 +486,17 @@ public class UsuarioService implements IUsuarioService {
         return this.repo.findProfes();
     }
 
-    // TODO: Mejorar la gestión de errores pasandolos por tipos al controller
+    /**
+     * Función para enviar el correo de confirmación
+     * 
+     * @param newUsuario Objeto NewUsuario con los datos del usuario
+     * @return Boolean con el resultado de la operación
+     * @throws MessagingException       si ocurre un error al enviar el
+     *                                  correo
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el ID no es válido
+     * 
+     */
     @Override
     public boolean sendConfirmationEmail(NewUsuario newUsuario) {
         Context context = new Context();
@@ -474,25 +519,24 @@ public class UsuarioService implements IUsuarioService {
         } catch (MailAuthenticationException e) {
             // Error de autenticación con el servidor SMTP
             System.err.println("Error de autenticación al enviar el correo: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Error de autenticación al enviar el correo: " + e.getMessage());
         } catch (MailSendException e) {
             // Error al enviar el mensaje
             System.err.println("Error al enviar el correo: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Error al enviar el correo: " + e.getMessage());
         } catch (MailException e) {
             // Otros errores relacionados con el envío de correos
             System.err.println("Error general al enviar el correo: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Error general al enviar el correo: " + e.getMessage());
         } catch (MessagingException e) {
             // Error al construir el mensaje MIME
             System.err.println("Error al construir el mensaje de correo: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Error al construir el mensaje de correo: " + e.getMessage());
         } catch (Exception e) {
             // Cualquier otro error inesperado
             System.err.println("Error inesperado al enviar el correo: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Error inesperado al enviar el correo: " + e.getMessage());
         }
-
     }
 
     private WebClient createSecureWebClient(String baseUrl) throws Exception {

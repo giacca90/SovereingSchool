@@ -1,6 +1,5 @@
 package com.sovereingschool.back_base.Controllers;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -113,7 +113,6 @@ public class CursoController {
 		}
 	}
 
-	// TODO: Mejorar la gestión de errores
 	@GetMapping("/getClasesDelCurso/{id}")
 	public ResponseEntity<?> getClasesDelCurso(@PathVariable Long id) {
 		Object response = new Object();
@@ -123,7 +122,6 @@ public class CursoController {
 				response = "Curso no encontrado";
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-
 			response = clases;
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
@@ -132,7 +130,6 @@ public class CursoController {
 		}
 	}
 
-	// TODO: Mejorar la gestión de errores
 	@GetMapping("/getPlanesDelCurso/{id}")
 	public ResponseEntity<?> getPlanesDelCurso(@PathVariable Long id) {
 		Object response = new Object();
@@ -170,33 +167,34 @@ public class CursoController {
 	public ResponseEntity<?> updateCurso(@RequestBody Curso curso) {
 		Object response = new Object();
 		try {
-			Curso result = this.cursoService.updateCurso(curso);
-			if (result == null) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			this.cursoService.updateCurso(curso);
 			response = "Curso actualizado con éxito!!!";
 			return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch (Exception e) {
-			response = "Error en actualizar el curso: " + e.getMessage();
-			return new ResponseEntity<>(response,
-					HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (IllegalStateException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (AccessDeniedException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	// TODO: Mejorar la gestión de errores
 	@PreAuthorize("hasAnyRole('PROF', 'ADMIN')")
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteCurso(@PathVariable Long id) {
 		Object response = new Object();
 		try {
-			Boolean result = this.cursoService.deleteCurso(id);
-			if (result == false) {
-				response = "Curso no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			this.cursoService.deleteCurso(id);
 			response = "Curso eliminado con éxito!!!";
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en eliminar el curso: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -265,19 +263,29 @@ public class CursoController {
 	@PreAuthorize("hasAnyRole('PROF', 'ADMIN')")
 	@PostMapping("/subeVideo/{idCurso}/{idClase}")
 	public ResponseEntity<?> subeVideo(@PathVariable Long idCurso, @PathVariable Long idClase,
-			@RequestParam("video") MultipartFile file)
-			throws IOException {
+			@RequestParam("video") MultipartFile file) {
 		Object response = new Object();
-		if (file.isEmpty()) {
-			response = "Archivo vacío";
-			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-		}
-		String filePath = this.cursoService.subeVideo(file);
-		if (filePath == null) {
-			response = "Error al subir el video";
+		try {
+			if (file.isEmpty()) {
+				response = "Archivo vacío";
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			String filePath = this.cursoService.subeVideo(file);
+			response = filePath.toString();
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (AccessDeniedException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (IllegalStateException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			response = "Error en subir el video: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		response = filePath.toString();
-		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

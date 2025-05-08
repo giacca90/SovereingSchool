@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,7 +52,7 @@ import reactor.netty.http.client.HttpClient;
 public class CursoService implements ICursoService {
 
     @Autowired
-    private CursoRepository repo;
+    private CursoRepository cursoRepo;
 
     @Autowired
     private ClaseRepository claseRepo;
@@ -81,7 +82,7 @@ public class CursoService implements ICursoService {
     @Override
     public Long createCurso(Curso new_curso) {
         new_curso.setId_curso(null);
-        Curso res = this.repo.save(new_curso);
+        Curso res = this.cursoRepo.save(new_curso);
         return res.getId_curso();
     }
 
@@ -95,7 +96,7 @@ public class CursoService implements ICursoService {
      */
     @Override
     public Curso getCurso(Long id_curso) {
-        return this.repo.findById(id_curso).orElseThrow(() -> {
+        return this.cursoRepo.findById(id_curso).orElseThrow(() -> {
             System.err.println("Error en obtener el curso con ID " + id_curso);
             return new EntityNotFoundException("Error en obtener el curso con ID " + id_curso);
         });
@@ -110,7 +111,7 @@ public class CursoService implements ICursoService {
      */
     @Override
     public String getNombreCurso(Long id_curso) {
-        return this.repo.findNombreCursoById(id_curso)
+        return this.cursoRepo.findNombreCursoById(id_curso)
                 .orElseThrow(() -> {
                     System.err.println("Error en obtener el nombre del curso con ID " + id_curso);
                     return new EntityNotFoundException("Error en obtener el nombre del curso con ID " + id_curso);
@@ -126,12 +127,12 @@ public class CursoService implements ICursoService {
      */
     @Override
     public List<Usuario> getProfesoresCurso(Long id_curso) {
-        List<Usuario> profesores = this.repo.findProfesoresCursoById(id_curso);
+        List<Usuario> profesores = this.cursoRepo.findProfesoresCursoById(id_curso);
         if (profesores == null || profesores.isEmpty()) {
             System.err.println("Error en obtener los profesores del curso con ID " + id_curso);
             throw new EntityNotFoundException("Error en obtener los profesores del curso con ID " + id_curso);
         }
-        return this.repo.findProfesoresCursoById(id_curso);
+        return this.cursoRepo.findProfesoresCursoById(id_curso);
     }
 
     /**
@@ -143,7 +144,7 @@ public class CursoService implements ICursoService {
      */
     @Override
     public Date getFechaCreacionCurso(Long id_curso) {
-        return this.repo.findFechaCreacionCursoById(id_curso).orElseThrow(() -> {
+        return this.cursoRepo.findFechaCreacionCursoById(id_curso).orElseThrow(() -> {
             System.err.println("Error en obtener la fecha de creación del curso con ID " + id_curso);
             return new EntityNotFoundException("Error en obtener la fecha de creación del curso con ID " + id_curso);
         });
@@ -151,12 +152,12 @@ public class CursoService implements ICursoService {
 
     @Override
     public List<Clase> getClasesDelCurso(Long id_curso) {
-        return this.repo.findClasesCursoById(id_curso);
+        return this.cursoRepo.findClasesCursoById(id_curso);
     }
 
     @Override
     public List<Plan> getPlanesDelCurso(Long id_curso) {
-        return this.repo.findPlanesCursoById(id_curso);
+        return this.cursoRepo.findPlanesCursoById(id_curso);
     }
 
     /**
@@ -168,23 +169,24 @@ public class CursoService implements ICursoService {
      */
     @Override
     public BigDecimal getPrecioCurso(Long id_curso) {
-        return this.repo.findPrecioCursoById(id_curso).orElseThrow(() -> {
+        return this.cursoRepo.findPrecioCursoById(id_curso).orElseThrow(() -> {
             System.err.println("Error en obtener el precio del curso con ID " + id_curso);
             return new EntityNotFoundException("Error en obtener el precio del curso con ID " + id_curso);
         });
     }
 
     /**
-     * TODO: Mejorar el manejo de errores
      * 
      * Función para actualizar o crear un nuevo curso
      * 
      * @param curso Curso: curso a actualizar
      * @return Curso con los datos actualizados
-     * @throws EntityNotFoundException si el curso no existe
-     * @throws RuntimeException        si ocurre un error en el servidor
-     *
-     *                                 TODO: Mejorar la gestión de errores
+     * @throws EntityNotFoundException  si el curso no existe
+     * @throws RuntimeException         si ocurre un error en el servidor
+     * @throws IllegalArgumentException si el curso no tiene un ID
+     * @throws IllegalStateException    si el curso no tiene un ID
+     * @throws AccessDeniedException    si el usuario no tiene permiso para acceder
+     * 
      */
     @Override
     public Curso updateCurso(Curso curso) {
@@ -193,7 +195,7 @@ public class CursoService implements ICursoService {
         // Si el curso no existe, crear un nuevo
         if (curso.getId_curso().equals(0L)) {
             curso.setId_curso(null);
-            curso = this.repo.save(curso);
+            curso = this.cursoRepo.save(curso);
             // Crea el chat del nuevo curso
             try {
                 WebClient webClient = createSecureWebClient(backChatURL);
@@ -213,7 +215,7 @@ public class CursoService implements ICursoService {
                         });
             } catch (Exception e) {
                 System.err.println("Error en crear el curso: " + e.getMessage());
-                return null;
+                throw new RuntimeException("Error en crear el curso: " + e.getMessage());
             }
 
             // TODO: Crear el curso en el microservicio de streaming
@@ -249,7 +251,7 @@ public class CursoService implements ICursoService {
                     clase = this.claseRepo.save(clase);
                 } catch (Exception e) {
                     System.err.println("Error en guardar la clase: " + e.getMessage());
-                    return null;
+                    throw new RuntimeException("Error en guardar la clase: " + e.getMessage());
                 }
                 // Crea el chat de la clase si no existe
                 try {
@@ -276,7 +278,7 @@ public class CursoService implements ICursoService {
                             });
                 } catch (Exception e) {
                     System.err.println("Error al crear el chat de la clase: " + e.getMessage());
-                    return null;
+                    throw new RuntimeException("Error al crear el chat de la clase: " + e.getMessage());
                 }
 
                 // Crea la carpeta de la clase si no existe
@@ -290,10 +292,10 @@ public class CursoService implements ICursoService {
             }
             curso.setClases_curso(clases);
             try {
-                curso = this.repo.save(curso);
+                curso = this.cursoRepo.save(curso);
             } catch (Exception e) {
                 System.err.println("Error en actualizar el curso: " + e.getMessage());
-                return null;
+                throw new RuntimeException("Error en actualizar el curso: " + e.getMessage());
             }
         }
         // Convertir los videos del curso
@@ -317,22 +319,32 @@ public class CursoService implements ICursoService {
                     });
         } catch (Exception e) {
             System.err.println("Error en crear el curso: " + e.getMessage());
-            return null;
+            throw new RuntimeException("Error en crear el curso: " + e.getMessage());
         }
         return curso;
     }
 
+    /**
+     * Función para eliminar un curso
+     * 
+     * @param id_curso ID del curso
+     * @return Boolean con el resultado de la operación
+     * @throws EntityNotFoundException si el curso no existe
+     * @throws RuntimeException        si ocurre un error en el servidor
+     * 
+     */
     @Override
     public Boolean deleteCurso(Long id_curso) {
-        if (!this.repo.findById(id_curso).isPresent()) {
-            return false;
-        }
+        this.cursoRepo.findById(id_curso).orElseThrow(() -> {
+            System.err.println("Error en obtener el curso con ID " + id_curso);
+            return new EntityNotFoundException("Error en obtener el curso con ID " + id_curso);
+        });
         if (this.getCurso(id_curso).getClases_curso() != null) {
             for (Clase clase : this.getCurso(id_curso).getClases_curso()) {
                 this.deleteClase(clase);
             }
         }
-        this.repo.deleteById(id_curso);
+        this.cursoRepo.deleteById(id_curso);
 
         Path cursoPath = Paths.get(this.baseUploadDir.toString(), id_curso.toString());
         File cursoFile = new File(cursoPath.toString());
@@ -353,6 +365,7 @@ public class CursoService implements ICursoService {
                 });
             } catch (Exception e) {
                 System.err.println("Error al borrar la carpeta del curso: " + e.getMessage());
+                throw new RuntimeException("Error al borrar la carpeta del curso: " + e.getMessage());
             }
         } else {
             System.err.println("La carpeta del curso no existe.");
@@ -376,6 +389,7 @@ public class CursoService implements ICursoService {
                     });
         } catch (Exception e) {
             System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+            throw new RuntimeException("Error al conectar con el microservicio de streaming: " + e.getMessage());
         }
 
         // Eliminar el curso del microservicio de chat
@@ -397,14 +411,14 @@ public class CursoService implements ICursoService {
                     });
         } catch (Exception e) {
             System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
+            throw new RuntimeException("Error al conectar con el microservicio de chat: " + e.getMessage());
         }
-
         return true;
     }
 
     @Override
     public List<Curso> getAll() {
-        return this.repo.findAll();
+        return this.cursoRepo.findAll();
     }
 
     @Override
@@ -490,7 +504,18 @@ public class CursoService implements ICursoService {
         // TODO: Mirar si se necesita eliminar algo en el microservicio de streaming
     }
 
-    // TODO: Mejorar la gestión de errores
+    /**
+     * Función para subir un video
+     * 
+     * @param file Archivo subido
+     * @return String con la ruta del archivo subido
+     * @throws AccessDeniedException    si el usuario no tiene permiso para acceder
+     * @throws EntityNotFoundException  si el curso no existe
+     * @throws IllegalArgumentException si el curso no tiene un ID
+     * @throws IllegalStateException    si el curso no tiene un ID
+     * @throws IOException              si ocurre un error en el servidor
+     * @throws RuntimeException         si ocurre un error en el servidor
+     */
     @Override
     public String subeVideo(MultipartFile file) {
         try {
@@ -508,10 +533,27 @@ public class CursoService implements ICursoService {
             // Guarda el archivo en el servidor
             Files.write(filePath, file.getBytes());
             return filePath.normalize().toString();
-
+        } catch (AccessDeniedException e) {
+            System.err.println("Error en subir el video: " + e.getMessage());
+            throw new AccessDeniedException("Error en subir el video: " + e.getMessage());
+        } catch (EntityNotFoundException e) {
+            System.err.println("Error en subir el video: " + e.getMessage());
+            throw new IllegalArgumentException("Error en subir el video: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error en subir el video: " + e.getMessage());
+            throw new RuntimeException("Error en subir el video: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            System.err.println("Error en subir el video: " + e.getMessage());
+            throw new RuntimeException("Error en subir el video: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Error en subir el video: " + e.getMessage());
+            throw new RuntimeException("Error en subir el video: " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.err.println("Error en subir el video: " + e.getMessage());
+            throw new EntityNotFoundException("Error en subir el video: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Error en subir el video: " + e.getMessage());
-            return null;
+            throw new RuntimeException("Error en subir el video: " + e.getMessage());
         }
     }
 

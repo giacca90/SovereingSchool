@@ -35,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,6 +58,8 @@ import com.sovereingschool.back_common.Models.Plan;
 import com.sovereingschool.back_common.Models.RoleEnum;
 import com.sovereingschool.back_common.Models.Usuario;
 import com.sovereingschool.back_common.Utils.JwtUtil;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @PreAuthorize("hasAnyRole('GUEST', 'USER', 'PROF', 'ADMIN')")
@@ -88,12 +91,10 @@ public class UsuarioController {
 		Object response = new Object();
 		try {
 			Usuario usuario = this.usuarioService.getUsuario(id);
-			if (usuario == null) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
 			response = usuario;
 			return new ResponseEntity<>(usuario, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			response = "Error en buscar el usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -105,12 +106,14 @@ public class UsuarioController {
 		Object response = new Object();
 		try {
 			String nombre = this.usuarioService.getNombreUsuario(id);
-			if (nombre == null) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
 			response = nombre;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en encontrar el nombre del usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -160,12 +163,14 @@ public class UsuarioController {
 		Object response = new Object();
 		try {
 			RoleEnum roll = this.usuarioService.getRollUsuario(id);
-			if (roll == null) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
 			response = roll;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en obtener el roll del usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -177,12 +182,14 @@ public class UsuarioController {
 		Object response = new Object();
 		try {
 			Plan plan = this.usuarioService.getPlanUsuario(id);
-			if (plan == null) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
 			response = plan;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en obtener el plan del usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -194,12 +201,14 @@ public class UsuarioController {
 		Object response = new Object();
 		try {
 			List<Curso> cursos = this.usuarioService.getCursosUsuario(id);
-			if (cursos == null) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
 			response = cursos;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>("No existe el usuario", HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en obtener los cursos del usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -210,15 +219,19 @@ public class UsuarioController {
 	public ResponseEntity<?> createUsuario(@RequestBody NewUsuario newUsuario) {
 		Object response = new Object();
 		try {
-			boolean mailResp = this.usuarioService.sendConfirmationEmail(newUsuario);
-			if (!mailResp) {
-				response = "Error en enviar el correo de confirmación";
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
+			this.usuarioService.sendConfirmationEmail(newUsuario);
 			String resp = "Correo enviado con éxito!!!";
 			response = resp;
 			return ResponseEntity.ok()
 					.body(response);
+		} catch (AccessDeniedException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception ex) {
 			response = "Error en crear el nuevo usuario: " + ex.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -238,10 +251,6 @@ public class UsuarioController {
 			NewUsuario newUsuario = (NewUsuario) convertirBase64AObjeto(newUsuarioB64);
 
 			AuthResponse authResponse = this.usuarioService.createUsuario(newUsuario);
-			if (authResponse == null || !authResponse.status()) {
-				response = "Error en crear el usuario";
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
 			String refreshToken = authResponse.refreshToken();
 			authResponse = new AuthResponse(authResponse.status(), authResponse.message(), authResponse.usuario(),
 					authResponse.accessToken(), null);
@@ -258,8 +267,16 @@ public class UsuarioController {
 			return ResponseEntity.ok()
 					.header("Set-Cookie", refreshTokenCookie.toString())
 					.body(response);
+		} catch (AccessDeniedException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (DataIntegrityViolationException e) {
 			return new ResponseEntity<>("El usuario ya existe", HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			return new ResponseEntity<>("Error en crear el usuario: " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
@@ -282,13 +299,15 @@ public class UsuarioController {
 		}
 		Object response = new Object();
 		try {
-			Long resultado = this.usuarioService.updateUsuario(usuario).getId_usuario();
-			if (resultado == 0) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			this.usuarioService.updateUsuario(usuario).getId_usuario();
 			response = "Usuario editado con éxito!!!";
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en editar el usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -305,17 +324,20 @@ public class UsuarioController {
 		}
 		Long idUsuario = (Long) authentication.getDetails();
 		if (idUsuario == null || !idUsuario.equals(usuario.getId_usuario())) {
-			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<>("Error en el token de acceso: no hay un id_usuario en el token",
+					HttpStatus.UNAUTHORIZED);
 		}
 		Object response = new Object();
 		try {
-			Integer resultado = this.usuarioService.changePlanUsuario(usuario);
-			if (resultado == 0) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			this.usuarioService.changePlanUsuario(usuario);
 			response = "Plan cambiado con éxito!!!";
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en cambiar el plan del usuario: " + e.getMessage();
 			return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -332,17 +354,20 @@ public class UsuarioController {
 		}
 		Long idUsuario = (Long) authentication.getDetails();
 		if (idUsuario == null || !idUsuario.equals(usuario.getId_usuario())) {
-			return new ResponseEntity<>("Error en el token de acceso", HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<>("Error en el token de acceso: no hay id_usuario en el token",
+					HttpStatus.UNAUTHORIZED);
 		}
 		Object response = new Object();
 		try {
-			Integer resultado = this.usuarioService.changeCursosUsuario(usuario);
-			if (resultado == 0) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
+			this.usuarioService.changeCursosUsuario(usuario);
 			response = "Cursos actualizados con éxito!!!";
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en actualizar los cursos del usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -352,16 +377,17 @@ public class UsuarioController {
 	@PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
-
 		Object response = new Object();
 		try {
 			String result = this.usuarioService.deleteUsuario(id);
-			if (result == null) {
-				response = "Usuario no encontrado";
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-			}
 			response = result;
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			response = "Error en eliminar el usuario: " + e.getMessage();
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -414,9 +440,13 @@ public class UsuarioController {
 						ImageWriteParam param = writer.getDefaultWriteParam();
 						writer.write(null, new IIOImage(webpImage, null, null), param);
 					}
-					// Files.copy(file.getInputStream(), filePath,
-					// StandardCopyOption.REPLACE_EXISTING);
 					fileNames.add(back_base + "/usuario/fotos/" + webpFileName);
+				} catch (IllegalArgumentException e) {
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+				} catch (EntityNotFoundException e) {
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+				} catch (RuntimeException e) {
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 				} catch (IOException e) {
 					response = "Error en convertir la imagen: " + e.getMessage();
 					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -425,6 +455,12 @@ public class UsuarioController {
 				try {
 					Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 					fileNames.add(back_base + "/usuario/fotos/" + fileName);
+				} catch (IllegalArgumentException e) {
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+				} catch (EntityNotFoundException e) {
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+				} catch (RuntimeException e) {
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 				} catch (IOException e) {
 					response = "Error en guardar la imagen: " + e.getMessage();
 					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
