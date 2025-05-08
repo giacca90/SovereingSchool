@@ -1,13 +1,15 @@
 package com.sovereingschool.back_chat.Controllers;
 
+import java.util.NoSuchElementException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,9 +21,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
-import com.sovereingschool.back_chat.DTOs.InitChatDTO;
 import com.sovereingschool.back_chat.Services.CursoChatService;
 import com.sovereingschool.back_chat.Services.InitChatService;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @PreAuthorize("hasAnyRole('USER', 'PROF', 'ADMIN')")
@@ -38,41 +41,67 @@ public class ChatController {
     /* Sección para el websocket */
     @MessageMapping("/init")
     @SendTo("/init_chat/result")
-    public InitChatDTO handleInitChat() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public Object handleInitChat() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AccessDeniedException("No autenticado");
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return "Error en el token: no autenticado";
+            }
+            Long idUsuario = (Long) authentication.getDetails(); // 👈 aquí recuperas el ID
+            return initChatService.initChat(idUsuario);
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        } catch (Exception e) {
+            System.err.println("Error en el websocket de init: " + e.getMessage());
+            return "Error en obtener en init del chat: " + e.getMessage();
         }
-        Long idUsuario = (Long) authentication.getDetails(); // 👈 aquí recuperas el ID
-        return initChatService.initChat(idUsuario);
     }
 
     @MessageMapping("/curso")
     public void getCursoChat(String message) {
-        // ("LLEGADA LA LLAMADA A INIT_CURSO: " + message);
         Long idCurso = Long.parseLong(message);
-
-        CursoChatDTO cursoChat = cursoChatService.getChat(idCurso);
-        if (cursoChat != null) {
-            // Enviar el mensaje a un destino dinámico usando SimpMessagingTemplate
+        try {
+            CursoChatDTO cursoChat = cursoChatService.getChat(idCurso);
             messagingTemplate.convertAndSend("/init_chat/" + idCurso, cursoChat);
+        } catch (EntityNotFoundException e) {
+            messagingTemplate.convertAndSend("/init_chat/" + idCurso, e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error en obtener el chat del curso: " + e.getMessage());
+            messagingTemplate.convertAndSend("/init_chat/" + idCurso,
+                    "Error en obtener el chat del curso: " + e.getMessage());
         }
     }
 
     @MessageMapping("/chat")
     public void guardaMensaje(String message) {
-        this.cursoChatService.guardaMensaje(message);
+        try {
+            this.cursoChatService.guardaMensaje(message);
+        } catch (IllegalArgumentException | NoSuchElementException | DataAccessException e) {
+            messagingTemplate.convertAndSend("/chat/", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error en guardar mensaje: " + e.getMessage());
+            messagingTemplate.convertAndSend("/chat/", "Error en guardar mensaje: " + e.getMessage());
+        }
     }
 
     @MessageMapping("/leido")
     public void mensajeLeido(String message) {
-        this.cursoChatService.mensajeLeido(message);
+        try {
+            this.cursoChatService.mensajeLeido(message);
+        } catch (Exception e) {
+            messagingTemplate.convertAndSend("/leido", "Error en marcar el mensaje como leido: " + e.getMessage());
+        }
     }
 
     @MessageMapping("/refresh-token")
     public void refreshToken(@Header("simpSessionId") String sessionId, String newToken) {
-        this.cursoChatService.refreshTokenInOpenWebsocket(sessionId, newToken);
+        try {
+            this.cursoChatService.refreshTokenInOpenWebsocket(sessionId, newToken);
+        } catch (Exception e) {
+            messagingTemplate.convertAndSend("/refresh-token", e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     /* Sección para REST */
@@ -82,8 +111,7 @@ public class ChatController {
             this.cursoChatService.creaUsuarioChat(message);
             return new ResponseEntity<String>("Usuario chat creado con exito!!!", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -93,10 +121,8 @@ public class ChatController {
             this.cursoChatService.creaCursoChat(message);
             return new ResponseEntity<String>("Curso chat creado con exito!!!", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error en crear en curso del chat: " + e.getCause(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     @PostMapping("/crea_clase_chat")
@@ -105,10 +131,8 @@ public class ChatController {
             this.cursoChatService.creaClaseChat(message);
             return new ResponseEntity<String>("Clase chat creado con exito!!!", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error en crear en curso del chat: " + e.getCause(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     @DeleteMapping("/delete_clase_chat/{idCurso}/{idClase}")
@@ -117,8 +141,7 @@ public class ChatController {
             this.cursoChatService.borrarClaseChat(idCurso, idClase);
             return new ResponseEntity<String>("Clase chat borrado con exito!!!", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error en borrar la clase del chat: " + e.getCause(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -128,8 +151,7 @@ public class ChatController {
             this.cursoChatService.borrarCursoChat(idCurso);
             return new ResponseEntity<String>("Curso chat borrado con exito!!!", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error en borrar el curso del chat: " + e.getCause(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

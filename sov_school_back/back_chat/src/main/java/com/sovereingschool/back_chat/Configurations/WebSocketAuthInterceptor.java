@@ -42,6 +42,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
             if (token == null || token.isEmpty()) {
                 SecurityContextHolder.clearContext();
+                System.err.println("Falta token en sessionAttributes");
                 throw new MessagingException("Falta token en sessionAttributes");
             }
             try {
@@ -51,7 +52,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 return message;
             } catch (AuthenticationException ex) {
                 SecurityContextHolder.clearContext();
-                throw new MessagingException("Invalid token: " + ex.getMessage());
+                System.err.println("Token inválido: " + ex.getMessage());
+                throw new MessagingException("Token inválido: " + ex.getMessage());
             }
         } else {
             // Para todos los mensajes posteriores, sacamos el user ya seteado en el
