@@ -1,5 +1,7 @@
 package com.sovereingschool.back_chat.Repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -15,5 +17,5 @@ public interface CursoChatRepository extends MongoRepository<CursoChat, String> 
     })
 
     // @Query(value = "{ 'idCurso' : ?0 }")
-    CursoChat findByIdCurso(Long idCurso);
+    Optional<CursoChat> findByIdCurso(Long idCurso);
 }

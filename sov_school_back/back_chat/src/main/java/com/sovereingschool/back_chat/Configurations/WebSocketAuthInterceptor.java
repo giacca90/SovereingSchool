@@ -72,7 +72,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             } catch (AuthenticationException e) {
                 String destination = accessor.getDestination(); // Ej: "/app/init"
                 if (destination != null) {
-                    messagingTemplate.convertAndSend(destination, "Error en el token: " + e.getMessage());
+                    messagingTemplate.convertAndSend(destination, "Token inválido: " + e.getMessage());
                 } else {
                     System.err.println("No hay destino para el mensaje de refresh");
                     // Cerrar la conexión

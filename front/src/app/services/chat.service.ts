@@ -103,7 +103,7 @@ export class ChatService {
 
 		// Suscríbete a las respuestas del backend
 		this.currentSubscription = this.client.subscribe('/init_chat/result', (response) => {
-			if (response.body.startsWith('Error en el token')) {
+			if (response.body.startsWith('Token inválido')) {
 				this.loginService.refreshToken().subscribe({
 					next: (token: string | null) => {
 						if (token) {
@@ -165,10 +165,7 @@ export class ChatService {
 
 		// Suscríbete a las respuestas del backend
 		this.currentSubscription = this.client.subscribe('/init_chat/' + idCurso, (response) => {
-			console.log('RESPONSE: ', response.body);
 			const curso: CursoChat = JSON.parse(response.body) as CursoChat;
-			console.log('SE RECIBE RESPUESTA DEL BACK!!!', curso);
-
 			// Emitir el valor recibido
 			this.cursoSubject.next(curso);
 		});

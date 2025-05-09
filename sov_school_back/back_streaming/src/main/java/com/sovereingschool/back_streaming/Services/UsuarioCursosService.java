@@ -22,6 +22,7 @@ import com.sovereingschool.back_streaming.Models.StatusCurso;
 import com.sovereingschool.back_streaming.Models.UsuarioCursos;
 import com.sovereingschool.back_streaming.Repositories.UsuarioCursosRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -110,11 +111,10 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
     @Override
     public String getClase(Long id_usuario, Long id_curso, Long id_clase) {
-        UsuarioCursos usuario = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
-        if (usuario == null) {
-            System.err.println("Usuario no encontrado en getClase");
-            return null;
-        }
+        UsuarioCursos usuario = this.usuarioCursosRepository.findByIdUsuario(id_usuario).orElseThrow(() -> {
+            System.err.println("Error en obtener el usuario del chat");
+            throw new EntityNotFoundException("Error en obtener el usuario del chat");
+        });
 
         if (id_clase == 0) {
             if (usuario.getRol_usuario().name().equals("PROFESOR") || usuario.getRol_usuario().name().equals("ADMIN")) {
@@ -221,23 +221,24 @@ public class UsuarioCursosService implements IUsuarioCursosService {
     }
 
     public Long getStatus(Long id_usuario, Long id_curso) {
-        UsuarioCursos usuarioCursos = this.usuarioCursosRepository.findByIdUsuario(id_usuario);
-        if (usuarioCursos != null) {
-            if (usuarioCursos.getRol_usuario().name().equals("PROFESOR")
-                    || usuarioCursos.getRol_usuario().name().equals("ADMIN")) {
-                return this.cursoRepository.findById(id_curso).get().getClases_curso().get(0).getId_clase();
-            } else {
-                List<StatusCurso> lst = usuarioCursos.getCursos();
-                for (StatusCurso sc : lst) {
-                    if (sc.getId_curso().equals(id_curso)) {
-                        List<StatusClase> lscl = sc.getClases();
-                        for (StatusClase scl : lscl) {
-                            if (!scl.isCompleted()) {
-                                return scl.getId_clase();
-                            }
+        UsuarioCursos usuarioCursos = this.usuarioCursosRepository.findByIdUsuario(id_usuario).orElseThrow(() -> {
+            System.err.println("Error en obtener el usuario del chat");
+            throw new EntityNotFoundException("Error en obtener el usuario del chat");
+        });
+        if (usuarioCursos.getRol_usuario().name().equals("PROFESOR")
+                || usuarioCursos.getRol_usuario().name().equals("ADMIN")) {
+            return this.cursoRepository.findById(id_curso).get().getClases_curso().get(0).getId_clase();
+        } else {
+            List<StatusCurso> lst = usuarioCursos.getCursos();
+            for (StatusCurso sc : lst) {
+                if (sc.getId_curso().equals(id_curso)) {
+                    List<StatusClase> lscl = sc.getClases();
+                    for (StatusClase scl : lscl) {
+                        if (!scl.isCompleted()) {
+                            return scl.getId_clase();
                         }
-                        return lscl.get(0).getId_clase();
                     }
+                    return lscl.get(0).getId_clase();
                 }
             }
         }

@@ -37,7 +37,7 @@ public class UsuarioPresetsService {
     }
 
     public Preset getPresetsForUser(Long id_usuario) {
-        return this.presetRepository.findByIdUsuario(id_usuario);
+        return this.presetRepository.findByIdUsuario(id_usuario).orElse(null);
     }
 
     public void savePresetsForUser(Long id_usuario, Map<String, Preset.PresetValue> presets) {

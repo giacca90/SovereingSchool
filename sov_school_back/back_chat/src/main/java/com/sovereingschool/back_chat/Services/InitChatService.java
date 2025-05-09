@@ -23,6 +23,7 @@ import com.sovereingschool.back_chat.Models.UsuarioChat;
 import com.sovereingschool.back_chat.Repositories.CursoChatRepository;
 import com.sovereingschool.back_chat.Repositories.MensajeChatRepository;
 import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
+import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Repositories.ClaseRepository;
 import com.sovereingschool.back_common.Repositories.CursoRepository;
 import com.sovereingschool.back_common.Repositories.UsuarioRepository;
@@ -59,17 +60,25 @@ public class InitChatService {
     @Autowired
     private ReactiveMongoTemplate reactiveMongoTemplate;
 
+    /**
+     * Función para inicializar el chat de un usuario
+     *
+     * @param idUsuario el id del usuario
+     * @return InitChatDTO con los los chats del usuario
+     * @throws IllegalArgumentException si el idUsuario es nulo
+     * @throws EntityNotFoundException  si el usuario no existe
+     */
     public InitChatDTO initChat(Long idUsuario) {
         // Validar que el ID no sea nulo
         if (idUsuario == null) {
             throw new IllegalArgumentException("El ID de usuario no puede ser nulo");
         }
+        UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario).orElseThrow(() -> {
+            System.err.println("Error en obtener el usuario chat: no se encuentra el documento");
+            throw new EntityNotFoundException("Error en obtener el usuario chat: no se encuentra el documento");
+        });
 
-        UsuarioChat usuarioChat = this.usuarioChatRepo.findByIdUsuario(idUsuario);
-        if (usuarioChat == null) {
-            return new InitChatDTO();
-        }
-
+        // Obtiene los mensajes del usuario
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         if (usuarioChat.getMensajes() != null && !usuarioChat.getMensajes().isEmpty()) {
             List<MensajeChat> mensajes = this.mensajeChatRepo.findAllById(usuarioChat.getMensajes());
@@ -78,27 +87,34 @@ public class InitChatService {
             }
         }
 
+        // Obtiene los cursos del usuario
         List<CursoChatDTO> cursosDTO = new ArrayList<>();
         if (usuarioChat.getCursos() != null && !usuarioChat.getCursos().isEmpty()) {
-            List<CursoChat> cursos = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
-            if (cursos != null && !cursos.isEmpty()) {
-                for (CursoChat curso : cursos) {
-                    if (curso.getUltimo() != null) {
+            List<CursoChat> cursosChat = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
+            if (cursosChat != null && !cursosChat.isEmpty()) {
+                for (CursoChat cursoChat : cursosChat) {
+                    Curso curso = cursoRepo.findById(cursoChat.getIdCurso()).orElseThrow(() -> {
+                        System.err.println("Error en obtener el curso con ID " + cursoChat.getIdCurso());
+                        throw new EntityNotFoundException("Error en obtener el curso con ID " + cursoChat.getIdCurso());
+                    });
+                    if (cursoChat.getUltimo() != null) {
                         CursoChatDTO cursoDTO = new CursoChatDTO();
-                        cursoDTO.setId_curso(curso.getIdCurso());
-                        cursoDTO.setNombre_curso(cursoRepo.findNombreCursoById(curso.getIdCurso()).orElseThrow(() -> {
-                            System.err.println("Error en obtener el nombre del curso");
-                            return new EntityNotFoundException("Error en obtener el nombre del curso");
-                        }));
-                        cursoDTO.setFoto_curso(cursoRepo.findImagenCursoById(curso.getIdCurso()).orElseThrow(() -> {
-                            System.err.println("Error en obtener la imagen del curso");
-                            return new EntityNotFoundException("Error en obtener la imagen del curso");
-                        }));
+                        cursoDTO.setId_curso(cursoChat.getIdCurso());
+                        cursoDTO.setNombre_curso(curso.getNombre_curso());
+                        cursoDTO.setFoto_curso(curso.getImagen_curso());
 
-                        Optional<MensajeChat> ultimoMensaje = this.mensajeChatRepo.findById(curso.getUltimo());
+                        Optional<MensajeChat> ultimoMensaje = this.mensajeChatRepo.findById(cursoChat.getUltimo());
                         if (ultimoMensaje.isPresent()) {
                             List<MensajeChatDTO> ultimoDTO = this.getMensajesDTO(Arrays.asList(ultimoMensaje.get()));
                             cursoDTO.setMensajes(ultimoDTO);
+                        } else {
+                            MensajeChatDTO noMessage = new MensajeChatDTO();
+                            noMessage.setId_curso(cursoChat.getIdCurso());
+                            noMessage.setNombre_curso(curso.getNombre_curso());
+                            noMessage.setFoto_curso(curso.getImagen_curso());
+                            noMessage.setMensaje("No hay mensajes en este curso");
+
+                            cursoDTO.setMensajes(Arrays.asList(noMessage));
                         }
                         cursosDTO.add(cursoDTO);
                     }
@@ -171,14 +187,17 @@ public class InitChatService {
         for (MensajeChat mensaje : mensajes) {
             MensajeChat respuesta = null;
             if (mensaje.getRespuesta() != null) {
-                respuesta = mensajeChatRepo.findById(mensaje.getRespuesta()).get();
+                respuesta = mensajeChatRepo.findById(mensaje.getRespuesta()).orElseThrow(() -> {
+                    System.err.println("Error en obtener la respuesta del mensaje");
+                    throw new EntityNotFoundException("Error en obtener la respuesta del mensaje");
+                });
             }
             MensajeChatDTO respuestaDTO = null;
             if (respuesta != null) {
                 String nombreUsuario = this.usuarioRepo.findNombreUsuarioForId(respuesta.getIdUsuario())
                         .orElseThrow(() -> {
                             System.err.println("Error en obtener el nombre del usuario");
-                            return new EntityNotFoundException("Error en obtener el nombre del usuario");
+                            throw new EntityNotFoundException("Error en obtener el nombre del usuario");
                         });
                 respuestaDTO = new MensajeChatDTO(
                         respuesta.getId(), // String id_mensaje
@@ -201,23 +220,25 @@ public class InitChatService {
             String nombreUsuario = this.usuarioRepo.findNombreUsuarioForId(mensaje.getIdUsuario())
                     .orElseThrow(() -> {
                         System.err.println("Error en obtener el nombre del usuario");
-                        return new EntityNotFoundException("Error en obtener el nombre del usuario");
+                        throw new EntityNotFoundException("Error en obtener el nombre del usuario");
                     });
 
-            String nombreCurso = cursoRepo.findNombreCursoById(mensaje.getIdCurso()).orElseThrow(() -> {
-                System.err.println("Error en obtener el nombre del curso en getMensajesDTO");
-                return new EntityNotFoundException("Error en obtener el nombre del curso");
+            Curso curso = cursoRepo.findById(mensaje.getIdCurso()).orElseThrow(() -> {
+                System.err.println("Error en obtener el curso con ID " + mensaje.getIdCurso());
+                throw new EntityNotFoundException("Error en obtener el curso con ID " + mensaje.getIdCurso());
             });
 
-            String nombreClase = claseRepo.findNombreClaseById(mensaje.getIdClase()).orElseThrow(() -> {
-                System.err.println("Error en obtener el nombre de la clase en getMensajesDTO");
-                return new EntityNotFoundException("Error en obtener el nombre de la clase");
-            });
-
-            String imagenCurso = cursoRepo.findImagenCursoById(mensaje.getIdCurso()).orElseThrow(() -> {
-                System.err.println("Error en obtener la imagen del curso en getMensajesDTO");
-                return new EntityNotFoundException("Error en obtener la imagen del curso");
-            });
+            String nombreCurso = curso.getNombre_curso();
+            String imagenCurso = curso.getImagen_curso();
+            String nombreClase = curso.getClases_curso().stream()
+                    .filter(clase -> clase.getId_clase().equals(mensaje.getIdClase()))
+                    .map(clase -> clase.getNombre_clase())
+                    .findFirst()
+                    .orElseThrow(() -> {
+                        System.err.println("Error en obtener el nombre de la clase con ID " + mensaje.getIdClase());
+                        throw new EntityNotFoundException(
+                                "Error en obtener el nombre de la clase con ID " + mensaje.getIdClase());
+                    });
 
             MensajeChatDTO mensajeDTO = new MensajeChatDTO(
                     mensaje.getId(), // String id_mensaje
@@ -249,27 +270,25 @@ public class InitChatService {
         Long id_curso = document.getLong("idCurso");
         List<ClaseChatDTO> clases = new ArrayList<>();
         List<MensajeChatDTO> mensajes = new ArrayList<>();
-        String nombre_curso = this.cursoRepo.findNombreCursoById(id_curso).orElseThrow(() -> {
-            System.err.println("Error en obtener el nombre del curso");
-            return new EntityNotFoundException("Error en obtener el nombre del curso");
+        Curso curso = cursoRepo.findById(id_curso).orElseThrow(() -> {
+            System.err.println("Error en obtener el curso con ID " + id_curso);
+            throw new EntityNotFoundException("Error en obtener el curso con ID " + id_curso);
         });
-        String foto_curso = this.cursoRepo.findImagenCursoById(id_curso).orElseThrow(() -> {
-            System.err.println("Error en obtener la imagen del curso");
-            return new EntityNotFoundException("Error en obtener la imagen del curso");
-        });
+        String nombre_curso = curso.getNombre_curso();
+        String foto_curso = curso.getImagen_curso();
 
         List<String> mensajesIDs = document.getList("mensajes", String.class);
-        if (mensajesIDs != null && mensajesIDs.size() > 0) {
+        if (mensajesIDs != null && !mensajesIDs.isEmpty()) {
             List<MensajeChat> mensajesChat = this.mensajeChatRepo.findAllById(mensajesIDs);
-            if (mensajesChat != null && mensajesChat.size() > 0) {
+            if (mensajesChat != null && !mensajesChat.isEmpty()) {
                 mensajes = getMensajesDTO(mensajesChat);
             }
         }
 
-        List<Document> clasesChatD = document.getList("clases", Document.class);
-        if (clasesChatD != null && clasesChatD.size() > 0) {
-            for (Document claseChatD : clasesChatD) {
-                List<String> mensajesClase = claseChatD.getList("mensajes", String.class);
+        List<Document> clasesChatDocument = document.getList("clases", Document.class);
+        if (clasesChatDocument != null && clasesChatDocument.size() > 0) {
+            for (Document claseChatDocument : clasesChatDocument) {
+                List<String> mensajesClase = claseChatDocument.getList("mensajes", String.class);
                 List<MensajeChatDTO> mensajesClaseDTO = new ArrayList<>();
                 if (mensajesClase != null && mensajesClase.size() > 0) {
                     List<MensajeChat> mensajesChatClase = this.mensajeChatRepo.findAllById(mensajesClase);
@@ -277,12 +296,12 @@ public class InitChatService {
                         mensajesClaseDTO = getMensajesDTO(mensajesChatClase);
                     }
                 }
-                String nombreClase = this.claseRepo.findNombreClaseById(claseChatD.getLong("idClase"))
+                String nombreClase = this.claseRepo.findNombreClaseById(claseChatDocument.getLong("idClase"))
                         .orElseThrow(() -> {
                             System.err.println("Error en obtener el nombre de la clase en notifyCourseChat");
-                            return new EntityNotFoundException("Error en obtener el nombre de la clase");
+                            throw new EntityNotFoundException("Error en obtener el nombre de la clase");
                         });
-                clases.add(new ClaseChatDTO(claseChatD.getLong("idClase"), claseChatD.getLong("idCurso"),
+                clases.add(new ClaseChatDTO(claseChatDocument.getLong("idClase"), claseChatDocument.getLong("idCurso"),
                         nombreClase, mensajesClaseDTO));
             }
         }
@@ -329,7 +348,7 @@ public class InitChatService {
                         String nombreClase = this.claseRepo.findNombreClaseById(claseD.getIdClase())
                                 .orElseThrow(() -> {
                                     System.err.println("Error en obtener el nombre de la clase");
-                                    return new EntityNotFoundException("Error en obtener el nombre de la clase");
+                                    throw new EntityNotFoundException("Error en obtener el nombre de la clase");
                                 });
                         clasesDTO.add(new ClaseChatDTO(
                                 claseD.getIdClase(), // id_clase;
@@ -339,14 +358,12 @@ public class InitChatService {
                         ));
                     }
                 }
-                String nombreCurso = this.cursoRepo.findNombreCursoById(idCurso).orElseThrow(() -> {
-                    System.err.println("Error en obtener el nombre del curso");
-                    return new EntityNotFoundException("Error en obtener el nombre del curso");
+                Curso curso = cursoRepo.findById(idCurso).orElseThrow(() -> {
+                    System.err.println("Error en obtener el curso con ID " + idCurso);
+                    throw new EntityNotFoundException("Error en obtener el curso con ID " + idCurso);
                 });
-                String fotoCurso = this.cursoRepo.findImagenCursoById(idCurso).orElseThrow(() -> {
-                    System.err.println("Error en obtener la imagen del curso");
-                    return new EntityNotFoundException("Error en obtener la imagen del curso");
-                });
+                String nombreCurso = curso.getNombre_curso();
+                String fotoCurso = curso.getImagen_curso();
                 cursosDTO.add(new CursoChatDTO(
                         idCurso,
                         clasesDTO,

@@ -46,11 +46,11 @@ public class ChatController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (authentication == null || !authentication.isAuthenticated()) {
-                return "Error en el token: no autenticado";
+                return "Token inválido: no autenticado";
             }
             Long idUsuario = (Long) authentication.getDetails(); // 👈 aquí recuperas el ID
             return initChatService.initChat(idUsuario);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | EntityNotFoundException e) {
             return e.getMessage();
         } catch (Exception e) {
             System.err.println("Error en el websocket de init: " + e.getMessage());
@@ -62,7 +62,7 @@ public class ChatController {
     public void getCursoChat(String message) {
         Long idCurso = Long.parseLong(message);
         try {
-            CursoChatDTO cursoChat = cursoChatService.getChat(idCurso);
+            CursoChatDTO cursoChat = cursoChatService.getCursoChat(idCurso);
             messagingTemplate.convertAndSend("/init_chat/" + idCurso, cursoChat);
         } catch (EntityNotFoundException e) {
             messagingTemplate.convertAndSend("/init_chat/" + idCurso, e.getMessage());
@@ -89,6 +89,8 @@ public class ChatController {
     public void mensajeLeido(String message) {
         try {
             this.cursoChatService.mensajeLeido(message);
+        } catch (EntityNotFoundException e) {
+            messagingTemplate.convertAndSend("/leido", e.getMessage());
         } catch (Exception e) {
             messagingTemplate.convertAndSend("/leido", "Error en marcar el mensaje como leido: " + e.getMessage());
         }
@@ -99,8 +101,9 @@ public class ChatController {
         try {
             this.cursoChatService.refreshTokenInOpenWebsocket(sessionId, newToken);
         } catch (Exception e) {
-            messagingTemplate.convertAndSend("/refresh-token", e.getMessage());
-            throw new RuntimeException(e.getMessage());
+            messagingTemplate.convertAndSend("/refresh-token", "Error en refrescar el token: " + e.getMessage());
+            // Devuelvo un error para cerrar el websocket
+            throw new RuntimeException("Error en refrescar el token: " + e.getMessage());
         }
     }
 
@@ -110,8 +113,11 @@ public class ChatController {
         try {
             this.cursoChatService.creaUsuarioChat(message);
             return new ResponseEntity<String>("Usuario chat creado con exito!!!", HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en crear el usuario del chat: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -120,8 +126,11 @@ public class ChatController {
         try {
             this.cursoChatService.creaCursoChat(message);
             return new ResponseEntity<String>("Curso chat creado con exito!!!", HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al crear en chat del curso: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -130,8 +139,11 @@ public class ChatController {
         try {
             this.cursoChatService.creaClaseChat(message);
             return new ResponseEntity<String>("Clase chat creado con exito!!!", HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error en crear el chat de la clase: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -140,8 +152,11 @@ public class ChatController {
         try {
             this.cursoChatService.borrarClaseChat(idCurso, idClase);
             return new ResponseEntity<String>("Clase chat borrado con exito!!!", HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error en borrar la clase del chat: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -150,8 +165,11 @@ public class ChatController {
         try {
             this.cursoChatService.borrarCursoChat(idCurso);
             return new ResponseEntity<String>("Curso chat borrado con exito!!!", HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error en borrar el chat del curso: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
