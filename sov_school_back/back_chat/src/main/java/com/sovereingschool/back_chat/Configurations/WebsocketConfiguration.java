@@ -30,8 +30,9 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer,
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/init_chat", "/queue/errors");
+        config.enableSimpleBroker("/init_chat");
         config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override

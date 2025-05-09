@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,7 +40,7 @@ public class ChatController {
 
     /* Sección para el websocket */
     @MessageMapping("/init")
-    @SendTo("/init_chat/result")
+    @SendToUser("/init_chat/result")
     public Object handleInitChat() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

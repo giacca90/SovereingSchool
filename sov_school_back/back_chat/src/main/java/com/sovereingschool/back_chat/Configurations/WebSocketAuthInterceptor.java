@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,8 +48,15 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             }
             try {
                 Authentication auth = jwtUtil.createAuthenticationFromToken(token);
-                accessor.setUser(auth);
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                Long idUsuario = jwtUtil.getIdUsuario(token);
+                // Creamos un token donde el name() es el ID:
+                UsernamePasswordAuthenticationToken wsAuth = new UsernamePasswordAuthenticationToken(
+                        idUsuario.toString(), // getName() -> ID
+                        auth.getCredentials(),
+                        auth.getAuthorities());
+                wsAuth.setDetails(idUsuario);
+                SecurityContextHolder.getContext().setAuthentication(wsAuth);
+                accessor.setUser(wsAuth);
                 return message;
             } catch (AuthenticationException ex) {
                 SecurityContextHolder.clearContext();
@@ -65,6 +73,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
         if (authentication != null) {
             String token = (String) authentication.getCredentials();
+            Long idUsuario = jwtUtil.getIdUsuario(token);
             try {
                 jwtUtil.createAuthenticationFromToken(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -72,7 +81,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             } catch (AuthenticationException e) {
                 String destination = accessor.getDestination(); // Ej: "/app/init"
                 if (destination != null) {
-                    messagingTemplate.convertAndSend(destination, "Token inválido: " + e.getMessage());
+                    messagingTemplate.convertAndSendToUser(idUsuario.toString(), destination,
+                            "Token inválido: " + e.getMessage());
                 } else {
                     System.err.println("No hay destino para el mensaje de refresh");
                     // Cerrar la conexión

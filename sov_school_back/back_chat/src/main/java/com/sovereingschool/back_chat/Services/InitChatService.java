@@ -385,6 +385,6 @@ public class InitChatService {
         }
 
         InitChatDTO updateDTO = new InitChatDTO(idUsuario, mensajesDTO, cursosDTO);
-        simpMessagingTemplate.convertAndSend("/init_chat/result", updateDTO);
+        simpMessagingTemplate.convertAndSendToUser(idUsuario.toString(), "/init_chat/result", updateDTO);
     }
 }

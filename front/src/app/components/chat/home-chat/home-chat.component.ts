@@ -46,6 +46,7 @@ export class HomeChatComponent {
 				});
 			} else {
 				console.error('El usuario no esta logueado');
+				this.router.navigate(['']);
 			}
 		});
 	}
