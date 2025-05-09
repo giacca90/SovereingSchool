@@ -48,7 +48,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
     public void syncUserCourses() {
         List<Usuario> users = usuarioRepository.findAll();
         for (Usuario user : users) {
-            if (usuarioCursosRepository.findByIdUsuario(user.getId_usuario()) != null)
+            if (usuarioCursosRepository.findByIdUsuario(user.getId_usuario()).isPresent())
                 continue;
             List<Curso> courses = user.getCursos_usuario();
             List<StatusCurso> courseStatuses = courses.stream().map(course -> {

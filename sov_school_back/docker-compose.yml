@@ -42,6 +42,7 @@ services:
     container_name: sovschool-mongo
     ports:
       - "27017:27017"
+    command: ["--replSet", "rs0"]
     networks:
       - sovschool-network
     volumes:

@@ -405,7 +405,7 @@ public class CursoChatService {
             // Inicializar usuarios
             List<Usuario> usuarios = usuarioRepo.findAll();
             for (Usuario usuario : usuarios) {
-                if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()) != null)
+                if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()).isPresent())
                     continue;
                 UsuarioChat usuarioChat = new UsuarioChat(null, usuario.getId_usuario(), new ArrayList<>(),
                         new ArrayList<>());
@@ -414,7 +414,7 @@ public class CursoChatService {
             // Inicializar cursos
             List<Curso> cursos = cursoRepo.findAll();
             for (Curso curso : cursos) {
-                if (cursoChatRepo.findByIdCurso(curso.getId_curso()) != null)
+                if (cursoChatRepo.findByIdCurso(curso.getId_curso()).isPresent())
                     continue;
                 List<Clase> clases = curso.getClases_curso();
                 List<ClaseChat> clasesChat = new ArrayList<>();

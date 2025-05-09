@@ -68,7 +68,7 @@
 					}
 					<div class="flex">
 						<input id="mexc-{{ clase.id_clase }}" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" placeholder="Escribe tu mensaje en la clase..." />
-						<button type="button" class="rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" (click)="this.enviarMensaje(clase.id_clase)">Enviar</button>
+						<button type="button" class="cursor-pointer rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" (click)="this.enviarMensaje(clase.id_clase)">Enviar</button>
 					</div>
 				</div>
 			}
@@ -110,7 +110,7 @@
 		}
 		<div class="flex">
 			<input id="mex" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" placeholder="Escribe tu mensaje en el curso..." />
-			<button type="button" class="rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" (click)="this.enviarMensaje()">Enviar</button>
+			<button type="button" class="cursor-pointer rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" (click)="this.enviarMensaje()">Enviar</button>
 		</div>
 	}
 </div>

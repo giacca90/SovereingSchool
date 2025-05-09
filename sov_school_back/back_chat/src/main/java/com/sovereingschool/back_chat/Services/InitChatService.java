@@ -88,7 +88,7 @@ public class InitChatService {
         }
 
         // Obtiene los cursos del usuario
-        List<CursoChatDTO> cursosDTO = new ArrayList<>();
+        List<CursoChatDTO> cursosChatDTO = new ArrayList<>();
         if (usuarioChat.getCursos() != null && !usuarioChat.getCursos().isEmpty()) {
             List<CursoChat> cursosChat = this.cursoChatRepo.findAllById(usuarioChat.getCursos());
             if (cursosChat != null && !cursosChat.isEmpty()) {
@@ -97,16 +97,15 @@ public class InitChatService {
                         System.err.println("Error en obtener el curso con ID " + cursoChat.getIdCurso());
                         throw new EntityNotFoundException("Error en obtener el curso con ID " + cursoChat.getIdCurso());
                     });
+                    CursoChatDTO cursoChatDTO = new CursoChatDTO();
+                    cursoChatDTO.setId_curso(cursoChat.getIdCurso());
+                    cursoChatDTO.setNombre_curso(curso.getNombre_curso());
+                    cursoChatDTO.setFoto_curso(curso.getImagen_curso());
                     if (cursoChat.getUltimo() != null) {
-                        CursoChatDTO cursoDTO = new CursoChatDTO();
-                        cursoDTO.setId_curso(cursoChat.getIdCurso());
-                        cursoDTO.setNombre_curso(curso.getNombre_curso());
-                        cursoDTO.setFoto_curso(curso.getImagen_curso());
-
                         Optional<MensajeChat> ultimoMensaje = this.mensajeChatRepo.findById(cursoChat.getUltimo());
                         if (ultimoMensaje.isPresent()) {
                             List<MensajeChatDTO> ultimoDTO = this.getMensajesDTO(Arrays.asList(ultimoMensaje.get()));
-                            cursoDTO.setMensajes(ultimoDTO);
+                            cursoChatDTO.setMensajes(ultimoDTO);
                         } else {
                             MensajeChatDTO noMessage = new MensajeChatDTO();
                             noMessage.setId_curso(cursoChat.getIdCurso());
@@ -114,65 +113,23 @@ public class InitChatService {
                             noMessage.setFoto_curso(curso.getImagen_curso());
                             noMessage.setMensaje("No hay mensajes en este curso");
 
-                            cursoDTO.setMensajes(Arrays.asList(noMessage));
+                            cursoChatDTO.setMensajes(Arrays.asList(noMessage));
                         }
-                        cursosDTO.add(cursoDTO);
+                    } else {
+                        MensajeChatDTO noMessage = new MensajeChatDTO();
+                        noMessage.setId_curso(cursoChat.getIdCurso());
+                        noMessage.setNombre_curso(curso.getNombre_curso());
+                        noMessage.setFoto_curso(curso.getImagen_curso());
+                        noMessage.setMensaje("No hay mensajes en este curso");
+
+                        cursoChatDTO.setMensajes(Arrays.asList(noMessage));
                     }
+                    cursosChatDTO.add(cursoChatDTO);
                 }
             }
         }
-        InitChatDTO initChatDTO = new InitChatDTO(usuarioChat.getIdUsuario(), mensajesDTO, cursosDTO);
+        InitChatDTO initChatDTO = new InitChatDTO(usuarioChat.getIdUsuario(), mensajesDTO, cursosChatDTO);
         return initChatDTO;
-    }
-
-    @PostConstruct
-    public void observeMultipleCollections() {
-        // Configura las opciones de ChangeStream
-        ChangeStreamOptions options = ChangeStreamOptions.builder()
-                .build();
-
-        Flux<Document> userChatFlux = reactiveMongoTemplate
-                .changeStream("users_chat", options, Document.class)
-                .map(event -> {
-                    Document doc = event.getBody();
-                    if (doc == null) {
-                        System.err.println("Documento nulo detectado en users_chat stream");
-                        return new Document(); // Devolvemos un documento vacío en lugar de null
-                    }
-                    return doc;
-                });
-
-        // Configura el ChangeStream y escucha los eventos
-        userChatFlux.subscribe(
-                changedDocument -> {
-                    try {
-                        notifyUsersChat(changedDocument);
-                    } catch (Exception e) {
-                        System.err.println("Error procesando documento de users_chat: " + e.getMessage());
-                    }
-                },
-                error -> System.err.println("Error en el stream de users_chat: " + error.getMessage()));
-
-        Flux<Document> coursesChatFlux = reactiveMongoTemplate
-                .changeStream("courses_chat", options, Document.class)
-                .map(event -> {
-                    Document doc = event.getBody();
-                    if (doc == null) {
-                        System.err.println("Documento nulo detectado en courses_chat stream");
-                        return new Document(); // Devolvemos un documento vacío en lugar de null
-                    }
-                    return doc;
-                });
-
-        coursesChatFlux.subscribe(
-                changedDocument -> {
-                    try {
-                        notifyCoursesChat(changedDocument);
-                    } catch (Exception e) {
-                        System.err.println("Error procesando documento de courses_chat: " + e.getMessage());
-                    }
-                },
-                error -> System.err.println("Error en el stream de courses_chat: " + error.getMessage()));
     }
 
     /**
@@ -234,11 +191,7 @@ public class InitChatService {
                     .filter(clase -> clase.getId_clase().equals(mensaje.getIdClase()))
                     .map(clase -> clase.getNombre_clase())
                     .findFirst()
-                    .orElseThrow(() -> {
-                        System.err.println("Error en obtener el nombre de la clase con ID " + mensaje.getIdClase());
-                        throw new EntityNotFoundException(
-                                "Error en obtener el nombre de la clase con ID " + mensaje.getIdClase());
-                    });
+                    .orElse(null);
 
             MensajeChatDTO mensajeDTO = new MensajeChatDTO(
                     mensaje.getId(), // String id_mensaje
@@ -261,7 +214,60 @@ public class InitChatService {
     }
 
     /**
-     * Función que notifica al usuario de los cambios en el chat de un curso
+     * Función para observar los cambios en las colecciones de MongoDB
+     */
+    @PostConstruct
+    private void observeMultipleCollections() {
+        // Configura las opciones de ChangeStream
+        ChangeStreamOptions options = ChangeStreamOptions.builder()
+                .build();
+
+        // Observa los cambios en la colección users_chat
+        Flux<Document> userChatFlux = reactiveMongoTemplate
+                .changeStream("users_chat", options, Document.class)
+                .map(event -> {
+                    Document doc = event.getBody();
+                    if (doc == null) {
+                        System.err.println("Documento nulo detectado en users_chat");
+                        return new Document(); // Devolvemos un documento vacío en lugar de null
+                    }
+                    return doc;
+                });
+
+        userChatFlux.subscribe(changedDocument -> {
+            try {
+                notifyUsersChat(changedDocument);
+            } catch (Exception e) {
+                System.err.println("Error procesando documento de users_chat: " + e.getMessage());
+            }
+        },
+                error -> System.err.println("Error en el stream de users_chat: " + error.getMessage()));
+
+        // Observa los cambios en la colección courses_chat
+        Flux<Document> coursesChatFlux = reactiveMongoTemplate
+                .changeStream("courses_chat", options, Document.class)
+                .map(event -> {
+                    Document doc = event.getBody();
+                    if (doc == null) {
+                        System.err.println("Documento nulo detectado en courses_chat stream");
+                        return new Document(); // Devolvemos un documento vacío en lugar de null
+                    }
+                    return doc;
+                });
+
+        coursesChatFlux.subscribe(
+                changedDocument -> {
+                    try {
+                        notifyCoursesChat(changedDocument);
+                    } catch (Exception e) {
+                        System.err.println("Error procesando documento de courses_chat: " + e.getMessage());
+                    }
+                },
+                error -> System.err.println("Error en el stream de courses_chat: " + error.getMessage()));
+    }
+
+    /**
+     * Función que notifica los cambios en el chat de un curso
      * 
      * @param document Documento que contiene los cambios
      *                 El documento tiene que ser de tipo CursoChat
@@ -269,7 +275,7 @@ public class InitChatService {
     private void notifyCoursesChat(Document document) {
         Long id_curso = document.getLong("idCurso");
         List<ClaseChatDTO> clases = new ArrayList<>();
-        List<MensajeChatDTO> mensajes = new ArrayList<>();
+        List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         Curso curso = cursoRepo.findById(id_curso).orElseThrow(() -> {
             System.err.println("Error en obtener el curso con ID " + id_curso);
             throw new EntityNotFoundException("Error en obtener el curso con ID " + id_curso);
@@ -281,18 +287,18 @@ public class InitChatService {
         if (mensajesIDs != null && !mensajesIDs.isEmpty()) {
             List<MensajeChat> mensajesChat = this.mensajeChatRepo.findAllById(mensajesIDs);
             if (mensajesChat != null && !mensajesChat.isEmpty()) {
-                mensajes = getMensajesDTO(mensajesChat);
+                mensajesDTO = getMensajesDTO(mensajesChat);
             }
         }
 
         List<Document> clasesChatDocument = document.getList("clases", Document.class);
-        if (clasesChatDocument != null && clasesChatDocument.size() > 0) {
+        if (clasesChatDocument != null && !clasesChatDocument.isEmpty()) {
             for (Document claseChatDocument : clasesChatDocument) {
                 List<String> mensajesClase = claseChatDocument.getList("mensajes", String.class);
                 List<MensajeChatDTO> mensajesClaseDTO = new ArrayList<>();
-                if (mensajesClase != null && mensajesClase.size() > 0) {
+                if (mensajesClase != null && !mensajesClase.isEmpty()) {
                     List<MensajeChat> mensajesChatClase = this.mensajeChatRepo.findAllById(mensajesClase);
-                    if (mensajesChatClase != null && mensajesChatClase.size() > 0) {
+                    if (mensajesChatClase != null && !mensajesChatClase.isEmpty()) {
                         mensajesClaseDTO = getMensajesDTO(mensajesChatClase);
                     }
                 }
@@ -301,12 +307,14 @@ public class InitChatService {
                             System.err.println("Error en obtener el nombre de la clase en notifyCourseChat");
                             throw new EntityNotFoundException("Error en obtener el nombre de la clase");
                         });
-                clases.add(new ClaseChatDTO(claseChatDocument.getLong("idClase"), claseChatDocument.getLong("idCurso"),
+                clases.add(new ClaseChatDTO(
+                        claseChatDocument.getLong("idClase"),
+                        claseChatDocument.getLong("idCurso"),
                         nombreClase, mensajesClaseDTO));
             }
         }
 
-        CursoChatDTO cursoChatDTO = new CursoChatDTO(id_curso, clases, mensajes, nombre_curso, foto_curso);
+        CursoChatDTO cursoChatDTO = new CursoChatDTO(id_curso, clases, mensajesDTO, nombre_curso, foto_curso);
         simpMessagingTemplate.convertAndSend("/init_chat/" + id_curso, cursoChatDTO);
     }
 
@@ -316,7 +324,6 @@ public class InitChatService {
      * @param document Documento de chat del usuario
      */
     private void notifyUsersChat(Document document) {
-        // ("DOCUMENTO MODIFICADO: " + document);
         Long idUsuario = document.getLong("idUsuario");
         List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
         List<CursoChatDTO> cursosDTO = new ArrayList<>();
