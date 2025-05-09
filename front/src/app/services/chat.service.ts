@@ -96,13 +96,8 @@ export class ChatService {
 	}
 
 	private initUsuario(): Observable<InitChatUsuario | null> {
-		// Si ya hay una suscripción activa, desuscríbete primero
-		if (this.currentSubscription) {
-			this.currentSubscription.unsubscribe();
-		}
-
 		// Suscríbete a las respuestas del backend
-		this.currentSubscription = this.client.subscribe('/init_chat/result', (response) => {
+		this.client.subscribe('/init_chat/result', (response) => {
 			if (response.body.startsWith('Token inválido')) {
 				this.loginService.refreshToken().subscribe({
 					next: (token: string | null) => {
