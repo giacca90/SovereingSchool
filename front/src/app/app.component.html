@@ -1,7 +1,7 @@
 <div [class.dimmed]="isModalVisible" class="flex h-full min-h-dvh w-full flex-col dark:text-gray-400">
 	<header class="relative w-full rounded-b-lg bg-cyan-500 dark:bg-blue-800">
 		<div class="text-center text-3xl font-bold text-yellow-500 dark:text-yellow-600">
-			<h1 class="cursor-pointer" (click)="this.router.navigate(['']); this.vistaMenu = false" tabindex="0" (keydown.enter)="this.router.navigate(['']); this.vistaMenu = false">SOVEREIGN SCHOOL</h1>
+			<h1 class="cursor-pointer" (click)="this.router.navigate(['/']); this.vistaMenu = false" tabindex="0" (keydown.enter)="this.router.navigate(['/']); this.vistaMenu = false">SOVEREIGN SCHOOL</h1>
 		</div>
 		@if (this.loginService.usuario === null) {
 			<button type="button" class="absolute top-2 right-2 mr-2 size-8 cursor-pointer justify-end" href=""><img src="../assets/OiAccountLogin.webp" alt="login" (click)="openModal()" tabindex="0" (keydown.enter)="openModal()" /></button>
@@ -19,9 +19,9 @@
 			}
 			@if (this.vistaMenu === true) {
 				<div class="absolute right-2 z-10 mt-2 flex flex-col items-start rounded-lg bg-gray-200 p-4 shadow-lg dark:bg-gray-800">
-					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['cursosUsuario']); this.vistaMenu = false">Tus Cursos</button>
-					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['tus-chat']); this.vistaMenu = false">Tus Chats</button>
-					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['perfil']); this.vistaMenu = false">Tu perfil</button>
+					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['/cursosUsuario']); this.vistaMenu = false">Tus Cursos</button>
+					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['/tus-chat']); this.vistaMenu = false">Tus Chats</button>
+					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['/perfil']); this.vistaMenu = false">Tu perfil</button>
 					<button class="cursor-pointer hover:text-blue-500" (click)="this.salir()">Salir</button>
 				</div>
 			}

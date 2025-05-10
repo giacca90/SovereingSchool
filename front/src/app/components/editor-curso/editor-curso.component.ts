@@ -57,7 +57,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewInit {
 						this.curso = JSON.parse(JSON.stringify(curso));
 						// Si el curso no existe, redirige a la página de inicio
 						if (!this.curso) {
-							this.router.navigate(['']);
+							this.router.navigate(['/']);
 						}
 					});
 				}
@@ -186,7 +186,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewInit {
 					if (success) {
 						this.initService.carga();
 						this.editado = false;
-						this.router.navigate(['cursosUsuario']);
+						this.router.navigate(['/cursosUsuario']);
 					} else {
 						console.error('Falló la actualización del curso');
 					}
@@ -385,7 +385,7 @@ export class EditorCursoComponent implements OnInit, OnDestroy, AfterViewInit {
 					next: (result: boolean) => {
 						if (result) {
 							this.initService.carga();
-							this.router.navigate(['cursosUsuario']);
+							this.router.navigate(['/cursosUsuario']);
 						}
 					},
 					error: (e: Error) => {

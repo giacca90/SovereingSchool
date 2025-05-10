@@ -91,6 +91,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
+		console.log('ngOnDestroy');
 		this.idCurso = null;
 		this.chat = null;
 		this.respuesta = null;
@@ -182,9 +183,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
 	navegaAlVideo(id_curso: number, id_clase: number, momento?: number) {
 		if (momento) {
-			this.router.navigate(['repro', this.loginService.usuario?.id_usuario, id_curso, id_clase], { queryParams: { momento } });
+			this.router.navigate(['/repro', this.loginService.usuario?.id_usuario, id_curso, id_clase], { queryParams: { momento } });
 		} else {
-			this.router.navigate(['repro', this.loginService.usuario?.id_usuario, id_curso, id_clase]);
+			this.router.navigate(['/repro', this.loginService.usuario?.id_usuario, id_curso, id_clase]);
 		}
 	}
 }

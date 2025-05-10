@@ -50,7 +50,7 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 							if (resp === 0) {
 								this.router.navigate(['/']);
 							} else {
-								this.router.navigate(['repro/' + this.id_curso + '/' + resp]);
+								this.router.navigate(['/repro/' + this.id_curso + '/' + resp]);
 							}
 						},
 						error: (e) => {
@@ -283,7 +283,6 @@ export class ReproductionComponent implements OnInit, AfterViewInit, OnDestroy {
 									});
 									cortina.addEventListener('mouseover', () => (overCortina = true));
 
-									// TODO: acabar navegación al mensaje
 									cortina.addEventListener('click', () => {
 										this.cambiaVista(1);
 										this.chatComponent.abreChatClase(this.id_clase);

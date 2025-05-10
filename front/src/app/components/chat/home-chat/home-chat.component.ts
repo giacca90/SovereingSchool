@@ -46,20 +46,20 @@ export class HomeChatComponent {
 				});
 			} else {
 				console.error('El usuario no esta logueado');
-				this.router.navigate(['']);
+				this.router.navigate(['/']);
 			}
 		});
 	}
 
 	navegaMensaje(mensaje: MensajeChat) {
 		this.ngZone.run(() => {
-			this.router.navigate(['chat/', mensaje.id_curso?.toString(), mensaje.id_mensaje]);
+			this.router.navigate(['/chat/', mensaje.id_curso?.toString(), mensaje.id_mensaje]);
 		});
 	}
 
 	navegaCurso(curso: CursoChat) {
 		this.ngZone.run(() => {
-			this.router.navigate(['chat/', curso.id_curso.toString()]);
+			this.router.navigate(['/chat/', curso.id_curso.toString()]);
 		});
 	}
 }

@@ -20,7 +20,7 @@ export class UserGuard implements CanActivate {
 		if (isPlatformServer(this.platformId)) return false;
 
 		if (!this.loginService.usuario) {
-			this.router.navigate(['']);
+			this.router.navigate(['/']);
 			return false;
 		}
 
@@ -35,18 +35,18 @@ export class UserGuard implements CanActivate {
 		try {
 			const curso = await this.cursoService.getCurso(id_curso);
 			if (!curso || !usuario.cursos_usuario) {
-				this.router.navigate(['']);
+				this.router.navigate(['/']);
 				return false;
 			}
 
 			const hasAccess = usuario.cursos_usuario?.some((cursoUs) => cursoUs.id_curso === curso.id_curso);
 			if (!hasAccess) {
-				this.router.navigate(['']);
+				this.router.navigate(['/']);
 			}
 			return hasAccess;
 		} catch (error) {
 			console.error('Error al obtener el curso:', error);
-			this.router.navigate(['']);
+			this.router.navigate(['/']);
 			return false;
 		}
 	}

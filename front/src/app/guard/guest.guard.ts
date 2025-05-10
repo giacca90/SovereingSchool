@@ -16,7 +16,7 @@ export class GuestGuard implements CanActivate {
 	canActivate(): boolean {
 		if (isPlatformServer(this.platformId)) return false;
 		if (!this.loginService.usuario) {
-			this.router.navigate(['']);
+			this.router.navigate(['/']);
 			return false;
 		}
 		return true;

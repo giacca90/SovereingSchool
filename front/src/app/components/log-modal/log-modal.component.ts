@@ -83,7 +83,7 @@ export class LogModalComponent implements AfterViewInit {
 			this.loginService.usuario = authResponse.usuario;
 
 			// Puedes emitir un evento o redirigir
-			this.router.navigate(['']);
+			this.router.navigate(['/']);
 			this.modalService.hide();
 			// Limpia el listener
 			window.removeEventListener('message', messageListener);

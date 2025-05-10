@@ -4,7 +4,6 @@ import { Router, RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { LogModalComponent } from './components/log-modal/log-modal.component';
 import { SearchComponent } from './components/search/search.component';
-import { InitService } from './services/init.service';
 import { LoginModalService } from './services/login-modal.service';
 import { LoginService } from './services/login.service';
 
@@ -24,7 +23,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	constructor(
 		private modalService: LoginModalService,
-		private initService: InitService,
 		public loginService: LoginService,
 		public router: Router,
 	) {}
@@ -53,7 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
 	salir() {
 		this.vistaMenu = false;
 		this.loginService.logout();
-		this.router.navigate(['']);
+		this.router.navigate(['/']);
 	}
 	ngOnDestroy(): void {
 		this.subscription.unsubscribe();

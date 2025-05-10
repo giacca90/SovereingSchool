@@ -202,6 +202,12 @@ public class CursoService implements ICursoService {
                 webClient.post().uri("/crea_curso_chat")
                         .body(Mono.just(curso), Curso.class)
                         .retrieve()
+                        .onStatus(
+                                status -> status.isError(),
+                                response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                    System.err.println("Error HTTP del microservicio de chat: " + errorBody);
+                                    return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                                }))
                         .bodyToMono(String.class)
                         .onErrorResume(e -> {
                             System.err.println("Error al conectar con el microservicio de chat " + e.getMessage());
@@ -266,6 +272,13 @@ public class CursoService implements ICursoService {
                     webClient.post().uri("/crea_clase_chat")
                             .body(Mono.just(claseData), Map.class)
                             .retrieve()
+                            .onStatus(
+                                    status -> status.isError(),
+                                    response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                        System.err.println("Error HTTP del microservicio de chat: " + errorBody);
+                                        return Mono
+                                                .error(new RuntimeException("Error del microservicio: " + errorBody));
+                                    }))
                             .bodyToMono(String.class)
                             .onErrorResume(e -> {
                                 System.err.println("Error al crear el chat de la clase: " + e.getMessage());
@@ -305,6 +318,12 @@ public class CursoService implements ICursoService {
             webClient.post().uri("/convertir_videos")
                     .body(Mono.just(curso), Curso.class)
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                System.err.println("Error HTTP del microservicio de stream: " + errorBody);
+                                return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                            }))
                     .bodyToMono(String.class)
                     .onErrorResume(e -> {
                         // Manejo de errores
@@ -377,6 +396,12 @@ public class CursoService implements ICursoService {
             webClient.delete()
                     .uri("/deleteCurso/" + id_curso)
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                System.err.println("Error HTTP del microservicio de stream: " + errorBody);
+                                return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                            }))
                     .bodyToMono(Boolean.class)
                     .onErrorResume(e -> {
                         System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
@@ -398,6 +423,12 @@ public class CursoService implements ICursoService {
             webClientChat.delete()
                     .uri("/delete_curso_chat/" + id_curso)
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                System.err.println("Error HTTP del microservicio de chat: " + errorBody);
+                                return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                            }))
                     .bodyToMono(String.class)
                     .onErrorResume(e -> {
                         System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());
@@ -459,6 +490,12 @@ public class CursoService implements ICursoService {
                         .uri("/deleteClase/" + clase.getCurso_clase().getId_curso().toString() + "/"
                                 + clase.getId_clase().toString())
                         .retrieve()
+                        .onStatus(
+                                status -> status.isError(),
+                                response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                    System.err.println("Error HTTP del microservicio de stream: " + errorBody);
+                                    return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                                }))
                         .bodyToMono(Boolean.class)
                         .onErrorResume(e -> {
                             // Manejo de errores
@@ -485,6 +522,12 @@ public class CursoService implements ICursoService {
                         .uri("/delete_clase_chat/" + clase.getCurso_clase().getId_curso().toString() + "/"
                                 + clase.getId_clase().toString())
                         .retrieve()
+                        .onStatus(
+                                status -> status.isError(),
+                                response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                    System.err.println("Error HTTP del microservicio de chat: " + errorBody);
+                                    return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                                }))
                         .bodyToMono(String.class)
                         .onErrorResume(e -> {
                             System.err.println("Error al conectar con el microservicio de chat: " + e.getMessage());

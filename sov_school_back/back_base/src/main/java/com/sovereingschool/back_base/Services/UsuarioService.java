@@ -152,7 +152,7 @@ public class UsuarioService implements IUsuarioService {
                         .body(Mono.just(usuarioInsertado), Usuario.class)
                         .retrieve()
                         .onStatus(
-                                status -> status.isError(), // compatible con HttpStatusCode
+                                status -> status.isError(),
                                 response -> response.bodyToMono(String.class).flatMap(errorBody -> {
                                     System.err.println("Error HTTP del microservicio de stream: " + errorBody);
                                     return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
@@ -425,6 +425,12 @@ public class UsuarioService implements IUsuarioService {
             webClientStream.put().uri("/nuevoCursoUsuario")
                     .body(Mono.just(old_usuario), Usuario.class)
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                System.err.println("Error HTTP del microservicio de stream: " + errorBody);
+                                return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                            }))
                     .bodyToMono(String.class)
                     .onErrorResume(e -> {
                         System.err.println("Error al conectar con el microservicio de stream: " + e.getMessage());
