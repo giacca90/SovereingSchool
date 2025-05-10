@@ -32,7 +32,6 @@ public class WebsocketAuthHandshakeInterceptor implements HandshakeInterceptor {
             MultiValueMap<String, String> params = UriComponentsBuilder.fromUri(request.getURI()).build()
                     .getQueryParams();
             String token = params.getFirst("token");
-            System.out.println("Token: " + token);
             if (token == null || token.isEmpty()) {
                 System.err.println("Error en el handshake de WebSocket: no hay token en la ruta");
                 attributes.put("Error", "Error: no hay token en la ruta");

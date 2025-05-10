@@ -36,7 +36,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         try {
-
             String error = (String) session.getAttributes().get("Error");
             if (error != null) {
                 session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"" + error + "\"}"));
@@ -69,49 +68,66 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         String userId = session.getId();
-        streamingService.stopFFmpegProcessForUser(userId);
+        try {
+            streamingService.stopFFmpegProcessForUser(userId);
+        } catch (Exception e) {
+            System.err.println("Error al finalizar la transmisión: " + e.getMessage());
+        }
         sessions.remove(userId);
     }
 
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
-        // Parsear el mensaje recibido
-        String payload = message.getPayload();
+        try {
+            // Parsear el mensaje recibido
+            String payload = message.getPayload();
 
-        if (payload.contains("request_rtmp_url")) {
-            // Extraer userId
-            Long userId = (Long) session.getAttributes().get("idUsuario");
+            if (payload.contains("request_rtmp_url")) {
+                // Extraer userId
+                Long userId = (Long) session.getAttributes().get("idUsuario");
 
-            if (userId != null) {
-                // Generar URL RTMP para OBS
-                String rtmpUrl = RTMP_URL + userId + "_" + session.getId();
-                System.out.println("RTMP URL: " + rtmpUrl);
+                if (userId != null) {
+                    // Generar URL RTMP para OBS
+                    String rtmpUrl = RTMP_URL + userId + "_" + session.getId();
+                    System.out.println("RTMP URL: " + rtmpUrl);
 
-                // Preparar la previsualización de la transmisión
-                executor.execute(() -> {
-                    Thread currentThread = Thread.currentThread();
-                    previews.put(session.getId(), currentThread); // Añadir el hilo al mapa
-                    try {
-                        this.streamingService.startPreview(rtmpUrl);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                });
-                // Enviar la URL generada al cliente
-                session.sendMessage(new TextMessage("{\"type\":\"rtmp_url\",\"rtmpUrl\":\"" + rtmpUrl + "\"}"));
+                    // Preparar la previsualización de la transmisión
+                    executor.execute(() -> {
+                        Thread currentThread = Thread.currentThread();
+                        previews.put(session.getId(), currentThread); // Añadir el hilo al mapa
+                        try {
+                            this.streamingService.startPreview(rtmpUrl);
+                        } catch (IOException | InterruptedException e) {
+                            System.err.println(
+                                    "Error al iniciar la previsualización de la transmisión: " + e.getMessage());
+                            throw new RuntimeException("Error al iniciar la previsualización de la transmisión: "
+                                    + e.getMessage());
+                        }
+                    });
+                    // Enviar la URL generada al cliente
+                    session.sendMessage(new TextMessage("{\"type\":\"rtmp_url\",\"rtmpUrl\":\"" + rtmpUrl + "\"}"));
+                } else {
+                    // Enviar error si no se encuentra el userId
+                    session.sendMessage(
+                            new TextMessage("{\"type\":\"error\",\"message\":\"userId no proporcionado\"}"));
+                }
+            } else if (payload.contains("emitirOBS") && payload.contains("rtmpUrl")) {
+                String streamId = this.extractStreamId(payload);
+                this.startFFmpegProcessForUser(streamId, RTMP_URL + streamId);
+            } else if (payload.contains("detenerStreamOBS")) {
+                this.streamingService.stopFFmpegProcessForUser(this.extractStreamId(payload));
             } else {
-                // Enviar error si no se encuentra el userId
-                session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"userId no proporcionado\"}"));
+                session.sendMessage(
+                        new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));
             }
-        } else if (payload.contains("emitirOBS") && payload.contains("rtmpUrl")) {
-            String streamId = this.extractStreamId(payload);
-            this.startFFmpegProcessForUser(streamId, RTMP_URL + streamId);
-        } else if (payload.contains("detenerStreamOBS")) {
-            this.streamingService.stopFFmpegProcessForUser(this.extractStreamId(payload));
-        } else {
-            session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Tipo de mensaje no reconocido\"}"));
+        } catch (RuntimeException e) {
+            session.sendMessage(
+                    new TextMessage("{\"type\":\"error\",\"message\":\"" + e.getMessage() + "\"}"));
+        } catch (Exception e) {
+            System.err.println("Error en el manejo del mensaje en OBS: " + e.getMessage());
+            session.sendMessage(
+                    new TextMessage("{\"type\":\"error\",\"message\":\"Error en el manejo del mensaje en OBS: "
+                            + e.getMessage() + "\"}"));
         }
     }
 
@@ -134,23 +150,6 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
                 System.err.println("Error al iniciar FFmpeg para usuario " + userId + ": " + e.getMessage());
             }
         });
-    }
-
-    private String extractUserId(String payload) {
-        // {"type":"request_rtmp_url","userId":"123"}
-        if (payload.contains("userId")) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode;
-            try {
-                jsonNode = objectMapper.readTree(payload);
-                return jsonNode.get("userId").asText();
-            } catch (JsonMappingException e) {
-                e.printStackTrace();
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
     }
 
     private String extractStreamId(String payload) {

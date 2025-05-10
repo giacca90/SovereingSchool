@@ -47,7 +47,7 @@
 	}
 </div>
 @if (editar) {
-	<div class="absolute top-0 left-0 z-10 flex h-screen w-full overflow-y-auto bg-white/90 dark:bg-black/90">
+	<div class="scrollbar dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-900 absolute top-0 left-0 z-10 flex h-screen w-full overflow-y-auto bg-white/90 dark:bg-black/90">
 		<div class="m-2 mt-2 mb-2 flex h-fit min-h-screen grow flex-col justify-start rounded-lg border border-black p-2 dark:border-gray-400">
 			<input class="m-2 cursor-pointer rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" type="text" placeholder="Pon un nombre a tu Clase" [(ngModel)]="editar.nombre_clase" />
 			@if (editar.id_clase === 0) {

@@ -80,11 +80,7 @@ public class StreamingService {
                         continue;
                     }
                     List<String> ffmpegCommand = null;
-                    try {
-                        ffmpegCommand = this.creaComandoFFmpeg(destino.getAbsolutePath(), false, null, null);
-                    } catch (IOException | InterruptedException e) {
-                        System.err.println("Error al generar el comando FFmpeg: " + e.getMessage());
-                    }
+                    ffmpegCommand = this.creaComandoFFmpeg(destino.getAbsolutePath(), false, null, null);
                     if (ffmpegCommand != null) {
                         // Ejecutar el comando FFmpeg
                         ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
@@ -121,11 +117,13 @@ public class StreamingService {
      * 
      * @param userId
      * @param inputStream
+     * @throws IOException
+     * @throws InterruptedException
      * @throws Exception
      */
     public void startLiveStreamingFromStream(String[] streamIdAndSettings, Object inputStream,
             PipedInputStream ffmpegInputStream)
-            throws Exception {
+            throws IOException, InterruptedException, RuntimeException, IllegalArgumentException {
         String userId = streamIdAndSettings[0];
         Path outputDir = baseUploadDir.resolve(userId);
 
@@ -172,6 +170,7 @@ public class StreamingService {
                 }
             } catch (IOException e) {
                 System.err.println("Error leyendo salida de FFmpeg: " + e.getMessage());
+                throw new RuntimeException("Error leyendo salida de FFmpeg: " + e.getMessage());
             }
         });
         logReader.start();
@@ -189,7 +188,7 @@ public class StreamingService {
         logReader.join(); // Esperar a que se terminen de leer los logs
     }
 
-    public void stopFFmpegProcessForUser(String userId) throws IOException {
+    public void stopFFmpegProcessForUser(String userId) throws IOException, RuntimeException {
         String sessionId = userId.substring(userId.lastIndexOf('_') + 1);
         Process process = ffmpegProcesses.remove(sessionId);
         if (process != null && process.isAlive()) {
@@ -206,6 +205,8 @@ public class StreamingService {
                     if (exitCode == 0) {
                     } else {
                         System.err.println("FFmpeg preview terminó con un error. Código de salida: " + exitCode);
+                        throw new RuntimeException(
+                                "FFmpeg preview terminó con un error. Código de salida: " + exitCode);
                     }
                 } else {
                     // Si no terminó en 1 segundo, forzar la terminación
@@ -219,9 +220,11 @@ public class StreamingService {
             } catch (InterruptedException e) {
                 System.err.println("El proceso fue interrumpido: " + e.getMessage());
                 Thread.currentThread().interrupt();
+                throw new RuntimeException("El proceso fue interrumpido: " + e.getMessage());
             }
         } else {
             System.err.println("No se encontró un proceso FFmpeg para el usuario " + userId);
+            throw new RuntimeException("No se encontró un proceso FFmpeg para el usuario " + userId);
         }
 
         Process preProcess = previewProcesses.remove(sessionId);
@@ -255,6 +258,7 @@ public class StreamingService {
             } catch (InterruptedException e) {
                 System.err.println("El proceso fue interrumpido: " + e.getMessage());
                 Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
+                throw new RuntimeException("El proceso fue interrumpido: " + e.getMessage());
             }
 
             // Elimina la carpeta de la preview
@@ -275,6 +279,7 @@ public class StreamingService {
                         .forEach(File::delete);
             } catch (IOException e) {
                 System.err.println("Error al eliminar la carpeta de la previsualización: " + e.getMessage());
+                throw new RuntimeException("Error al eliminar la carpeta de la previsualización: " + e.getMessage());
             }
             Path m3u8 = baseUploadDir.resolve("previews").resolve(userId + ".m3u8");
             if (Files.exists(m3u8)) {
@@ -282,6 +287,7 @@ public class StreamingService {
             }
         } else {
             System.err.println("No se encontró un proceso de previsualización  para el usuario " + userId);
+            throw new RuntimeException("No se encontró un proceso de previsualización  para el usuario " + userId);
         }
     }
 
@@ -293,7 +299,7 @@ public class StreamingService {
      * @throws InterruptedException
      */
     @Async
-    public void startPreview(String rtmpUrl) throws IOException, InterruptedException {
+    public void startPreview(String rtmpUrl) throws IOException, InterruptedException, RuntimeException {
         String previewId = rtmpUrl.substring(rtmpUrl.lastIndexOf("/") + 1);
         Path previewDir = baseUploadDir.resolve("previews");
         // Crear el directorio de salida si no existe
@@ -339,6 +345,7 @@ public class StreamingService {
                 }
             } catch (IOException e) {
                 System.err.println("Error leyendo salida de FFmpeg preview: " + e.getMessage());
+                throw new RuntimeException("Error leyendo salida de FFmpeg preview: " + e.getMessage());
             }
         });
         logReader.start();
@@ -370,7 +377,7 @@ public class StreamingService {
      */
     private List<String> creaComandoFFmpeg(String inputFilePath, Boolean live, InputStream inputStream,
             String[] streamIdAndSettings)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, RuntimeException {
         String hls_playlist_type = live ? "event" : "vod";
         String hls_flags = live ? "independent_segments+append_list+program_date_time" : "independent_segments";
         String preset = live ? "veryfast" : "fast";
@@ -412,6 +419,7 @@ public class StreamingService {
                             ffprobeInput.close();
                         } catch (IOException e1) {
                             System.err.println("Error en cerrar flujo de escritura: " + e1.getMessage());
+                            throw new RuntimeException("Error en cerrar flujo de escritura: " + e1.getMessage());
                         }
                     }
                 });
