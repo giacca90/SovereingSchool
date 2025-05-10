@@ -29,7 +29,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private StreamingService streamingService;
 
     @Autowired
-    private AuthHandshakeInterceptor authHandshakeInterceptor;
+    private WebsocketAuthHandshakeInterceptor authHandshakeInterceptor;
 
     @Value("${variable.RTMP}")
     private String RTMP_URL;

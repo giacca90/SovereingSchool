@@ -11,7 +11,7 @@ public class VideoElement {
     }
 
     private String id;
-    private Object element; // Assuming HTMLElement is represented as Object
+    private Object element;
     private boolean painted;
     private double scale;
     private Position position;

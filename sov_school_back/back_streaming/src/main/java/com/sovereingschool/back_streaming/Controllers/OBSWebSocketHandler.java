@@ -35,46 +35,35 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        Boolean isAuthenticate = (boolean) session.getAttributes().get("Authenticate");
-        if (isAuthenticate == null || !isAuthenticate) {
+        try {
+
             String error = (String) session.getAttributes().get("Error");
-            System.out.println("Falló la autenticación en WebRTC: " + error);
-            try {
+            if (error != null) {
                 session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"" + error + "\"}"));
                 session.close(CloseStatus.POLICY_VIOLATION);
                 return;
-            } catch (IOException e) {
-                System.err.println("Error al enviar mensaje de error en OBS: " + e.getMessage());
-                try {
-                    session.close(CloseStatus.SERVER_ERROR);
-                } catch (IOException ex) {
-                    System.err.println("Error al cerrar sesión WebSocket: " + ex.getMessage());
-                }
             }
-            return;
-        }
 
-        Authentication auth = (Authentication) session.getAttributes().get("user");
-        if (!isAuthorized(auth)) {
-            System.err.println("Acceso denegado: usuario no autorizado");
-            try {
+            Authentication auth = (Authentication) session.getAttributes().get("Auth");
+            if (!isAuthorized(auth)) {
+                System.err.println("Acceso denegado: usuario no autorizado");
                 session.sendMessage(new TextMessage(
                         "{\"type\":\"error\",\"message\":\"" + "Acceso denegado: usuario no autorizado" + "\"}"));
                 session.close(CloseStatus.POLICY_VIOLATION);
-            } catch (IOException e) {
-                System.err.println("Error al enviar mensaje de error en OBS: " + e.getMessage());
-                try {
-                    session.close(CloseStatus.SERVER_ERROR);
-                } catch (IOException ex) {
-                    System.err.println("Error al cerrar sesión WebSocket: " + ex.getMessage());
-                }
+                return;
             }
-            return;
-        }
 
-        sessions.put(session.getId(), session);
-        String username = (String) session.getAttributes().get("username");
-        System.out.println("Conexión establecida en OBS para el usuario: " + username);
+            sessions.put(session.getId(), session);
+            String username = (String) session.getAttributes().get("username");
+            System.out.println("Conexión establecida en OBS para el usuario: " + username);
+        } catch (Exception e) {
+            System.err.println("Error en enviar el mensaje de error en OBS: " + e.getMessage());
+            try {
+                session.close(CloseStatus.SERVER_ERROR);
+            } catch (IOException ex) {
+                System.err.println("Error en cerrar la conexión: " + ex.getMessage());
+            }
+        }
     }
 
     @Override
@@ -91,7 +80,7 @@ public class OBSWebSocketHandler extends TextWebSocketHandler {
 
         if (payload.contains("request_rtmp_url")) {
             // Extraer userId
-            String userId = extractUserId(payload);
+            Long userId = (Long) session.getAttributes().get("idUsuario");
 
             if (userId != null) {
                 // Generar URL RTMP para OBS

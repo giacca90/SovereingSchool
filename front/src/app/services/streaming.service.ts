@@ -32,14 +32,15 @@ export class StreamingService {
 
 	get webSocketUrlWebcam(): string {
 		if (typeof window !== 'undefined' && (window as any).__env) {
-			return (window as any).__env.BACK_STREAM_WSS ?? '' + '/live-webcam';
+			return ((window as any).__env.BACK_STREAM_WSS ?? '') + '/live-webcam';
 		}
 		return '';
 	}
 
 	get webSocketUrlOBS(): string {
 		if (typeof window !== 'undefined' && (window as any).__env) {
-			return (window as any).__env.BACK_STREAM_WSS ?? '' + '/live-obs';
+			const ruta = ((window as any).__env.BACK_STREAM_WSS ?? '') + '/live-obs';
+			return ruta;
 		}
 		return '';
 	}
@@ -211,7 +212,9 @@ export class StreamingService {
 		// Abrir conexión WebSocket
 		const token = localStorage.getItem('Token');
 		if (token) {
-			this.ws = new WebSocket(`${this.webSocketUrlOBS}?token=${token}`);
+			const url = `${this.webSocketUrlOBS}?token=${token}`;
+			console.log('URL:', url);
+			this.ws = new WebSocket(url);
 		} else {
 			console.error('Token JWT no encontrado en localStorage');
 			return;
@@ -224,7 +227,7 @@ export class StreamingService {
 				status.textContent = 'Conexión WebSocket establecida. Enviando ID del usuario...';
 
 				// Enviar el ID del usuario al servidor
-				const message = { type: 'request_rtmp_url', userId: userId.toString() };
+				const message = { type: 'request_rtmp_url' };
 				this.ws?.send(JSON.stringify(message));
 			} else {
 				console.error('status no encontrado');

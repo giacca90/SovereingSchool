@@ -544,7 +544,9 @@ public class CursoService implements ICursoService {
         } else {
             System.err.println("Clase no encontrada con ID: " + clase.getId_clase());
         }
+
         // TODO: Mirar si se necesita eliminar algo en el microservicio de streaming
+
     }
 
     /**
