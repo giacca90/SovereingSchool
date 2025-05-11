@@ -10,11 +10,12 @@ CREATE TABLE IF NOT EXISTS curso (
 );
 CREATE TABLE IF NOT EXISTS clase (
 	id_clase SERIAL PRIMARY KEY,
-	direccion_clase VARCHAR(255) NOT NULL,
 	nombre_clase VARCHAR(255) NOT NULL,
 	descriccion_clase TEXT,
-	posicion_clase INTEGER NOT NULL,
+	contenido_clase TEXT,
 	tipo_clase INTEGER NOT NULL,
+	direccion_clase VARCHAR(255) NOT NULL,
+	posicion_clase INTEGER NOT NULL,
 	id_curso INTEGER REFERENCES curso(id_curso)
 );
 CREATE TABLE IF NOT EXISTS plan (
@@ -105,91 +106,102 @@ embargando al D.N.I.',
 		40.00
 	);
 INSERT INTO clase (
-		direccion_clase,
 		nombre_clase,
 		descriccion_clase,
-		posicion_clase,
+		contenido_clase,
 		tipo_clase,
+		direccion_clase,
+		posicion_clase,
 		id_curso
 	)
 VALUES (
-		'/home/matt/Escritorio/Proyectos/SovereingSchool/Videos/01.mp4',
 		'Clase 1 - Presentación',
 		'Una breve presentación del profesor',
-		1,
+		'Contenido de la clase',
+		0,
+		'/home/matt/Escritorio/Proyectos/SovereingSchool/Videos/01.mp4',
 		1,
 		1
 	),
 	(
-		'/home/matt/Escritorio/Proyectos/SovereingSchool/Videos/02.mp4',
 		'Clase 2 - Introducción',
 		'Introducción al curso',
+		'Contenido de la clase',
+		0,
+		'/home/matt/Escritorio/Proyectos/SovereingSchool/Videos/02.mp4',
 		2,
-		1,
 		1
 	),
 	(
-		'http://corso1/clase3',
 		'Clase 3 - Que es la REML???',
 		'Que es la REML y como se creó??',
+		'Contenido de la clase',
+		0,
+		'http://corso1/clase3',
 		3,
-		1,
 		1
 	),
 	(
-		'http://corso1/clase4',
 		'Clase 4 - Fundamentos legales',
 		'El convenio de Montevideo y otros',
+		'Contenido de la clase',
+		0,
+		'http://corso1/clase4',
 		4,
-		1,
 		1
 	),
 	(
-		'http://corso2/clase1',
 		'Clase 1 - Que es un Trust??',
 		'Entendemos el Fideicomiso',
-		1,
+		'Contenido de la clase',
+		0,
+		'http://corso2/clase1',
 		1,
 		2
 	),
 	(
-		'http://corso2/clase2',
 		'Clase 2 - Partes del Trust',
 		'Fideicomitente, Fideicomisario y Beneficiario',
+		'Contenido de la clase',
+		0,
+		'http://corso2/clase2',
 		2,
-		1,
 		2
 	),
 	(
-		'http://corso3/clase1',
 		'Clase 1 - Presentación',
 		'Presentación del profesor',
-		1,
+		'Contenido de la clase',
+		0,
+		'http://corso3/clase1',
 		1,
 		3
 	),
 	(
-		'http://corso3/clase2',
 		'Clase 2 - Las estructuras societarias',
 		'Muchas es mejor!!',
+		'Contenido de la clase',
+		0,
+		'http://corso3/clase2',
 		2,
-		1,
 		3
 	),
 	(
-		'http://corso4/clase1',
 		'Clase 1 - Tu nombre te define',
 		'Tu nombre, tu marca',
-		1,
+		'Contenido de la clase',
+		0,
+		'http://corso4/clase1',
 		1,
 		4
 	),
 	(
-		'http://corso4/clase2',
 		'Clase 2 - Copyright en Derecho Consuetudinario',
 		'En common law se hace publico',
+		'Contenido de la clase',
+		0,
+		'http://corso4/clase2',
 		2,
-		1,
 		4
 	);
 INSERT INTO plan (nombre_plan, precio_plan)

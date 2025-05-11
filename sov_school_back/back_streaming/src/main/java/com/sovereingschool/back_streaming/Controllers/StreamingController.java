@@ -333,4 +333,17 @@ public class StreamingController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/actualizar_curso_stream")
+    public ResponseEntity<?> actualizarCursoStream(@RequestBody Curso curso) {
+        try {
+            this.usuarioCursosService.actualizarCursoStream(curso);
+            return new ResponseEntity<String>("Curso stream actualizado con éxito!!!", HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en actualizar el stream del curso: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

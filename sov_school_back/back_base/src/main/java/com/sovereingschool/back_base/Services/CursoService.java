@@ -12,9 +12,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -196,45 +194,17 @@ public class CursoService implements ICursoService {
         if (curso.getId_curso().equals(0L)) {
             curso.setId_curso(null);
             curso = this.cursoRepo.save(curso);
-            // Crea el chat del nuevo curso
-            try {
-                WebClient webClient = createSecureWebClient(backChatURL);
-                webClient.post().uri("/crea_curso_chat")
-                        .body(Mono.just(curso), Curso.class)
-                        .retrieve()
-                        .onStatus(
-                                status -> status.isError(),
-                                response -> response.bodyToMono(String.class).flatMap(errorBody -> {
-                                    System.err.println("Error HTTP del microservicio de chat: " + errorBody);
-                                    return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
-                                }))
-                        .bodyToMono(String.class)
-                        .onErrorResume(e -> {
-                            System.err.println("Error al conectar con el microservicio de chat " + e.getMessage());
-                            return Mono.empty(); // Continuar sin interrumpir la aplicación
-                        }).subscribe(res -> {
-                            if (res == null || !res.equals("Curso chat creado con exito!!!")) {
-                            } else {
-                                System.err.println("Error en crear el curso en el chat");
-                                System.err.println(res);
-                            }
-                        });
-            } catch (Exception e) {
-                System.err.println("Error en crear el curso: " + e.getMessage());
-                throw new RuntimeException("Error en crear el curso: " + e.getMessage());
+            // Crear la carpeta del curso si no existe
+            Path cursoPath = baseUploadDir.resolve(curso.getId_curso().toString());
+            File cursoFile = new File(cursoPath.toString());
+            if (!cursoFile.exists() || !cursoFile.isDirectory()) {
+                if (!cursoFile.mkdir()) {
+                    System.err.println("Error en crear la carpeta del curso.");
+                    return null;
+                }
             }
+        }
 
-            // TODO: Crear el curso en el microservicio de streaming
-        }
-        // Crear la carpeta del curso si no existe
-        Path cursoPath = baseUploadDir.resolve(curso.getId_curso().toString());
-        File cursoFile = new File(cursoPath.toString());
-        if (!cursoFile.exists() || !cursoFile.isDirectory()) {
-            if (!cursoFile.mkdir()) {
-                System.err.println("Error en crear la carpeta del curso.");
-                return null;
-            }
-        }
         // Crear las clases del curso si no existen
         if (clases.size() > 0) {
             for (Clase clase : clases) {
@@ -259,43 +229,10 @@ public class CursoService implements ICursoService {
                     System.err.println("Error en guardar la clase: " + e.getMessage());
                     throw new RuntimeException("Error en guardar la clase: " + e.getMessage());
                 }
-                // Crea el chat de la clase si no existe
-                try {
-                    clase.setCurso_clase(curso); // Asegurarnos que la referencia al curso está establecida
-
-                    // Crear una versión simplificada para enviar
-                    Map<String, Object> claseData = new HashMap<>();
-                    claseData.put("id_clase", clase.getId_clase());
-                    claseData.put("curso_clase", Map.of("id_curso", curso.getId_curso()));
-
-                    WebClient webClient = createSecureWebClient(backChatURL);
-                    webClient.post().uri("/crea_clase_chat")
-                            .body(Mono.just(claseData), Map.class)
-                            .retrieve()
-                            .onStatus(
-                                    status -> status.isError(),
-                                    response -> response.bodyToMono(String.class).flatMap(errorBody -> {
-                                        System.err.println("Error HTTP del microservicio de chat: " + errorBody);
-                                        return Mono
-                                                .error(new RuntimeException("Error del microservicio: " + errorBody));
-                                    }))
-                            .bodyToMono(String.class)
-                            .onErrorResume(e -> {
-                                System.err.println("Error al crear el chat de la clase: " + e.getMessage());
-                                return Mono.empty(); // Continuar sin interrumpir la aplicación
-                            }).subscribe(res -> {
-                                if (res == null || !res.equals("Clase chat creado con exito!!!")) {
-                                    System.err.println("Error en crear la clase en el chat: ");
-                                    System.err.println(res);
-                                }
-                            });
-                } catch (Exception e) {
-                    System.err.println("Error al crear el chat de la clase: " + e.getMessage());
-                    throw new RuntimeException("Error al crear el chat de la clase: " + e.getMessage());
-                }
 
                 // Crea la carpeta de la clase si no existe
-                Path clasePath = cursoPath.resolve(clase.getId_clase().toString());
+                Path clasePath = baseUploadDir.resolve(curso.getId_curso().toString())
+                        .resolve(clase.getId_clase().toString());
                 File claseFile = new File(clasePath.toString());
                 if (!claseFile.exists() || !claseFile.isDirectory()) {
                     if (!claseFile.mkdir()) {
@@ -311,35 +248,63 @@ public class CursoService implements ICursoService {
                 throw new RuntimeException("Error en actualizar el curso: " + e.getMessage());
             }
         }
-        // Convertir los videos del curso
+
+        // Actualizar el chat del curso
         try {
-            // Obtener token
-            WebClient webClient = createSecureWebClient(backStreamURL);
-            webClient.post().uri("/convertir_videos")
+            WebClient webClient = createSecureWebClient(backChatURL);
+            webClient.post().uri("/actualizar_curso_chat")
                     .body(Mono.just(curso), Curso.class)
                     .retrieve()
                     .onStatus(
                             status -> status.isError(),
                             response -> response.bodyToMono(String.class).flatMap(errorBody -> {
-                                System.err.println("Error HTTP del microservicio de stream: " + errorBody);
+                                System.err.println("Error HTTP del microservicio de chat: " + errorBody);
                                 return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
                             }))
                     .bodyToMono(String.class)
                     .onErrorResume(e -> {
-                        // Manejo de errores
-                        System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+                        System.err.println("Error al conectar con el microservicio de chat " + e.getMessage());
                         return Mono.empty(); // Continuar sin interrumpir la aplicación
                     }).subscribe(res -> {
-                        // Maneja el resultado cuando esté disponible
-                        if (res == null || !res.equals("Videos convertidos con éxito!!!")) {
-                            System.err.println("Error en convertir los videos del curso");
+                        if (res == null || !res.equals("Curso chat actualizado con éxito!!!")) {
+                            System.err.println("Error en actualizar el curso en el chat");
                             System.err.println(res);
+                            throw new RuntimeException("Error en actualizar el curso en el chat");
                         }
                     });
         } catch (Exception e) {
-            System.err.println("Error en crear el curso: " + e.getMessage());
-            throw new RuntimeException("Error en crear el curso: " + e.getMessage());
+            System.err.println("Error en actualizar el curso en el chat: " + e.getMessage());
+            throw new RuntimeException("Error en actualizar el curso en el chat: " + e.getMessage());
         }
+
+        // Actializa el curso en el stream
+        try {
+            WebClient webClient = createSecureWebClient(backStreamURL);
+            webClient.post().uri("/actualizar_curso_stream")
+                    .body(Mono.just(curso), Curso.class)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            response -> response.bodyToMono(String.class).flatMap(errorBody -> {
+                                System.err.println("Error HTTP del microservicio de streaming: " + errorBody);
+                                return Mono.error(new RuntimeException("Error del microservicio: " + errorBody));
+                            }))
+                    .bodyToMono(String.class)
+                    .onErrorResume(e -> {
+                        System.err.println("Error al conectar con el microservicio de streaming: " + e.getMessage());
+                        return Mono.empty(); // Continuar sin interrumpir la aplicación
+                    }).subscribe(res -> {
+                        if (res == null || !res.equals("Curso stream actualizado con éxito!!!")) {
+                            System.err.println("Error en actualizar el curso en el streaming:");
+                            System.err.println(res);
+                            throw new RuntimeException("Error en actualizar el curso en el streaming");
+                        }
+                    });
+        } catch (Exception e) {
+            System.err.println("Error en actualizar el curso en el streaming: " + e.getMessage());
+            throw new RuntimeException("Error en actualizar el curso en el streaming: " + e.getMessage());
+        }
+        // Si todo ha ido bien, devuelve el curso
         return curso;
     }
 

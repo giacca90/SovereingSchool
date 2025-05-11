@@ -1,5 +1,6 @@
+import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { of } from 'rxjs';
 import { Curso } from '../models/Curso';
 import { Estadistica } from '../models/Estadistica';
@@ -17,6 +18,7 @@ export class InitService {
 		private http: HttpClient,
 		private cursoService: CursosService,
 		private usuarioService: UsuariosService,
+		@Inject(PLATFORM_ID) private platformId: Object,
 	) {
 		this.carga();
 	}
@@ -30,6 +32,9 @@ export class InitService {
 	}
 
 	async carga() {
+		if (isPlatformServer(this.platformId)) {
+			return;
+		}
 		this.usuarioService.profes = [];
 		this.cursoService.cursos = [];
 		this.http.get<Init>(this.apiUrl, { observe: 'response', withCredentials: true }).subscribe({

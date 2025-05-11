@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
 import com.sovereingschool.back_chat.Services.CursoChatService;
 import com.sovereingschool.back_chat.Services.InitChatService;
+import com.sovereingschool.back_common.Models.Curso;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -169,6 +170,26 @@ public class ChatController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             return new ResponseEntity<>("Error en borrar el chat del curso: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Función para actualizar el chat del curso
+     * Si el chat no existe, se crea
+     * 
+     * @return
+     */
+
+    @PostMapping("/actualizar_curso_chat")
+    public ResponseEntity<?> actualizarCursoChat(@RequestBody Curso curso) {
+        try {
+            this.cursoChatService.actualizarCursoChat(curso);
+            return new ResponseEntity<String>("Curso chat actualizado con éxito!!!", HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en actualizar el chat del curso: " + e.getCause(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

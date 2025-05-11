@@ -1,5 +1,6 @@
 package com.sovereingschool.back_streaming.Services;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +31,9 @@ import jakarta.transaction.Transactional;
 public class UsuarioCursosService implements IUsuarioCursosService {
 
     @Autowired
+    private StreamingService streamingService;
+
+    @Autowired
     private UsuarioRepository usuarioRepository; // Repositorio de PostgreSQL para usuarios
 
     @Autowired
@@ -42,7 +46,7 @@ public class UsuarioCursosService implements IUsuarioCursosService {
     private UsuarioCursosRepository usuarioCursosRepository; // Repositorio de MongoDB
 
     @Autowired
-    private MongoTemplate mongoTemplate; // MongoDB Template
+    private MongoTemplate mongoTemplate;
 
     @Override
     public void syncUserCourses() {
@@ -267,5 +271,36 @@ public class UsuarioCursosService implements IUsuarioCursosService {
             }
         }
         return true;
+    }
+
+    public void actualizarCursoStream(Curso curso) {
+        List<UsuarioCursos> usuarios = this.usuarioCursosRepository.findAllByIdCurso(curso.getId_curso());
+        if (usuarios != null && usuarios.size() != 0) {
+            for (UsuarioCursos usuario : usuarios) {
+                List<StatusCurso> cursosStatus = usuario.getCursos();
+                for (StatusCurso cursoStatus : cursosStatus) {
+                    if (cursoStatus.getId_curso().equals(curso.getId_curso())) {
+                        cursoStatus.getClases().clear();
+                        for (Clase clase : curso.getClases_curso()) {
+                            StatusClase claseStatus = new StatusClase();
+                            claseStatus.setId_clase(clase.getId_clase());
+                            claseStatus.setCompleted(false);
+                            claseStatus.setProgress(0);
+                            cursoStatus.getClases().add(claseStatus);
+                        }
+                        this.usuarioCursosRepository.save(usuario);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Convertir los videos del curso
+        try {
+            this.streamingService.convertVideos(curso);
+        } catch (IOException | InterruptedException e) {
+            System.err.println("Error en convertir los videos del curso: " + e.getMessage());
+            throw new RuntimeException("Error en convertir los videos del curso: " + e.getMessage());
+        }
     }
 }

@@ -91,7 +91,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
-		console.log('ngOnDestroy');
 		this.idCurso = null;
 		this.chat = null;
 		this.respuesta = null;

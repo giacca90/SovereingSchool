@@ -439,4 +439,49 @@ public class CursoChatService {
             throw new RuntimeException("Error en inicializar chat: " + e.getMessage());
         }
     }
+
+    /**
+     * Función para actualizar el chat del curso
+     * Si el chat no existe, se crea
+     * 
+     * @param curso
+     */
+    public void actualizarCursoChat(Curso curso) {
+        try {
+
+            CursoChat cursoChat = cursoChatRepo.findByIdCurso(curso.getId_curso()).orElse(null);
+            if (cursoChat == null) {
+                cursoChat = new CursoChat(null, curso.getId_curso(), new ArrayList<>(), new ArrayList<>(), null);
+                cursoChat = cursoChatRepo.save(cursoChat);
+                // Añade el curso al chat de los profesores
+                List<Usuario> profesores = curso.getProfesores_curso();
+                for (Usuario profesor : profesores) {
+                    UsuarioChat profChat = usuarioChatRepo.findByIdUsuario(profesor.getId_usuario()).orElseThrow(() -> {
+                        System.err.println("Error en obtener el profesor del curso");
+                        throw new EntityNotFoundException("Error en obtener el profesor del curso");
+                    });
+                    profChat.getCursos().add(cursoChat.getId());
+                    usuarioChatRepo.save(profChat);
+                }
+            }
+            List<Clase> clases = curso.getClases_curso();
+            List<ClaseChat> clasesChat = cursoChat.getClases();
+            // Comprueba si las clases del curso es nueva
+            for (Clase clase : clases) {
+                ClaseChat claseChat = clasesChat.stream()
+                        .filter(c -> c.getIdClase() == clase.getId_clase())
+                        .findFirst()
+                        .orElse(null);
+                if (claseChat == null) {
+                    claseChat = new ClaseChat(clase.getId_clase(), curso.getId_curso(), new ArrayList<>());
+                    clasesChat.add(claseChat);
+                }
+            }
+            cursoChat.setClases(clasesChat);
+            cursoChatRepo.save(cursoChat);
+        } catch (RuntimeException e) {
+            System.err.println("Error en actualizar el curso en el chat: " + e.getMessage());
+            throw new RuntimeException("Error en actualizar el curso en el chat: " + e.getMessage());
+        }
+    }
 }

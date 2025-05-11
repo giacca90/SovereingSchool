@@ -79,7 +79,7 @@ export class HomeComponent {
 		} else {
 			setTimeout(() => {
 				this.initSwiper();
-			}, 50);
+			}, 10);
 		}
 	}
 
