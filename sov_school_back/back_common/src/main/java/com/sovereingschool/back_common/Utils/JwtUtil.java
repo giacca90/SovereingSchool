@@ -267,10 +267,15 @@ public class JwtUtil {
             throw new BadCredentialsException("El token no puede estar vacío");
         }
         try {
-            String username = getIdUsuario(token).toString();
+            String username = null;
+            if (getIdUsuario(token) != null) {
+                username = getIdUsuario(token).toString();
+            } else {
+                username = getUsername(token);
+            }
             String rolesString = getRoles(token);
             Long idUsuario = null;
-            if (username != null && !username.equals("server")) {
+            if (username != null && !username.equals("server") && !username.equals("Visitante")) {
                 idUsuario = getIdUsuario(token);
             }
 
