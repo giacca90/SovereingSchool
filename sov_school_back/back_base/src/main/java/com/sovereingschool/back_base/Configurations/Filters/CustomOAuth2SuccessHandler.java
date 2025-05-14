@@ -41,6 +41,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
         if (!(authentication.getPrincipal() instanceof OAuth2User oauthUser)) {
+            System.err.println("Tipo de autenticación no compatible.");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Tipo de autenticación no compatible.");
             return;
         }
@@ -50,6 +51,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String email = (String) attributes.get("email");
 
         if (email == null || email.isEmpty()) {
+            System.err.println("No se pudo obtener el correo electrónico.");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No se pudo obtener el correo electrónico.");
             return;
         }
@@ -83,7 +85,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         String json = objectMapper.writeValueAsString(authResponse);
         String script = "<script>" +
-                "window.opener.postMessage(" + json + "," + front + ");" +
+                "window.opener.postMessage(" + json + ", \"" + front + "\");" +
                 "window.close();" +
                 "</script>";
 

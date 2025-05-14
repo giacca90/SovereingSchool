@@ -225,8 +225,8 @@ public class CursoChatService {
         Usuario usuario;
         try {
             usuario = objectMapper.readValue(message, Usuario.class);
-            if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()) != null) {
-                throw new RuntimeException("Ya existe un usuario con ese ID");
+            if (usuarioChatRepo.findByIdUsuario(usuario.getId_usuario()).isPresent()) {
+                throw new RuntimeException("Ya existe un usuario con el ID " + usuario.getId_usuario());
             }
             UsuarioChat usuarioChat = new UsuarioChat(
                     null, // String id

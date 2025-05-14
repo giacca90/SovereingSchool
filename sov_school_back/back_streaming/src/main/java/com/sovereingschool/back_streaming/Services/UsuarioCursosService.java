@@ -81,8 +81,8 @@ public class UsuarioCursosService implements IUsuarioCursosService {
 
     @Override
     public String addNuevoUsuario(Usuario usuario) {
-        if (usuarioCursosRepository.findByIdUsuario(usuario.getId_usuario()) != null) {
-            throw new RuntimeException("Ya existe un usuario con ese ID");
+        if (usuarioCursosRepository.findByIdUsuario(usuario.getId_usuario()).isPresent()) {
+            throw new RuntimeException("Ya existe un usuario con el ID " + usuario.getId_usuario());
         }
         List<Curso> courses = usuario.getCursos_usuario();
         List<StatusCurso> courseStatuses = new ArrayList<>();

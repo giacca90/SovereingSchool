@@ -258,7 +258,7 @@ public class LoginService implements UserDetailsService, ILoginService {
             Long id_usuario = jwtUtil.getIdUsuario(token);
             Optional<Usuario> opUsuario = this.usuarioRepository.findById(id_usuario);
             if (opUsuario.isEmpty()) {
-                System.err.println("Usuario no encontrado en loginWithToken");
+                System.err.println("Usuario no encontrado en loginWithToken: id_usuario: " + id_usuario);
                 throw new BadCredentialsException("Usuario no encontrado");
             }
             Usuario usuario = opUsuario.get();

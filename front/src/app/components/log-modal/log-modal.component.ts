@@ -68,13 +68,18 @@ export class LogModalComponent implements AfterViewInit {
 		const left = (window.innerWidth - width) / 2 + window.screenX;
 		const top = (window.innerHeight - height) / 2 + window.screenY;
 		if (provider === 'google') {
+			console.log('open google');
 			window.open(this.backBase + '/oauth2/authorization/google', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
 		} else if (provider === 'github') {
+			console.log('open github');
 			window.open(this.backBase + '/oauth2/authorization/github', '_blank', `width=${width},height=${height},top=${top},left=${left}`);
 		}
 
 		const messageListener = (event: MessageEvent) => {
-			if (event.origin !== this.backBase) return;
+			if (event.origin !== this.backBase) {
+				console.error('Invalid origin: ', event.origin);
+				return;
+			}
 
 			const authResponse: Auth = event.data;
 			// Guarda el token en localStorage

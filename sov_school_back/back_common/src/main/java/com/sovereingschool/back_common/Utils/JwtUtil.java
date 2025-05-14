@@ -203,9 +203,6 @@ public class JwtUtil {
         try {
             DecodedJWT decodedJWT = decodeToken(token);
             Claim idClaim = decodedJWT.getClaim("id_usuario");
-            if (idClaim.isNull()) {
-                throw new BadCredentialsException("El token no contiene un ID de usuario válido");
-            }
             return idClaim.asLong();
         } catch (AuthenticationException e) {
             throw e;
