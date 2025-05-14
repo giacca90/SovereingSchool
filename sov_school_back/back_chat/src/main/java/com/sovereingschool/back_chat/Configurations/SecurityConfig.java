@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -28,7 +26,6 @@ import org.springframework.web.filter.CorsFilter;
 
 import com.sovereingschool.back_chat.Configurations.Filters.JwtTokenCookieFilter;
 import com.sovereingschool.back_chat.Configurations.Filters.JwtTokenValidator;
-import com.sovereingschool.back_chat.Services.UserDetailServiceImpl;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -83,13 +80,16 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
-    public AuthenticationProvider authenticationProvider(UserDetailServiceImpl userDetailServiceImpl) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder(passwordEncoder());
-        provider.setUserDetailsService(userDetailServiceImpl);
-        return provider;
-    }
+    /*
+     * @Bean
+     * public AuthenticationProvider authenticationProvider(UserDetailServiceImpl
+     * userDetailServiceImpl) {
+     * DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+     * provider.setPasswordEncoder(passwordEncoder());
+     * provider.setUserDetailsService(userDetailServiceImpl);
+     * return provider;
+     * }
+     */
 
     @Bean
     public PasswordEncoder passwordEncoder() {

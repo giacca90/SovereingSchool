@@ -1,5 +1,6 @@
 package com.sovereingschool.back_chat.Configurations;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +13,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -33,8 +34,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        Authentication authentication = null;
-
         if (accessor.getCommand() == StompCommand.CONNECT) {
             Map<String, Object> sessionAttrs = accessor.getSessionAttributes();
             String token = (sessionAttrs != null)
@@ -46,55 +45,72 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 System.err.println("Falta token en sessionAttributes");
                 throw new MessagingException("Falta token en sessionAttributes");
             }
+            Long idUsuario = jwtUtil.getIdUsuario(token);
             try {
                 Authentication auth = jwtUtil.createAuthenticationFromToken(token);
-                Long idUsuario = jwtUtil.getIdUsuario(token);
                 // Creamos un token donde el name() es el ID:
-                UsernamePasswordAuthenticationToken wsAuth = new UsernamePasswordAuthenticationToken(
-                        idUsuario.toString(), // getName() -> ID
-                        auth.getCredentials(),
-                        auth.getAuthorities());
-                wsAuth.setDetails(idUsuario);
+                Authentication wsAuth = new Authentication() {
+                    @Override
+                    public Collection<? extends GrantedAuthority> getAuthorities() {
+                        return auth.getAuthorities();
+                    }
+
+                    @Override
+                    public Object getCredentials() {
+                        return auth.getCredentials();
+                    }
+
+                    @Override
+                    public Object getDetails() {
+                        return idUsuario;
+                    }
+
+                    @Override
+                    public Object getPrincipal() {
+                        return auth.getPrincipal();
+                    }
+
+                    @Override
+                    public boolean isAuthenticated() {
+                        return auth.isAuthenticated();
+                    }
+
+                    @Override
+                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        auth.setAuthenticated(isAuthenticated);
+                    }
+
+                    @Override
+                    public String getName() {
+                        return idUsuario.toString();
+                    }
+                };
                 SecurityContextHolder.getContext().setAuthentication(wsAuth);
                 accessor.setUser(wsAuth);
                 return message;
             } catch (AuthenticationException ex) {
                 SecurityContextHolder.clearContext();
                 System.err.println("Token inválido: " + ex.getMessage());
-                throw new MessagingException("Token inválido: " + ex.getMessage());
-            }
-        } else {
-            // Para todos los mensajes posteriores, sacamos el user ya seteado en el
-            // accessor
-            if (accessor.getUser() instanceof Authentication auth) {
-                authentication = auth;
-            }
-        }
-
-        if (authentication != null) {
-            String token = (String) authentication.getCredentials();
-            Long idUsuario = jwtUtil.getIdUsuario(token);
-            try {
-                jwtUtil.createAuthenticationFromToken(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                return message;
-            } catch (AuthenticationException e) {
                 String destination = accessor.getDestination(); // Ej: "/app/init"
                 if (destination != null) {
                     messagingTemplate.convertAndSendToUser(idUsuario.toString(), destination,
-                            "Token inválido: " + e.getMessage());
+                            "Token inválido: " + ex.getMessage());
+                    return null;
                 } else {
                     System.err.println("No hay destino para el mensaje de refresh");
                     // Cerrar la conexión
                     throw new MessagingException("Token inválido y sin destino para enviar el mensaje");
                 }
-                return null;
             }
         } else {
-            System.err.println("No hay autenticación en el WebSocket");
-            return null;
+            // Para todos los mensajes posteriores, sacamos el user ya seteado en el
+            // accessor
+            if (accessor.getUser() instanceof Authentication auth) {
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                return message;
+            }
+            throw new MessagingException("No hay autenticación en el WebSocket");
         }
-
     }
 
     @Override

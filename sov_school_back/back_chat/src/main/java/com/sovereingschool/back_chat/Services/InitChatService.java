@@ -1,5 +1,6 @@
 package com.sovereingschool.back_chat.Services;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +33,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import reactor.core.publisher.Flux;
+import reactor.util.retry.Retry;
 
 @Service
 @Transactional
@@ -218,52 +220,51 @@ public class InitChatService {
      */
     @PostConstruct
     private void observeMultipleCollections() {
-        // Configura las opciones de ChangeStream
-        ChangeStreamOptions options = ChangeStreamOptions.builder()
-                .build();
+        ChangeStreamOptions options = ChangeStreamOptions.builder().build();
 
-        // Observa los cambios en la colección users_chat
         Flux<Document> userChatFlux = reactiveMongoTemplate
                 .changeStream("users_chat", options, Document.class)
                 .map(event -> {
                     Document doc = event.getBody();
                     if (doc == null) {
-                        System.err.println("Documento nulo detectado en users_chat");
-                        return new Document(); // Devolvemos un documento vacío en lugar de null
+                        System.err.println("[users_chat] Documento nulo detectado");
+                        return new Document();
                     }
                     return doc;
-                });
+                })
+                .doOnError(err -> System.err.println("[users_chat] Error en el stream: " + err.getMessage()))
+                .retryWhen(Retry.backoff(10, Duration.ofSeconds(5))
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure()));
 
-        userChatFlux.subscribe(changedDocument -> {
+        userChatFlux.subscribe(doc -> {
             try {
-                notifyUsersChat(changedDocument);
+                notifyUsersChat(doc);
             } catch (Exception e) {
-                System.err.println("Error procesando documento de users_chat: " + e.getMessage());
+                System.err.println("[users_chat] Error al procesar documento: " + e.getMessage());
             }
-        },
-                error -> System.err.println("Error en el stream de users_chat: " + error.getMessage()));
+        });
 
-        // Observa los cambios en la colección courses_chat
         Flux<Document> coursesChatFlux = reactiveMongoTemplate
                 .changeStream("courses_chat", options, Document.class)
                 .map(event -> {
                     Document doc = event.getBody();
                     if (doc == null) {
-                        System.err.println("Documento nulo detectado en courses_chat stream");
-                        return new Document(); // Devolvemos un documento vacío en lugar de null
+                        System.err.println("[courses_chat] Documento nulo detectado");
+                        return new Document();
                     }
                     return doc;
-                });
+                })
+                .doOnError(err -> System.err.println("[courses_chat] Error en el stream: " + err.getMessage()))
+                .retryWhen(Retry.backoff(10, Duration.ofSeconds(5))
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure()));
 
-        coursesChatFlux.subscribe(
-                changedDocument -> {
-                    try {
-                        notifyCoursesChat(changedDocument);
-                    } catch (Exception e) {
-                        System.err.println("Error procesando documento de courses_chat: " + e.getMessage());
-                    }
-                },
-                error -> System.err.println("Error en el stream de courses_chat: " + error.getMessage()));
+        coursesChatFlux.subscribe(doc -> {
+            try {
+                notifyCoursesChat(doc);
+            } catch (Exception e) {
+                System.err.println("[courses_chat] Error al procesar documento: " + e.getMessage());
+            }
+        });
     }
 
     /**
