@@ -187,9 +187,9 @@ public class CursoChatService {
                     });
             if (usuarioChat.getCursos().stream().noneMatch(id -> Objects.equals(id, cursoChat.getId()))) {
                 usuarioChat.getCursos().add(cursoChat.getId());
+                usuarioChatRepo.save(usuarioChat);
             }
-            usuarioChat.getMensajes().add(savedId);
-            usuarioChatRepo.save(usuarioChat);
+            // usuarioChat.getMensajes().add(savedId);
 
             // Notificar profesores si es pregunta
             if (mensajeChatDTO.getPregunta() != null) {
@@ -204,6 +204,17 @@ public class CursoChatService {
                     profChat.getMensajes().add(savedId);
                     usuarioChatRepo.save(profChat);
                 }
+            }
+
+            // Noitificar al usuario si es una respuesta a un su mensaje
+            if (respId != null) {
+                UsuarioChat respUsuario = usuarioChatRepo
+                        .findByIdUsuario(mensajeChatRepo.findById(respId).get().getIdUsuario()).orElseThrow(() -> {
+                            System.err.println("Error en obtener el usuario del chat en la respuesta");
+                            throw new EntityNotFoundException("Error en obtener el usuario del chat en la respuesta");
+                        });
+                respUsuario.getMensajes().add(savedId);
+                usuarioChatRepo.save(respUsuario);
             }
         } catch (JsonProcessingException e) {
             System.err.println("Error al parsear JSON del mensaje: " + e.getMessage() + " en el mensaje: " + message);

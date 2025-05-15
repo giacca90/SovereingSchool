@@ -108,7 +108,7 @@
 				<p class="text-gray-500">{{ respuesta.mensaje }}</p>
 			</div>
 		}
-		<div class="flex">
+		<div class="mb-2 flex">
 			<input id="mex" (keydown.enter)="enviarMensaje()" type="text" class="w-full rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" placeholder="Escribe tu mensaje en el curso..." autocomplete="off" />
 			<button type="button" class="cursor-pointer rounded-lg border border-black bg-transparent p-2 dark:border-gray-400" (click)="this.enviarMensaje()">Enviar</button>
 		</div>

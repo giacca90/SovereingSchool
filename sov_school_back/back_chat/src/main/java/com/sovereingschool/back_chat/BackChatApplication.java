@@ -21,5 +21,4 @@ public class BackChatApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BackChatApplication.class, args);
 	}
-
 }
