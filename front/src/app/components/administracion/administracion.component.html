@@ -1,0 +1,52 @@
+<div class="flex flex-col">
+	<h3 class="w-full text-center">ADMINISTRACIÓN</h3>
+	<div class="flex">
+		<button class="m-2 cursor-pointer rounded-lg border border-black p-2" (click)="cargaUsuarios()">Usuarios</button>
+		<button class="m-2 cursor-pointer rounded-lg border border-black p-2" (click)="cargaCursos()">Cursos</button>
+		<button class="m-2 cursor-pointer rounded-lg border border-black p-2" (click)="cargaChats()">Chats</button>
+	</div>
+	<div class="flex flex-col">
+		@if (this.tipo === 1) {
+			<input id="buscadorUsuarios" class="m-2 w-full p-2" (input)="buscaUsuarios($event)" type="text" />
+			@for (usr of this.usuariosSel; track $index) {
+				<div class="m-2 flex rounded-lg border border-black p-2">
+					<p>{{ usr.id_usuario }}</p>
+					<div class="h-8 w-8 rounded-full border border-black">
+						<img [src]="usr.foto_usuario[0]" class="h-full w-full" />
+					</div>
+					<div class="w-1/2 text-center">
+						<p class="text-center">{{ usr.nombre_usuario }}</p>
+					</div>
+				</div>
+			}
+		}
+		@if (this.tipo === 2) {
+			<input id="buscadorCursos" class="m-2 w-full p-2" (input)="buscaCursos($event)" type="text" />
+			@for (curs of this.cursosSel; track $index) {
+				<div class="m-2 flex rounded-lg border border-black p-2">
+					<p>{{ curs.id_curso }}</p>
+					<div class="h-8 w-8 rounded-full border border-black">
+						<img [src]="curs.imagen_curso" class="h-full w-full" />
+					</div>
+					<div class="w-1/2 text-center">
+						<p class="text-center">{{ curs.nombre_curso }}</p>
+					</div>
+				</div>
+			}
+		}
+		@if (this.tipo === 3) {
+			<input id="buscadorChats" class="m-2 w-full p-2" (input)="buscaChats($event)" type="text" />
+			@for (chat of this.chatsSel; track $index) {
+				<div class="m-2 flex rounded-lg border border-black p-2">
+					<p>{{ chat.id_curso }}</p>
+					<div class="h-8 w-8 rounded-full border border-black">
+						<img [src]="chat.foto_curso" class="h-full w-full" />
+					</div>
+					<div class="w-1/2 text-center">
+						<p class="text-center">{{ chat.nombre_curso }}</p>
+					</div>
+				</div>
+			}
+		}
+	</div>
+</div>

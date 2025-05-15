@@ -1,8 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
-import { BehaviorSubject, Observable, Subject, switchMap, takeUntil, timer } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, Subject, switchMap, takeUntil, timer } from 'rxjs';
 import { CursoChat } from '../models/CursoChat';
 import { InitChatUsuario } from '../models/InitChatUsuario';
 import { MensajeChat } from '../models/MensajeChat';
@@ -19,7 +19,7 @@ export class ChatService {
 	private unsubscribe$ = new Subject<void>();
 
 	private client: Client = new Client({
-		brokerURL: this.url + '?token=' + this.jwtToken,
+		brokerURL: this.urlWss + '?token=' + this.jwtToken,
 		reconnectDelay: 1000,
 	});
 
@@ -28,6 +28,7 @@ export class ChatService {
 	constructor(
 		private loginService: LoginService,
 		@Inject(PLATFORM_ID) private platformId: object,
+		private http: HttpClient,
 	) {
 		if (isPlatformBrowser(this.platformId)) {
 			this.client.onWebSocketError = (error) => {
@@ -51,7 +52,7 @@ export class ChatService {
 
 								// Crea un nuevo cliente STOMP con el nuevo token
 								this.client = new Client({
-									brokerURL: this.url + '?token=' + this.jwtToken,
+									brokerURL: this.urlWss + '?token=' + this.jwtToken,
 									reconnectDelay: 1000, // Esperar entre intentos de reconexión
 									onConnect: (frame) => {
 										this.initUsuario();
@@ -87,10 +88,18 @@ export class ChatService {
 		}
 	}
 
-	get url(): string {
+	get urlWss(): string {
 		if (typeof window !== 'undefined' && (window as any).__env) {
 			const url = (window as any).__env.BACK_CHAT_WSS ?? '';
 			return url + '/chat-socket';
+		}
+		return '';
+	}
+
+	get url(): string {
+		if (typeof window !== 'undefined' && (window as any).__env) {
+			const url = (window as any).__env.BACK_CHAT ?? '';
+			return url;
 		}
 		return '';
 	}
@@ -229,5 +238,20 @@ export class ChatService {
 			destination: '/app/leido',
 			body: JSON.stringify(this.loginService.usuario?.id_usuario + ',' + idMensaje),
 		});
+	}
+
+	getAllChats() {
+		return this.http.get<CursoChat[]>(this.url + '/getAllChats', { observe: 'response' }).pipe(
+			map((response: HttpResponse<CursoChat[]>) => {
+				if (response.status === 200) {
+					return response.body;
+				}
+				return [];
+			}),
+			catchError((e: Error) => {
+				console.error('Error en obtener todos los usuarios: ' + e.message);
+				return of([]);
+			}),
+		);
 	}
 }

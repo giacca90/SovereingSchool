@@ -56,6 +56,10 @@ export const routes: Routes = [
 		loadComponent: () => import('./components/confirm-email/confirm-email.component').then((m) => m.ConfirmEmailComponent),
 	},
 	{
+		path: 'administracion',
+		loadComponent: () => import('./components/administracion/administracion.component').then((m) => m.AdministracionComponent),
+	},
+	{
 		path: '**',
 		redirectTo: '',
 	},

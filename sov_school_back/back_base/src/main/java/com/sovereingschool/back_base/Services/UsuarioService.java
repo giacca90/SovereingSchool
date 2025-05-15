@@ -545,6 +545,15 @@ public class UsuarioService implements IUsuarioService {
         }
     }
 
+    public List<Usuario> getAllUsuarios() {
+        try {
+            return this.repo.findAll();
+        } catch (Exception e) {
+            System.err.println("Error al obtener todos los usuarios: " + e.getMessage());
+            throw new RuntimeException("Error al obtener todos los usuarios: " + e.getMessage());
+        }
+    }
+
     private WebClient createSecureWebClient(String baseUrl) throws Exception {
 
         SslContext sslContext = SslContextBuilder.forClient()

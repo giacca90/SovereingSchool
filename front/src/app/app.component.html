@@ -22,6 +22,9 @@
 					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['/cursosUsuario']); this.vistaMenu = false">Tus Cursos</button>
 					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['/tus-chat']); this.vistaMenu = false">Tus Chats</button>
 					<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['/perfil']); this.vistaMenu = false">Tu perfil</button>
+					@if (this.loginService.usuario.roll_usuario === 'ADMIN') {
+						<button class="mb-1 cursor-pointer hover:text-blue-500" (click)="this.router.navigate(['/administracion']); this.vistaMenu = false">Administración</button>
+					}
 					<button class="cursor-pointer hover:text-blue-500" (click)="this.salir()">Salir</button>
 				</div>
 			}

@@ -470,4 +470,20 @@ public class UsuarioController {
 		response = fileNames;
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
+	@PreAuthorize("hasAnyRole('ADMIN')")
+	@GetMapping("/getAll")
+	public ResponseEntity<?> getAllUsuarios() {
+		Object response = new Object();
+		try {
+			response = this.usuarioService.getAllUsuarios();
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (RuntimeException e) {
+			response = e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			response = "Error en obtener todos los usuarios: " + e.getMessage();
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 }

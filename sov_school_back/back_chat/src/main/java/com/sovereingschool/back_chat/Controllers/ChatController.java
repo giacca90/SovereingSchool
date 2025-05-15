@@ -1,5 +1,6 @@
 package com.sovereingschool.back_chat.Controllers;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
+import com.sovereingschool.back_chat.Models.CursoChat;
 import com.sovereingschool.back_chat.Services.CursoChatService;
 import com.sovereingschool.back_chat.Services.InitChatService;
 import com.sovereingschool.back_common.Models.Curso;
@@ -190,6 +192,18 @@ public class ChatController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             return new ResponseEntity<>("Error en actualizar el chat del curso: " + e.getCause(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<?> getAllCursosChat() {
+        try {
+            return new ResponseEntity<List<CursoChat>>(this.cursoChatService.getAllCursosChat(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error en obtener todos los cursos del chat: " + e.getCause(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

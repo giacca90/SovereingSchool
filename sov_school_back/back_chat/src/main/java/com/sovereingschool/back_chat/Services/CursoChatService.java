@@ -495,4 +495,13 @@ public class CursoChatService {
             throw new RuntimeException("Error en actualizar el curso en el chat: " + e.getMessage());
         }
     }
+
+    public List<CursoChat> getAllCursosChat() {
+        try {
+            return cursoChatRepo.findAll();
+        } catch (Exception e) {
+            System.err.println("Error al obtener todos los cursos del chat: " + e.getMessage());
+            throw new RuntimeException("Error al obtener todos los cursos del chat: " + e.getMessage());
+        }
+    }
 }

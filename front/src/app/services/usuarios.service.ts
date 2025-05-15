@@ -68,4 +68,19 @@ export class UsuariosService {
 			}),
 		);
 	}
+
+	getAllUsuarios() {
+		return this.http.get<Usuario[]>(this.apiUrl + '/usuario/getAll', { observe: 'response' }).pipe(
+			map((response: HttpResponse<Usuario[]>) => {
+				if (response.status === 200) {
+					return response.body;
+				}
+				return [];
+			}),
+			catchError((e: Error) => {
+				console.error('Error en obtener todos los usuarios: ' + e.message);
+				return of([]);
+			}),
+		);
+	}
 }
