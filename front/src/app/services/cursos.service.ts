@@ -169,4 +169,23 @@ export class CursosService {
 			}),
 		);
 	}
+
+	getAllCursos() {
+		return this.http.get<Curso[]>(this.backURL + '/cursos/getAll', { observe: 'response' }).pipe(
+			map((response: HttpResponse<Curso[]>) => {
+				if (response.ok && response.body) {
+					this.cursos = response.body;
+					this.cursos.forEach((curso) => {
+						curso.clases_curso = curso.clases_curso?.sort((a, b) => a.posicion_clase - b.posicion_clase);
+					});
+					return this.cursos;
+				}
+				return [];
+			}),
+			catchError((e: Error) => {
+				console.error('Error en obtener todos los cursos: ' + e.message);
+				return of([]);
+			}),
+		);
+	}
 }

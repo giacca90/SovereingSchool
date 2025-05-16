@@ -496,9 +496,39 @@ public class CursoChatService {
         }
     }
 
-    public List<CursoChat> getAllCursosChat() {
+    public List<CursoChatDTO> getAllCursosChat() {
         try {
-            return cursoChatRepo.findAll();
+            List<CursoChat> cursosChat = cursoChatRepo.findAll();
+            List<CursoChatDTO> cursosChatDTO = new ArrayList<>();
+            if (cursosChat != null && !cursosChat.isEmpty()) {
+                for (CursoChat cursoChat : cursosChat) {
+                    List<ClaseChatDTO> clasesChatDTO = new ArrayList<>();
+                    cursoChat.getClases().forEach(clase -> {
+                        clasesChatDTO.add(new ClaseChatDTO(
+                                clase.getIdClase(),
+                                cursoChat.getIdCurso(),
+                                null,
+                                new ArrayList<>()));
+                    });
+                    List<String> mensajesId = cursoChat.getMensajes();
+                    List<MensajeChatDTO> mensajesDTO = new ArrayList<>();
+                    if (mensajesId != null && !mensajesId.isEmpty()) {
+                        List<MensajeChat> mensajesChat = mensajeChatRepo.findAllById(mensajesId);
+                        if (mensajesChat != null && mensajesChat.size() > 0) {
+                            mensajesDTO = initChatService.getMensajesDTO(mensajesChat);
+                        }
+                    }
+                    Curso curso = this.cursoRepo.findById(cursoChat.getIdCurso()).get();
+                    cursosChatDTO.add(new CursoChatDTO(
+                            curso.getId_curso(),
+                            clasesChatDTO,
+                            mensajesDTO,
+                            curso.getNombre_curso(),
+                            curso.getImagen_curso()));
+                }
+                return cursosChatDTO;
+            }
+            return null;
         } catch (Exception e) {
             System.err.println("Error al obtener todos los cursos del chat: " + e.getMessage());
             throw new RuntimeException("Error al obtener todos los cursos del chat: " + e.getMessage());

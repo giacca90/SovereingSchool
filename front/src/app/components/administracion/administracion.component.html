@@ -1,5 +1,5 @@
 <div class="flex w-full flex-col">
-	<h3 class="w-full text-center">ADMINISTRACIÓN</h3>
+	<h3 class="w-full text-center font-bold text-green-700">ADMINISTRACIÓN</h3>
 	<div class="flex">
 		<button id="usuariosButton" class="m-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="cargaUsuarios()">Usuarios</button>
 		<button id="cursosButton" class="m-2 cursor-pointer rounded-lg border border-black p-2 dark:border-gray-400" (click)="cargaCursos()">Cursos</button>
@@ -14,8 +14,15 @@
 					<div class="ml-4 h-8 w-8">
 						<img [src]="usr.foto_usuario[0]" class="h-full w-full" />
 					</div>
-					<div class="w-1/2 text-center">
-						<p class="text-center">{{ usr.nombre_usuario }}</p>
+					<div class="flex text-center">
+						<p class="m-2">{{ usr.nombre_usuario }}</p>
+						<p class="m-2">Rol: {{ usr.roll_usuario }}</p>
+						<p class="m-2">Registro: {{ usr.fecha_registro_usuario }}</p>
+						@if (usr.roll_usuario === 'USER') {
+							<p class="m-2">Cursos registrados: {{ usr.cursos_usuario?.length }}</p>
+						} @else {
+							<p class="m-2">Cursos creados: {{ this.cursosService.getCursosProfe(usr).length }}</p>
+						}
 					</div>
 				</div>
 			}
@@ -28,8 +35,13 @@
 					<div class="ml-4 h-8 w-8">
 						<img [src]="curs.imagen_curso" class="h-full w-full" />
 					</div>
-					<div class="w-1/2 text-center">
-						<p class="text-center">{{ curs.nombre_curso }}</p>
+					<div class="flex text-center">
+						<p class="m-2">{{ curs.nombre_curso }}</p>
+						<p class="m-2">Profes:</p>
+						@for (prof of curs.profesores_curso; track $index) {
+							<p class="m-2">{{ prof.nombre_usuario }}</p>
+						}
+						<p class="m-2">Clases: {{ curs.clases_curso?.length }}</p>
 					</div>
 				</div>
 			}
@@ -42,8 +54,10 @@
 					<div class="ml-4 h-8 w-8">
 						<img [src]="chat.foto_curso" class="h-full w-full" />
 					</div>
-					<div class="w-1/2 text-center">
-						<p class="text-center">{{ chat.nombre_curso }}</p>
+					<div class="flex text-center">
+						<p class="m-2">{{ chat.nombre_curso }}</p>
+						<p class="m-2">Clases: {{ chat.clases.length }}</p>
+						<p class="m-2">Mensajes: {{ chat.mensajes.length }}</p>
 					</div>
 				</div>
 			}

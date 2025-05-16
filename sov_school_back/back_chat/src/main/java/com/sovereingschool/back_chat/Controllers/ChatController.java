@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sovereingschool.back_chat.DTOs.CursoChatDTO;
-import com.sovereingschool.back_chat.Models.CursoChat;
 import com.sovereingschool.back_chat.Services.CursoChatService;
 import com.sovereingschool.back_chat.Services.InitChatService;
 import com.sovereingschool.back_common.Models.Curso;
@@ -199,7 +198,7 @@ public class ChatController {
     @GetMapping("/getAll")
     public ResponseEntity<?> getAllCursosChat() {
         try {
-            return new ResponseEntity<List<CursoChat>>(this.cursoChatService.getAllCursosChat(), HttpStatus.OK);
+            return new ResponseEntity<List<CursoChatDTO>>(this.cursoChatService.getAllCursosChat(), HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {

@@ -26,7 +26,7 @@ export class AdministracionComponent {
 
 	constructor(
 		private usuariosService: UsuariosService,
-		private cursosService: CursosService,
+		public cursosService: CursosService,
 		private chatsService: ChatService,
 		private initService: InitService,
 	) {}
@@ -49,15 +49,12 @@ export class AdministracionComponent {
 		document.querySelectorAll('button').forEach((b) => b.classList.remove('text-green-700'));
 		document.querySelector('#cursosButton')?.classList.add('text-green-700');
 		if (this.cursos.length === 0) {
-			if (this.cursosService.cursos.length === 0) {
-				this.initService.carga().then(() => {
-					this.cursos = this.cursosService.cursos;
-					this.cursosSel = this.cursosService.cursos;
-				});
-			} else {
-				this.cursos = this.cursosService.cursos;
-				this.cursosSel = this.cursosService.cursos;
-			}
+			this.cursosService.getAllCursos().subscribe((data: Curso[] | null) => {
+				if (data) {
+					this.cursos = data;
+					this.cursosSel = data;
+				}
+			});
 		}
 		this.tipo = 2;
 	}
@@ -81,7 +78,7 @@ export class AdministracionComponent {
 		if (value.length === 0) {
 			this.usuariosSel = this.usuarios;
 		} else {
-			this.usuariosSel = this.usuarios.filter((u) => u.nombre_usuario.toLowerCase().includes(value.toLowerCase()));
+			this.usuariosSel = this.usuarios.filter((u) => u.nombre_usuario.toLowerCase().includes(value.toLowerCase()) || u.roll_usuario?.toLowerCase().includes(value.toLowerCase()) || u.id_usuario.toString().includes(value));
 		}
 	}
 	buscaCursos($event: Event) {
@@ -89,7 +86,7 @@ export class AdministracionComponent {
 		if (value.length === 0) {
 			this.cursosSel = this.cursos;
 		} else {
-			this.cursosSel = this.cursos.filter((c) => c.nombre_curso.toLowerCase().includes(value.toLowerCase()));
+			this.cursosSel = this.cursos.filter((c) => c.nombre_curso.toLowerCase().includes(value.toLowerCase()) || c.profesores_curso.toString().toLowerCase().includes(value.toLowerCase()) || c.id_curso.toString().includes(value));
 		}
 	}
 	buscaChats($event: Event) {
@@ -97,7 +94,7 @@ export class AdministracionComponent {
 		if (value.length === 0) {
 			this.chatsSel = this.chats;
 		} else {
-			this.chatsSel = this.chats.filter((c) => c.nombre_curso.toLowerCase().includes(value.toLowerCase()));
+			this.chatsSel = this.chats.filter((c) => c.nombre_curso.toLowerCase().includes(value.toLowerCase()) || c.id_curso.toString().includes(value));
 		}
 	}
 }
