@@ -70,7 +70,7 @@ export class UsuariosService {
 	}
 
 	getAllUsuarios() {
-		return this.http.get<Usuario[]>(this.apiUrl + '/usuario/getAll', { observe: 'response' }).pipe(
+		return this.http.get<Usuario[]>(this.apiUrl + 'getAll', { observe: 'response' }).pipe(
 			map((response: HttpResponse<Usuario[]>) => {
 				if (response.status === 200) {
 					return response.body;

@@ -241,7 +241,7 @@ export class ChatService {
 	}
 
 	getAllChats() {
-		return this.http.get<CursoChat[]>(this.url + '/getAllChats', { observe: 'response' }).pipe(
+		return this.http.get<CursoChat[]>(this.url + '/getAll', { observe: 'response' }).pipe(
 			map((response: HttpResponse<CursoChat[]>) => {
 				if (response.status === 200) {
 					return response.body;
