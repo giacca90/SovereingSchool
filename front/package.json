@@ -20,7 +20,7 @@
 		"@angular/platform-browser": "^19.2.10",
 		"@angular/platform-browser-dynamic": "^19.2.10",
 		"@angular/platform-server": "^19.2.10",
-		"@angular/router": "^19.2.10",
+		"@angular/router": "^19.2.11",
 		"@angular/ssr": "^19.2.11",
 		"@stomp/stompjs": "^7.1.1",
 		"@tailwindcss/postcss": "^4.1.6",
