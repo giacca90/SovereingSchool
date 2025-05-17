@@ -14,7 +14,7 @@
 					<div class="ml-4 h-8 w-8">
 						<img [src]="usr.foto_usuario[0]" class="h-full w-full" />
 					</div>
-					<div class="flex text-center">
+					<div class="flex grow items-center text-center">
 						<p class="m-2">{{ usr.nombre_usuario }}</p>
 						<p class="m-2">Rol: {{ usr.roll_usuario }}</p>
 						<p class="m-2">Registro: {{ usr.fecha_registro_usuario }}</p>
@@ -24,6 +24,7 @@
 							<p class="m-2">Cursos creados: {{ this.cursosService.getCursosProfe(usr).length }}</p>
 						}
 					</div>
+					<svg class="cursor-pointer" (click)="eliminaUsuario(usr)" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px" viewBox="0 0 8 8"><path fill="currentColor" d="M3 0c-.55 0-1 .45-1 1H1c-.55 0-1 .45-1 1h7c0-.55-.45-1-1-1H5c0-.55-.45-1-1-1zM1 3v4.81c0 .11.08.19.19.19h4.63c.11 0 .19-.08.19-.19V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1z" /></svg>
 				</div>
 			}
 		}
@@ -35,7 +36,7 @@
 					<div class="ml-4 h-8 w-8">
 						<img [src]="curs.imagen_curso" class="h-full w-full" />
 					</div>
-					<div class="flex text-center">
+					<div class="flex grow items-center text-center">
 						<p class="m-2">{{ curs.nombre_curso }}</p>
 						<p class="m-2">Profes:</p>
 						@for (prof of curs.profesores_curso; track $index) {
@@ -43,6 +44,7 @@
 						}
 						<p class="m-2">Clases: {{ curs.clases_curso?.length }}</p>
 					</div>
+					<svg class="cursor-pointer" (click)="eliminaCurso(curs)" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px" viewBox="0 0 8 8"><path fill="currentColor" d="M3 0c-.55 0-1 .45-1 1H1c-.55 0-1 .45-1 1h7c0-.55-.45-1-1-1H5c0-.55-.45-1-1-1zM1 3v4.81c0 .11.08.19.19.19h4.63c.11 0 .19-.08.19-.19V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1z" /></svg>
 				</div>
 			}
 		}
@@ -54,11 +56,12 @@
 					<div class="ml-4 h-8 w-8">
 						<img [src]="chat.foto_curso" class="h-full w-full" />
 					</div>
-					<div class="flex text-center">
+					<div class="flex grow items-center text-center">
 						<p class="m-2">{{ chat.nombre_curso }}</p>
 						<p class="m-2">Clases: {{ chat.clases.length }}</p>
 						<p class="m-2">Mensajes: {{ chat.mensajes.length }}</p>
 					</div>
+					<svg class="cursor-pointer" (click)="eliminaChat(chat)" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px" viewBox="0 0 8 8"><path fill="currentColor" d="M3 0c-.55 0-1 .45-1 1H1c-.55 0-1 .45-1 1h7c0-.55-.45-1-1-1H5c0-.55-.45-1-1-1zM1 3v4.81c0 .11.08.19.19.19h4.63c.11 0 .19-.08.19-.19V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1v3.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V3h-1z" /></svg>
 				</div>
 			}
 		}

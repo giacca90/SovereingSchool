@@ -81,6 +81,7 @@ export class AdministracionComponent {
 			this.usuariosSel = this.usuarios.filter((u) => u.nombre_usuario.toLowerCase().includes(value.toLowerCase()) || u.roll_usuario?.toLowerCase().includes(value.toLowerCase()) || u.id_usuario.toString().includes(value));
 		}
 	}
+
 	buscaCursos($event: Event) {
 		const value: string = ($event.target as HTMLInputElement).value;
 		if (value.length === 0) {
@@ -89,6 +90,7 @@ export class AdministracionComponent {
 			this.cursosSel = this.cursos.filter((c) => c.nombre_curso.toLowerCase().includes(value.toLowerCase()) || c.profesores_curso.toString().toLowerCase().includes(value.toLowerCase()) || c.id_curso.toString().includes(value));
 		}
 	}
+
 	buscaChats($event: Event) {
 		const value: string = ($event.target as HTMLInputElement).value;
 		if (value.length === 0) {
@@ -96,5 +98,53 @@ export class AdministracionComponent {
 		} else {
 			this.chatsSel = this.chats.filter((c) => c.nombre_curso.toLowerCase().includes(value.toLowerCase()) || c.id_curso.toString().includes(value));
 		}
+	}
+
+	eliminaUsuario(usuario: Usuario) {
+		if (!confirm('¿Estás seguro que deseas eliminar este usuario?')) {
+			return;
+		}
+		this.usuariosService.eliminaUsuario(usuario).subscribe((data: boolean) => {
+			if (data) {
+				this.usuariosService.getAllUsuarios().subscribe((data: Usuario[] | null) => {
+					if (data) {
+						this.usuarios = data;
+						this.usuariosSel = data;
+					}
+				});
+			}
+		});
+	}
+
+	eliminaCurso(curso: Curso) {
+		if (!confirm('¿Estás seguro que deseas eliminar este curso?\n Esto eliminará también el chat de este curso')) {
+			return;
+		}
+		/* this.cursosService.deleteCurso(curso).subscribe((data: boolean) => {
+			if (data) {
+				this.cursosService.getAllCursos().subscribe((data: Curso[] | null) => {
+					if (data) {
+						this.cursos = data;
+						this.cursosSel = data;
+					}
+				});
+			}
+		}); */
+	}
+
+	eliminaChat(chat: CursoChat) {
+		if (!confirm('¿Estás seguro que deseas eliminar este chat?\n Esto no eliminará el curso de este chat')) {
+			return;
+		}
+		/* this.chatsService.deleteChat(chat).subscribe((data: boolean) => {
+			if (data) {
+				this.chatsService.getAllChats().subscribe((data: CursoChat[] | null) => {
+					if (data) {
+						this.chats = data;
+						this.chatsSel = data;
+					}
+				});
+			}
+		}); */
 	}
 }

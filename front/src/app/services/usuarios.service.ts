@@ -83,4 +83,20 @@ export class UsuariosService {
 			}),
 		);
 	}
+
+	eliminaUsuario(usuario: Usuario) {
+		return this.http.delete<string>(this.apiUrl + usuario.id_usuario, { observe: 'response', responseType: 'text' as 'json' }).pipe(
+			map((response: HttpResponse<string>) => {
+				if (response.ok) {
+					this.getAllUsuarios();
+					return true;
+				}
+				return false;
+			}),
+			catchError((e: Error) => {
+				console.error('Error en eliminar el usuario: ' + e.message);
+				return of(false);
+			}),
+		);
+	}
 }
