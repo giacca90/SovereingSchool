@@ -147,4 +147,43 @@ export class AdministracionComponent {
 			}
 		}); */
 	}
+
+	mostrarUsuario(idUsuario: number) {
+		document.querySelectorAll('[id^="user-data-"]').forEach((d) => {
+			if (d.id === `user-data-${idUsuario}`) {
+				(d as HTMLDivElement).style.display = (d as HTMLDivElement).style.display === 'block' ? 'none' : 'block';
+			} else {
+				(d as HTMLDivElement).style.display = 'none';
+			}
+		});
+	}
+
+	mostrarCurso(idCurso: number) {
+		document.querySelectorAll('[id^="curso-data-"]').forEach((d) => {
+			if (d.id === `curso-data-${idCurso}`) {
+				(d as HTMLDivElement).style.display = (d as HTMLDivElement).style.display === 'block' ? 'none' : 'block';
+			} else {
+				(d as HTMLDivElement).style.display = 'none';
+			}
+		});
+	}
+	mostrarChat(idCurso: number) {
+		document.querySelectorAll('[id^="chat-data-"]').forEach((d) => {
+			if (d.id === `chat-data-${idCurso}`) {
+				(d as HTMLDivElement).style.display = (d as HTMLDivElement).style.display === 'block' ? 'none' : 'block';
+			} else {
+				(d as HTMLDivElement).style.display = 'none';
+			}
+		});
+	}
+
+	mostrarClaseChat(idClase: number) {
+		document.querySelectorAll('[id^="clase-chat-"]').forEach((d) => {
+			if (d.id === `clase-chat-${idClase}`) {
+				(d as HTMLDivElement).style.display = (d as HTMLDivElement).style.display === 'block' ? 'none' : 'block';
+			} else {
+				(d as HTMLDivElement).style.display = 'none';
+			}
+		});
+	}
 }

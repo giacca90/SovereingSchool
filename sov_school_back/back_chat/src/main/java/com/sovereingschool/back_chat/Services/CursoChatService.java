@@ -28,6 +28,7 @@ import com.sovereingschool.back_chat.Repositories.UsuarioChatRepository;
 import com.sovereingschool.back_common.Models.Clase;
 import com.sovereingschool.back_common.Models.Curso;
 import com.sovereingschool.back_common.Models.Usuario;
+import com.sovereingschool.back_common.Repositories.ClaseRepository;
 import com.sovereingschool.back_common.Repositories.CursoRepository;
 import com.sovereingschool.back_common.Repositories.UsuarioRepository;
 import com.sovereingschool.back_common.Utils.JwtUtil;
@@ -47,6 +48,9 @@ public class CursoChatService {
 
     @Autowired
     private CursoRepository cursoRepo;
+
+    @Autowired
+    private ClaseRepository claseRepo;
 
     @Autowired
     private UsuarioRepository usuarioRepo;
@@ -507,7 +511,7 @@ public class CursoChatService {
                         clasesChatDTO.add(new ClaseChatDTO(
                                 clase.getIdClase(),
                                 cursoChat.getIdCurso(),
-                                null,
+                                this.claseRepo.findNombreClaseById(clase.getIdClase()).get(),
                                 new ArrayList<>()));
                     });
                     List<String> mensajesId = cursoChat.getMensajes();
